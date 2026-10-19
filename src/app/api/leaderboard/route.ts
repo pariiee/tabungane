@@ -112,8 +112,16 @@ export async function GET(req: Request) {
     };
   });
 
+  const totalStudents = db.prepare("SELECT COUNT(id) as total FROM users WHERE role = 'mahasiswa' AND aktif = 1").get() as any;
+  const myRankIndex = leaderboard.findIndex((m) => m.is_me);
+
   return NextResponse.json({
     tab,
     leaderboard,
+    my_standing: {
+      rank: myRankIndex !== -1 ? myRankIndex + 1 : "-",
+      total_students: totalStudents?.total || 0,
+      is_top10: myRankIndex !== -1,
+    },
   });
 }
