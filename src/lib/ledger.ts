@@ -82,3 +82,108 @@ export function creditPayment(
     return { success: true, credited: true };
   });
 }
+
+/**
+ * Returns current Dompet Utama (Saku) balance for a user
+ */
+export function getWalletBalance(userId: string): number {
+  const row = db
+    .prepare(
+      "SELECT COALESCE(SUM(jumlah), 0) as balance FROM transaksi WHERE user_id = ? AND keanggotaan_id IS NULL AND status = 'berhasil'"
+    )
+    .get(userId) as any;
+  return Number(row?.balance || 0);
+}
+
+/**
+ * Allocate money from Dompet Utama to a Group Pocket (Kas Kelas)
+ */
+export function allocateToGroup(
+  userId: string,
+  grupId: string,
+  amount: number,
+  catatan?: string
+) {
+  if (amount <= 0) throw new Error("Nominal alokasi harus lebih dari 0");
+
+  const currentBalance = getWalletBalance(userId);
+  if (currentBalance < amount) {
+    throw new Error(`Saldo dompet tidak mencukupi (Tersedia: Rp ${currentBalance.toLocaleString("id-ID")})`);
+  }
+
+  // Ensure membership exists
+  let member = db
+    .prepare("SELECT id FROM keanggotaan WHERE user_id = ? AND grup_id = ?")
+    .get(userId, grupId) as any;
+
+  return runTransaction(() => {
+    if (!member) {
+      const newMemberId = crypto.randomUUID();
+      db.prepare("INSERT INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
+        newMemberId,
+        grupId,
+        userId
+      );
+      member = { id: newMemberId };
+    }
+
+    const note = catatan || "Alokasi dari Dompet Utama";
+
+    // 1. Deduct from main wallet
+    db.prepare(`
+      INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at)
+      VALUES (?, ?, NULL, 'alokasi_keluar', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
+    `).run(crypto.randomUUID(), userId, -amount, note);
+
+    // 2. Add to group pocket
+    db.prepare(`
+      INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at)
+      VALUES (?, ?, ?, 'alokasi_masuk', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
+    `).run(crypto.randomUUID(), userId, member.id, amount, note);
+
+    return { success: true, allocated: amount };
+  });
+}
+
+/**
+ * P2P transfer between students by NIM
+ */
+export function transferToNim(
+  senderUserId: string,
+  targetNim: string,
+  amount: number,
+  catatan?: string
+) {
+  if (amount <= 0) throw new Error("Nominal transfer harus lebih dari 0");
+
+  const sender = db.prepare("SELECT * FROM users WHERE id = ?").get(senderUserId) as any;
+  if (!sender) throw new Error("Pengirim tidak valid");
+
+  const target = db.prepare("SELECT * FROM users WHERE nim = ? AND aktif = 1").get(targetNim) as any;
+  if (!target) throw new Error(`Mahasiswa dengan NIM ${targetNim} tidak ditemukan`);
+  if (target.id === senderUserId) throw new Error("Tidak dapat transfer ke NIM sendiri");
+
+  const senderBalance = getWalletBalance(senderUserId);
+  if (senderBalance < amount) {
+    throw new Error(`Saldo dompet tidak mencukupi (Tersedia: Rp ${senderBalance.toLocaleString("id-ID")})`);
+  }
+
+  return runTransaction(() => {
+    const noteSender = catatan ? `Transfer ke ${target.nama} (${target.nim}): ${catatan}` : `Transfer ke ${target.nama} (${target.nim})`;
+    const noteReceiver = catatan ? `Transfer dari ${sender.nama} (${sender.nim}): ${catatan}` : `Transfer dari ${sender.nama} (${sender.nim})`;
+
+    // Deduct sender
+    db.prepare(`
+      INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at)
+      VALUES (?, ?, NULL, 'transfer_keluar', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
+    `).run(crypto.randomUUID(), senderUserId, -amount, noteSender);
+
+    // Credit receiver
+    db.prepare(`
+      INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at)
+      VALUES (?, ?, NULL, 'transfer_masuk', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
+    `).run(crypto.randomUUID(), target.id, amount, noteReceiver);
+
+    return { success: true, transferred: amount, target_nama: target.nama };
+  });
+}

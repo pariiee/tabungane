@@ -19,36 +19,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Nominal harus antara Rp1.000 dan Rp1.000.000" }, { status: 400 });
     }
 
-    if (!grup_id) {
-      return NextResponse.json({ error: "Grup tabungan wajib dipilih" }, { status: 400 });
-    }
+    const isWallet = !grup_id || grup_id === "wallet";
+    let membershipId: string | null = null;
 
-    // Verify membership
-    let membership = db
-      .prepare("SELECT id FROM keanggotaan WHERE grup_id = ? AND user_id = ?")
-      .get(grup_id, user.id) as any;
+    if (!isWallet) {
+      // Verify membership
+      let membership = db
+        .prepare("SELECT id FROM keanggotaan WHERE grup_id = ? AND user_id = ?")
+        .get(grup_id, user.id) as any;
 
-    if (!membership) {
-      // Auto-join membership if student belongs to the group's class
-      const grup = db.prepare("SELECT kelas_id FROM grup_tabungan WHERE id = ?").get(grup_id) as any;
-      if (!grup) {
-        return NextResponse.json({ error: "Grup tabungan tidak ditemukan" }, { status: 404 });
+      if (!membership) {
+        // Auto-join membership if student belongs to the group's class
+        const grup = db.prepare("SELECT kelas_id FROM grup_tabungan WHERE id = ?").get(grup_id) as any;
+        if (!grup) {
+          return NextResponse.json({ error: "Grup tabungan tidak ditemukan" }, { status: 404 });
+        }
+        const newMemberId = crypto.randomUUID();
+        db.prepare("INSERT INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
+          newMemberId,
+          grup_id,
+          user.id
+        );
+        membership = { id: newMemberId };
       }
-      const newMemberId = crypto.randomUUID();
-      db.prepare("INSERT INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
-        newMemberId,
-        grup_id,
-        user.id
-      );
-      membership = { id: newMemberId };
+      membershipId = membership.id;
     }
 
-    // PRD rule: cancel previous pending QR for this user across all their memberships
+    // PRD rule: cancel previous pending QR for this user across all their memberships & wallet
     const pendingTrxs = db.prepare(`
       SELECT t.id, t.qris_trx_id 
       FROM transaksi t
-      JOIN keanggotaan k ON t.keanggotaan_id = k.id
-      WHERE k.user_id = ? AND t.status = 'pending' AND t.tipe = 'topup_qris'
+      WHERE t.user_id = ? AND t.status = 'pending' AND t.tipe = 'topup_qris'
     `).all(user.id) as any[];
 
     for (const p of pendingTrxs) {
@@ -71,14 +72,15 @@ export async function POST(req: Request) {
     }
 
     // Call QRIS generator
-    const qrisRes = await createQrisPayment(nominal, `Top up Tabungan ${user.nim}`);
+    const topupLabel = isWallet ? `Top up Dompet Utama ${user.nim}` : `Top up Kas ${user.nim}`;
+    const qrisRes = await createQrisPayment(nominal, topupLabel);
 
     const trxId = crypto.randomUUID();
     db.prepare(`
       INSERT INTO transaksi (
-        id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan, dibuat_oleh, expired_at
-      ) VALUES (?, ?, 'topup_qris', ?, 'pending', ?, 'Top up QRIS', ?, ?)
-    `).run(trxId, membership.id, nominal, qrisRes.trxid, user.nama, qrisRes.expired_at);
+        id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan, dibuat_oleh, expired_at
+      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, ?, ?, ?)
+    `).run(trxId, user.id, membershipId, nominal, qrisRes.trxid, topupLabel, user.nama, qrisRes.expired_at);
 
     return NextResponse.json({
       success: true,

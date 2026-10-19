@@ -85,7 +85,8 @@ try {
 
     CREATE TABLE IF NOT EXISTS transaksi (
       id TEXT PRIMARY KEY,
-      keanggotaan_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      keanggotaan_id TEXT,
       tipe TEXT NOT NULL,
       jumlah INTEGER NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending',
@@ -97,6 +98,7 @@ try {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       expired_at DATETIME,
       paid_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (keanggotaan_id) REFERENCES keanggotaan(id) ON DELETE CASCADE,
       FOREIGN KEY (ref_transaksi_id) REFERENCES transaksi(id) ON DELETE SET NULL
     );
@@ -134,6 +136,42 @@ try {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_webhook_events_event_id ON webhook_events(event_id);
   `);
+
+  // Auto-migration for wallet schema
+  try {
+    const cols = db.prepare("PRAGMA table_info(transaksi)").all() as any[];
+    const userCol = cols.find((c) => c.name === "user_id");
+    const memberCol = cols.find((c) => c.name === "keanggotaan_id");
+    if (!userCol || (memberCol && memberCol.notnull === 1)) {
+      db.exec(`
+        PRAGMA foreign_keys=OFF;
+        CREATE TABLE IF NOT EXISTS transaksi_v2 (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          keanggotaan_id TEXT,
+          tipe TEXT NOT NULL,
+          jumlah INTEGER NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending',
+          qris_trx_id TEXT UNIQUE,
+          channel TEXT,
+          ref_transaksi_id TEXT,
+          catatan TEXT,
+          dibuat_oleh TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          expired_at DATETIME,
+          paid_at DATETIME
+        );
+        INSERT INTO transaksi_v2 (id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, channel, ref_transaksi_id, catatan, dibuat_oleh, created_at, expired_at, paid_at)
+        SELECT t.id, COALESCE(k.user_id, ''), t.keanggotaan_id, t.tipe, t.jumlah, t.status, t.qris_trx_id, t.channel, t.ref_transaksi_id, t.catatan, t.dibuat_oleh, t.created_at, t.expired_at, t.paid_at
+        FROM transaksi t
+        LEFT JOIN keanggotaan k ON t.keanggotaan_id = k.id;
+        DROP TABLE transaksi;
+        ALTER TABLE transaksi_v2 RENAME TO transaksi;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
+        PRAGMA foreign_keys=ON;
+      `);
+    }
+  } catch {}
 } catch (e) {
   // If another worker is already initializing, ignore
 }

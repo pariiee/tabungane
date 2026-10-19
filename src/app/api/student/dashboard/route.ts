@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getWalletBalance } from "@/lib/ledger";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -55,9 +56,11 @@ export async function GET() {
   });
 
   const totalTabungan = formattedGroups.reduce((acc, cur) => acc + cur.saldo_saya, 0);
+  const saldoDompet = getWalletBalance(user.id);
 
   return NextResponse.json({
     user,
+    saldo_dompet: saldoDompet,
     total_tabungan: totalTabungan,
     groups: formattedGroups,
   });

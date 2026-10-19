@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       `).run(rateLimitKey, attempts, firstAttempt, lockedUntil);
     };
 
-    const user = db.prepare("SELECT * FROM users WHERE nim = ? AND aktif = 1").get(cleanNim) as any;
+    const user = db.prepare("SELECT * FROM users WHERE LOWER(nim) = LOWER(?) AND aktif = 1").get(cleanNim) as any;
     if (!user) {
       recordFailedAttempt();
       return NextResponse.json({ error: "NIM atau password salah" }, { status: 401 });

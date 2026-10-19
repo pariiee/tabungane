@@ -86,9 +86,9 @@ async function runTests() {
 
   // Insert pending transaction
   db.prepare(`
-    INSERT INTO transaksi (id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan)
-    VALUES (?, ?, 'topup_qris', ?, 'pending', ?, 'Test Topup')
-  `).run(testTrxId, member.id, nominal, testQrisId);
+    INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan)
+    VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, 'Test Topup')
+  `).run(testTrxId, member.user_id || "test-user-1", member.id, nominal, testQrisId);
 
   console.log(`[SETUP] Created test pending transaction: ${testTrxId} (qris: ${testQrisId}, Rp ${nominal})`);
 

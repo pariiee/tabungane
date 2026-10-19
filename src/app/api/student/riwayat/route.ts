@@ -9,13 +9,13 @@ export async function GET() {
   }
 
   const transactions = db.prepare(`
-    SELECT t.*, g.nama as nama_grup
+    SELECT t.*, COALESCE(g.nama, 'Dompet Utama') as nama_grup
     FROM transaksi t
-    JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-    JOIN grup_tabungan g ON kg.grup_id = g.id
-    WHERE kg.user_id = ?
+    LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+    LEFT JOIN grup_tabungan g ON kg.grup_id = g.id
+    WHERE t.user_id = ? OR kg.user_id = ?
     ORDER BY t.created_at DESC
-  `).all(user.id);
+  `).all(user.id, user.id);
 
   return NextResponse.json({ data: transactions });
 }
