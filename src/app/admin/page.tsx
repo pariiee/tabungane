@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import {
   TrendingUp,
   RefreshCw,
@@ -105,7 +106,7 @@ export default function AdminDashboardPage() {
             Overview
           </h1>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-            Pantau saldo kas, progres tabungan kelas, dan pembayaran QRIS mahasiswa.
+            Pantau saldo tabungan, progres event Sakune, dan pembayaran QRIS mahasiswa.
           </p>
         </div>
 
@@ -451,8 +452,8 @@ export default function AdminDashboardPage() {
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50 dark:border-zinc-800/60">
                 <span className="text-gray-400 dark:text-zinc-500">Metode / Tipe:</span>
-                <span className="font-medium capitalize text-black dark:text-white">
-                  {selectedTrx.tipe}
+                <span className="font-medium text-black dark:text-white">
+                  {formatTrxType(selectedTrx.tipe)}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50 dark:border-zinc-800/60">
@@ -463,8 +464,8 @@ export default function AdminDashboardPage() {
               </div>
               <div className="flex justify-between py-1 border-b border-gray-50 dark:border-zinc-800/60">
                 <span className="text-gray-400 dark:text-zinc-500">Status:</span>
-                <span className="font-semibold capitalize text-black dark:text-white">
-                  {selectedTrx.status}
+                <span className="font-semibold text-black dark:text-white">
+                  {formatTrxStatus(selectedTrx.status)}
                 </span>
               </div>
               <div className="flex justify-between py-1">

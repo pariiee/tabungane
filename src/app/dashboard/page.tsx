@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import {
   Wallet,
   QrCode,
@@ -226,33 +227,31 @@ export default function StudentDashboardPage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Saldo Saku Utama */}
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Saldo Dompet Saku</span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <Wallet className="w-3.5 h-3.5" />
-              </div>
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
+              <span>SALDO DOMPET SAKU</span>
+              <Wallet className="w-4 h-4 text-black dark:text-white" />
             </div>
-            <div className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">
+            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
               Rp {saldoDompet.toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
+            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
               Saldo aktif siap pakai
             </p>
           </div>
 
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <button
               onClick={() => setShowTransferModal(true)}
-              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[10px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center justify-center gap-1"
+              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1"
             >
               <Send className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
               <span>Transfer</span>
             </button>
             <button
               onClick={() => setShowAllocModal(true)}
-              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[10px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center justify-center gap-1"
+              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1"
             >
               <Layers className="w-2.5 h-2.5 text-teal-600 dark:text-teal-400" />
               <span>Alokasi</span>
@@ -261,97 +260,82 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Card 2: Total di Event Sakune */}
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Total di Event</span>
-              <div className="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                <TrendingUp className="w-3.5 h-3.5" />
-              </div>
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
+              <span>TOTAL DI EVENT</span>
+              <TrendingUp className="w-4 h-4 text-black dark:text-white" />
             </div>
-            <div className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">
+            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
               Rp {totalTabungan.toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
+            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
               Akumulasi iuran di seluruh event
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <span>Event Diikuti</span>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">{groups.length} Event</span>
+            <span className="font-semibold text-black dark:text-white">{groups.length} Event</span>
           </div>
         </div>
 
         {/* Card 3: Uang Masuk 14 Hari */}
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Uang Masuk (14H)</span>
-              <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 flex items-center justify-center">
-                <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              </div>
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
+              <span>UANG MASUK (14H)</span>
+              <ArrowDownLeft className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-2">
+            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
               Rp {(kpi.total14DaysMasuk || 0).toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
+            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
               Top up & transfer masuk
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <span>Periode</span>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">14 Hari Terakhir</span>
+            <span className="font-semibold text-black dark:text-white">14 Hari Terakhir</span>
           </div>
         </div>
 
         {/* Card 4: Uang Keluar 14 Hari */}
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Uang Keluar (14H)</span>
-              <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 flex items-center justify-center">
-                <ArrowUpRight className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-              </div>
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
+              <span>UANG KELUAR (14H)</span>
+              <ArrowUpRight className="w-4 h-4 text-rose-500" />
             </div>
-            <div className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">
+            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
               Rp {(kpi.total14DaysKeluar || 0).toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
+            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
               Alokasi event & transfer keluar
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <span>Metode</span>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">Internal Ledger</span>
+            <span className="font-semibold text-black dark:text-white">Internal Ledger</span>
           </div>
         </div>
       </div>
 
       {/* Middle Dual-Column Section (Persis Layout /admin) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Kolom Kiri (7/12): Grafik Statistik Mutasi 14 Hari */}
-        <div className="lg:col-span-7 bg-white dark:bg-[#111113] rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs p-5 flex flex-col justify-between space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Kolom Kiri: Grafik Statistik Mutasi 14 Hari */}
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs p-5 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
-                Statistik Mutasi Saku (14 Hari)
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-black dark:text-white" />
+              <h2 className="text-sm font-bold text-black dark:text-white">
+                Statistik Mutasi (14 Hari)
               </h2>
-              <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-                Perbandingan uang masuk (solid) dan uang keluar (putus-putus)
-              </p>
             </div>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1.5 text-gray-700 dark:text-zinc-300">
-                <span className="w-2.5 h-2.5 bg-black dark:bg-white rounded-full inline-block" />
-                <span>Masuk</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-400 dark:text-zinc-500">
-                <span className="w-2.5 h-0.5 bg-gray-400 dark:bg-zinc-500 inline-block" />
-                <span>Keluar</span>
-              </span>
+            <div className="text-sm font-bold text-black dark:text-white">
+              Rp {(kpi.total14DaysMasuk || 0).toLocaleString("id-ID")}
             </div>
           </div>
 
@@ -434,18 +418,18 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        {/* Kolom Kanan (5/12): Card Riwayat Transaksi Terbaru */}
-        <div className="lg:col-span-5 bg-white dark:bg-[#111113] rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs p-5 flex flex-col justify-between space-y-4">
+        {/* Kolom Kanan: Card Riwayat Transaksi Terbaru */}
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs p-5 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-black dark:text-white" />
-              <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
-                Mutasi Terbaru
+              <h2 className="text-sm font-bold text-black dark:text-white">
+                Transaksi Terbaru
               </h2>
             </div>
             <Link
               href="/riwayat"
-              className="text-xs text-gray-400 hover:text-black dark:hover:text-white font-medium transition-colors"
+              className="text-xs text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white font-medium transition-colors"
             >
               Lihat semua &rarr;
             </Link>
@@ -453,7 +437,7 @@ export default function StudentDashboardPage() {
 
           <div className="overflow-x-auto flex-1">
             <table className="w-full text-left text-xs">
-              <thead className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase font-semibold border-b border-gray-100 dark:border-zinc-800/60">
+              <thead className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase font-semibold border-b border-gray-100 dark:border-zinc-800">
                 <tr>
                   <th className="py-2 px-2 font-semibold">TIPE</th>
                   <th className="py-2 px-2 font-semibold">STATUS</th>
@@ -461,7 +445,7 @@ export default function StudentDashboardPage() {
                   <th className="py-2 px-2 font-semibold text-right">AKSI</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
                 {recent.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
@@ -474,20 +458,10 @@ export default function StudentDashboardPage() {
                     const isSuccess = t.status === "berhasil";
 
                     return (
-                      <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                      <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition-colors">
                         <td className="py-3 px-2">
-                          <span className="font-semibold text-gray-900 dark:text-zinc-100 block truncate max-w-[130px]">
-                            {t.tipe === "topup_qris"
-                              ? "Top Up QRIS"
-                              : t.tipe === "transfer_masuk"
-                              ? "Transfer In"
-                              : t.tipe === "transfer_keluar"
-                              ? "Transfer Out"
-                              : t.tipe === "alokasi_masuk"
-                              ? "Alokasi In"
-                              : t.tipe === "alokasi_keluar"
-                              ? "Alokasi Out"
-                              : t.tipe}
+                          <span className="font-semibold text-black dark:text-white block truncate max-w-[130px]">
+                            {formatTrxType(t.tipe)}
                           </span>
                           <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate max-w-[130px]">
                             {new Date(t.created_at).toLocaleDateString("id-ID", { month: "short", day: "numeric" })} &bull; {t.nama_grup}
@@ -501,7 +475,7 @@ export default function StudentDashboardPage() {
                             </span>
                           ) : (
                             <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
-                              {t.status}
+                              {formatTrxStatus(t.status)}
                             </span>
                           )}
                         </td>
@@ -535,18 +509,18 @@ export default function StudentDashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <h2 className="text-base font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
+              <Layers className="w-4 h-4 text-black dark:text-white" />
               <span>Event Sakune</span>
             </h2>
-            <p className="text-xs text-gray-400 dark:text-zinc-500">
-              Daftar event tabungan dan iuran yang Anda ikuti.
+            <p className="text-xs text-gray-500 dark:text-zinc-400">
+              Daftar event tabungan dan iuran bersama yang Anda ikuti.
             </p>
           </div>
         </div>
 
         {groups.length === 0 ? (
-          <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-8 text-center text-xs text-gray-400 dark:text-zinc-500 shadow-xs">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-8 text-center text-xs text-gray-400 dark:text-zinc-500 shadow-xs">
             Belum ada Event Sakune aktif yang diikuti saat ini.
           </div>
         ) : (
@@ -556,7 +530,7 @@ export default function StudentDashboardPage() {
               return (
                 <div
                   key={g.grup_id}
-                  className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs hover:border-gray-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between space-y-4"
+                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs hover:border-gray-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between space-y-4"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -567,7 +541,7 @@ export default function StudentDashboardPage() {
                       }`}>
                         {g.nama_kelas === "Semua Kelas" ? "Semua Kelas" : `Kelas ${g.nama_kelas}`}
                       </span>
-                      <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm mt-2">{g.nama_grup}</h3>
+                      <h3 className="font-bold text-black dark:text-white text-sm mt-2">{g.nama_grup}</h3>
                     </div>
                     <span
                       className={`text-[11px] px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1 border ${
@@ -664,7 +638,7 @@ export default function StudentDashboardPage() {
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
                 <span className="text-gray-400">Tipe</span>
-                <span className="font-semibold text-gray-900 dark:text-zinc-100">{selectedTrx.tipe}</span>
+                <span className="font-semibold text-gray-900 dark:text-zinc-100">{formatTrxType(selectedTrx.tipe)}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
                 <span className="text-gray-400">Nominal</span>
@@ -674,7 +648,7 @@ export default function StudentDashboardPage() {
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
                 <span className="text-gray-400">Status</span>
-                <span className="font-semibold uppercase text-emerald-600 dark:text-emerald-400">{selectedTrx.status}</span>
+                <span className="font-semibold uppercase text-emerald-600 dark:text-emerald-400">{formatTrxStatus(selectedTrx.status)}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
                 <span className="text-gray-400">Tujuan / Event</span>

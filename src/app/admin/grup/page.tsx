@@ -83,7 +83,7 @@ export default function AdminGrupPage() {
             <span>Event Sakune</span>
           </h1>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-            Kelola event tabungan, kas per kelas, atau event terbuka untuk semua kelas.
+            Kelola event tabungan per kelas atau event terbuka untuk semua kelas.
           </p>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import {
   History,
   ArrowUpRight,
@@ -88,7 +89,7 @@ export default function RiwayatPage() {
         };
       default:
         return {
-          label: t.tipe,
+          label: formatTrxType(t.tipe),
           icon: isPositive ? <ArrowUpRight className="w-4 h-4 text-emerald-600" /> : <RotateCcw className="w-4 h-4 text-rose-600" />,
         };
     }
@@ -182,7 +183,7 @@ export default function RiwayatPage() {
                         ) : (
                           <AlertCircle className="w-2.5 h-2.5" />
                         )}
-                        <span>{t.status}</span>
+                        <span>{formatTrxStatus(t.status)}</span>
                       </span>
                     </div>
                   </div>

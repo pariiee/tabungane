@@ -96,7 +96,7 @@ export function getWalletBalance(userId: string): number {
 }
 
 /**
- * Allocate money from Dompet Utama to a Group Pocket (Kas Kelas)
+ * Allocate money from Dompet Utama to a Group Pocket (Event Sakune)
  */
 export function allocateToGroup(
   userId: string,

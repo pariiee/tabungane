@@ -59,7 +59,7 @@ export default function AdminLaporanPage() {
             <span>Ekspor Laporan Tabungan</span>
           </h1>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-            Unduh laporan rekapitulasi setoran kas dan tabungan mahasiswa per grup dalam format file CSV.
+            Unduh laporan rekapitulasi setoran dan tabungan mahasiswa per grup dalam format file CSV.
           </p>
         </div>
 

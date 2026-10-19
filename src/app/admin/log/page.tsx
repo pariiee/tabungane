@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatAuditAction } from "@/lib/format";
 import { ShieldAlert, Clock, User, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminLogPage() {
@@ -87,7 +88,7 @@ export default function AdminLogPage() {
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium text-[10px]">
-                        {l.aksi}
+                        {formatAuditAction(l.aksi)}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-gray-600 dark:text-zinc-400 font-mono text-[11px]">{l.target}</td>

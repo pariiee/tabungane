@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import {
   ArrowRightLeft,
   RotateCcw,
@@ -208,19 +209,7 @@ export default function AdminTransaksiPage() {
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">
-                        {t.tipe === "topup_qris"
-                          ? "QRIS"
-                          : t.tipe === "manual_add"
-                          ? "Manual Tunai"
-                          : t.tipe === "transfer_keluar"
-                          ? "Transfer Out"
-                          : t.tipe === "transfer_masuk"
-                          ? "Transfer In"
-                          : t.tipe === "alokasi_keluar"
-                          ? "Alokasi Event"
-                          : t.tipe === "alokasi_masuk"
-                          ? "Event Masuk"
-                          : "Koreksi Pembalik"}
+                        {formatTrxType(t.tipe)}
                       </span>
                       {t.catatan && (
                         <div className="text-[11px] text-gray-400 dark:text-zinc-500 italic mt-0.5 truncate max-w-xs">{t.catatan}</div>
@@ -243,7 +232,7 @@ export default function AdminTransaksiPage() {
                             : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200/50 dark:border-rose-800/30"
                         }`}
                       >
-                        {t.status}
+                        {formatTrxStatus(t.status)}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">

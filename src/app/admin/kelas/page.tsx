@@ -73,7 +73,7 @@ export default function AdminKelasPage() {
             <span>Kelola Kelas Perkuliahan</span>
           </h1>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-            Daftar kelas perkuliahan beserta tahun ajaran untuk pengelompokan mahasiswa dan grup kas.
+            Daftar kelas perkuliahan beserta tahun ajaran untuk pengelompokan mahasiswa dan event tabungan.
           </p>
         </div>
 
