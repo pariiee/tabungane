@@ -299,7 +299,7 @@ export default function AdminMahasiswaPage() {
             onClick={() => setAlertInfo(null)}
             className="text-xs text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 font-bold"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}

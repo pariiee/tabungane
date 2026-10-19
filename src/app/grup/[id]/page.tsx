@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   QrCode,
   Medal,
+  Crown,
   CheckCircle2,
   Clock,
   Layers
@@ -133,11 +134,11 @@ export default function GroupDetailPage() {
                 const progressCapped = Math.min(m.progress_pct, 100);
 
                 let rankBadge = (
-                  <span className="font-semibold text-gray-400 dark:text-zinc-500 text-xs">{m.rank}</span>
+                  <span className="font-semibold text-gray-400 dark:text-zinc-500 text-xs font-mono">#{m.rank}</span>
                 );
-                if (m.rank === 1) rankBadge = <span>🥇</span>;
-                else if (m.rank === 2) rankBadge = <span>🥈</span>;
-                else if (m.rank === 3) rankBadge = <span>🥉</span>;
+                if (m.rank === 1) rankBadge = <Crown className="w-4 h-4 text-amber-500 inline" />;
+                else if (m.rank === 2) rankBadge = <Medal className="w-4 h-4 text-slate-400 inline" />;
+                else if (m.rank === 3) rankBadge = <Medal className="w-4 h-4 text-amber-700 inline" />;
 
                 return (
                   <tr

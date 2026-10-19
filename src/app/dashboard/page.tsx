@@ -198,7 +198,7 @@ export default function StudentDashboardPage() {
             </span>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-1">
-            Halo, {user?.nama} 👋
+            Halo, {user?.nama}
           </h1>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
             Pantau saldo saku, statistik mutasi 14 hari, dan ikuti Event Sakune.
