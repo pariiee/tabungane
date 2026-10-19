@@ -13,27 +13,57 @@ import {
   Users,
   Layers,
   FileText,
-  Settings,
   ShieldAlert,
   ArrowRightLeft,
-  GraduationCap
+  GraduationCap,
+  Moon,
+  Sun,
+  Menu,
+  X
 } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => {
         setUser(data.user);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {});
+
+    const savedTheme = localStorage.getItem("tabungane_theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+    }
   }, [pathname]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  const toggleTheme = () => {
+    const isCurrentlyDark = document.documentElement.classList.contains("dark");
+    if (isCurrentlyDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("tabungane_theme", "light");
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("tabungane_theme", "dark");
+      setIsDark(true);
+    }
+  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -41,173 +71,171 @@ export default function Navbar() {
     router.push("/login");
   };
 
-  if (loading || pathname === "/login") return null;
+  if (pathname === "/login") return null;
 
   const isAdmin = user?.role === "admin";
 
+  const navItems = isAdmin
+    ? [
+        { href: "/admin", label: "Overview", icon: LayoutDashboard },
+        { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
+        { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
+        { href: "/admin/grup", label: "Event Sakune", icon: Layers },
+        { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
+        { href: "/admin/laporan", label: "Laporan", icon: FileText },
+        { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/topup", label: "Top Up QRIS", icon: QrCode },
+        { href: "/riwayat", label: "Riwayat", icon: History },
+        { href: "/akun", label: "Akun", icon: User },
+      ];
+
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Brand */}
-          <div className="flex items-center space-x-3">
-            <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2 font-bold text-emerald-600 text-lg">
-              <Wallet className="w-6 h-6 text-emerald-600" />
-              <span>TABUNGANE <span className="text-gray-800">SISFOR</span></span>
+        <div className="flex items-center justify-between h-16 gap-4">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href={isAdmin ? "/admin" : "/dashboard"}
+              className="flex items-center gap-2.5 font-bold tracking-tight text-gray-900 dark:text-zinc-100 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-sm shadow-xs transition-transform group-hover:scale-105">
+                S
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-extrabold tracking-tight leading-none text-black dark:text-white">
+                  SAKUNE <span className="text-emerald-600 dark:text-emerald-400">SISFOR</span>
+                </span>
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500 tracking-wider uppercase font-medium mt-0.5">
+                  {isAdmin ? "Super Admin" : "Student Portal"}
+                </span>
+              </div>
             </Link>
-
-            {/* Role Badge */}
-            {user && (
-              <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                isAdmin ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"
-              }`}>
-                {isAdmin ? "Admin" : "Mahasiswa"}
-              </span>
-            )}
           </div>
 
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center space-x-1">
-            {!isAdmin ? (
-              <>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 overflow-x-auto py-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
                 <Link
-                  href="/dashboard"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/dashboard" ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:text-gray-900"
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                    isActive
+                      ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-xs"
+                      : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900"
                   }`}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{item.label}</span>
                 </Link>
-                <Link
-                  href="/topup"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/topup" ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <QrCode className="w-4 h-4" />
-                  Top Up QRIS
-                </Link>
-                <Link
-                  href="/riwayat"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/riwayat" ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <History className="w-4 h-4" />
-                  Riwayat
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/admin"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/kelas"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/kelas" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  Kelas
-                </Link>
-                <Link
-                  href="/admin/mahasiswa"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/mahasiswa" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <Users className="w-4 h-4" />
-                  Mahasiswa
-                </Link>
-                <Link
-                  href="/admin/grup"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/grup" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <Layers className="w-4 h-4" />
-                  Grup
-                </Link>
-                <Link
-                  href="/admin/transaksi"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/transaksi" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <ArrowRightLeft className="w-4 h-4" />
-                  Transaksi
-                </Link>
-                <Link
-                  href="/admin/laporan"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/laporan" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  Laporan
-                </Link>
-                <Link
-                  href="/admin/log"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/log" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  Audit
-                </Link>
-                <Link
-                  href="/admin/pengaturan"
-                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium ${
-                    pathname === "/admin/pengaturan" ? "bg-purple-50 text-purple-700" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  Config
-                </Link>
-              </>
-            )}
-          </div>
+              );
+            })}
+          </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-3">
-            {user ? (
-              <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {/* User Profile */}
+            {user && (
+              <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-zinc-800">
                 <Link
                   href="/akun"
-                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 font-medium"
+                  className="flex items-center gap-2 p-1.5 pr-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-                    <User className="w-4 h-4" />
+                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 flex items-center justify-center text-xs font-semibold">
+                    {user.nama?.charAt(0) || "U"}
                   </div>
-                  <span className="hidden sm:inline">{user.nama}</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-zinc-100 max-w-[100px] truncate">
+                    {user.nama}
+                  </span>
                 </Link>
+
                 <button
                   onClick={handleLogout}
-                  title="Logout"
-                  className="p-2 text-gray-500 hover:text-red-600 rounded-lg hover:bg-gray-100"
+                  title="Keluar"
+                  className="p-1.5 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm"
-              >
-                Masuk
-              </Link>
             )}
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+              aria-label="Toggle navigation"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
       </div>
-    </nav>
+
+      {/* Mobile Navigation Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 pt-3 pb-5 space-y-1 shadow-lg">
+          <div className="grid grid-cols-1 gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? "bg-black text-white dark:bg-white dark:text-black font-semibold"
+                      : "text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {user && (
+            <div className="pt-3 mt-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+              <Link
+                href="/akun"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 text-xs font-medium text-gray-800 dark:text-zinc-200"
+              >
+                <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-semibold">
+                  {user.nama?.charAt(0) || "U"}
+                </div>
+                <span>{user.nama} ({user.nim})</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 font-medium px-2 py-1 rounded hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Keluar</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </header>
   );
 }
