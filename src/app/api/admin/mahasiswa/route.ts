@@ -53,22 +53,25 @@ export async function POST(req: Request) {
   const passwordHash = hashPassword(tempPassword);
   const id = crypto.randomUUID();
 
-  db.prepare(`
-    INSERT INTO users (id, nim, nama, role, kelas_id, password_hash, must_change_password, aktif)
-    VALUES (?, ?, ?, 'mahasiswa', ?, ?, 1, 1)
-  `).run(id, nim, nama, kelas_id, passwordHash);
+  const { runTransaction } = require("@/lib/db");
+  runTransaction(() => {
+    db.prepare(`
+      INSERT INTO users (id, nim, nama, role, kelas_id, password_hash, must_change_password, aktif)
+      VALUES (?, ?, ?, 'mahasiswa', ?, ?, 1, 1)
+    `).run(id, nim, nama, kelas_id, passwordHash);
 
-  // Auto enroll in active groups of this class
-  const groups = db.prepare("SELECT id FROM grup_tabungan WHERE kelas_id = ? AND status != 'diarsipkan'").all(kelas_id) as any[];
-  for (const g of groups) {
-    try {
-      db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
-        crypto.randomUUID(),
-        g.id,
-        id
-      );
-    } catch {}
-  }
+    // Auto enroll in active groups of this class (idempotent)
+    const groups = db.prepare("SELECT id FROM grup_tabungan WHERE kelas_id = ? AND status = 'aktif'").all(kelas_id) as any[];
+    for (const g of groups) {
+      try {
+        db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
+          crypto.randomUUID(),
+          g.id,
+          id
+        );
+      } catch {}
+    }
+  });
 
   logAudit(user.id, "TAMBAH_MAHASISWA", id, `NIM: ${nim}, Nama: ${nama}`);
 

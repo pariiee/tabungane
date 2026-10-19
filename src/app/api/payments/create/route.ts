@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { db, getSetting } from "@/lib/db";
 import { createQrisPayment } from "@/lib/qriskuu";
 import crypto from "node:crypto";
 
@@ -43,12 +43,32 @@ export async function POST(req: Request) {
       membership = { id: newMemberId };
     }
 
-    // PRD rule: cancel previous pending QR for this user
-    db.prepare(`
-      UPDATE transaksi 
-      SET status = 'canceled' 
-      WHERE keanggotaan_id = ? AND status = 'pending' AND tipe = 'topup_qris'
-    `).run(membership.id);
+    // PRD rule: cancel previous pending QR for this user across all their memberships
+    const pendingTrxs = db.prepare(`
+      SELECT t.id, t.qris_trx_id 
+      FROM transaksi t
+      JOIN keanggotaan k ON t.keanggotaan_id = k.id
+      WHERE k.user_id = ? AND t.status = 'pending' AND t.tipe = 'topup_qris'
+    `).all(user.id) as any[];
+
+    for (const p of pendingTrxs) {
+      if (p.qris_trx_id) {
+        try {
+          const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
+          if (apiKey) {
+            await fetch(`https://qriskuu.web.id/payments/${encodeURIComponent(p.qris_trx_id)}/cancel`, {
+              method: "POST",
+              headers: {
+                "X-API-Key": apiKey,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+              },
+              signal: AbortSignal.timeout(3000),
+            });
+          }
+        } catch {}
+      }
+      db.prepare("UPDATE transaksi SET status = 'canceled' WHERE id = ?").run(p.id);
+    }
 
     // Call QRIS generator
     const qrisRes = await createQrisPayment(nominal, `Top up Tabungan ${user.nim}`);

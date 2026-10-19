@@ -20,19 +20,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Nominal harus angka lebih dari 0" }, { status: 400 });
   }
 
-  // Ensure membership exists
-  let membership = db.prepare("SELECT id FROM keanggotaan WHERE user_id = ? AND grup_id = ?").get(user_id, grup_id) as any;
-  if (!membership) {
-    const memberId = crypto.randomUUID();
-    db.prepare("INSERT INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(memberId, grup_id, user_id);
-    membership = { id: memberId };
-  }
-
   const trxId = crypto.randomUUID();
-  db.prepare(`
-    INSERT INTO transaksi (id, keanggotaan_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
-    VALUES (?, ?, 'manual_add', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
-  `).run(trxId, membership.id, nominal, catatan, user.nama);
+  const { runTransaction } = require("@/lib/db");
+
+  runTransaction(() => {
+    // Ensure membership exists within transaction
+    let membership = db.prepare("SELECT id FROM keanggotaan WHERE user_id = ? AND grup_id = ?").get(user_id, grup_id) as any;
+    if (!membership) {
+      const memberId = crypto.randomUUID();
+      db.prepare("INSERT INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(memberId, grup_id, user_id);
+      membership = { id: memberId };
+    }
+
+    db.prepare(`
+      INSERT INTO transaksi (id, keanggotaan_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
+      VALUES (?, ?, 'manual_add', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
+    `).run(trxId, membership.id, nominal, catatan, user.nama);
+  });
 
   logAudit(user.id, "MANUAL_ADD_SALDO", trxId, `Tambah saldo Rp${nominal.toLocaleString("id-ID")}: ${catatan}`);
 

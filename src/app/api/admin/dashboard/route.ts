@@ -8,17 +8,17 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 1. TODAY'S REVENUE
-  const todayStr = new Date().toISOString().split("T")[0];
+  // 1. TODAY'S REVENUE (Zona Waktu WIB Asia/Jakarta)
+  const todayWib = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
   const todayRow = db
     .prepare(
       `SELECT 
          COALESCE(SUM(jumlah), 0) as total,
          COUNT(*) as count 
        FROM transaksi 
-       WHERE status = 'berhasil' AND date(created_at) = date(?)`
+       WHERE status = 'berhasil' AND date(datetime(created_at, '+7 hours')) = date(?)`
     )
-    .get(todayStr) as any;
+    .get(todayWib) as any;
 
   // 2. TOTAL REVENUE
   const totalRow = db

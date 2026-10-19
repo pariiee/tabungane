@@ -33,7 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# sqlite database
+# sqlite database & backups
+data/
+backups/
 data/*.db
 data/*.db-*
 

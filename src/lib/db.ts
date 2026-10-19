@@ -17,10 +17,27 @@ if (process.env.NODE_ENV !== "production") {
   globalForDb.dbInstance = db;
 }
 
-// Set busy timeout first so multiple workers don't lock each other
-db.exec("PRAGMA busy_timeout = 10000;");
+// Set pragmas per specification:
+// PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON; PRAGMA synchronous=NORMAL;
+db.exec("PRAGMA busy_timeout = 5000;");
 db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA foreign_keys = ON;");
+db.exec("PRAGMA synchronous = NORMAL;");
+
+// Safe transaction helper with BEGIN IMMEDIATE ... COMMIT / ROLLBACK
+export function runTransaction<T>(fn: () => T): T {
+  db.exec("BEGIN IMMEDIATE;");
+  try {
+    const result = fn();
+    db.exec("COMMIT;");
+    return result;
+  } catch (err) {
+    try {
+      db.exec("ROLLBACK;");
+    } catch {}
+    throw err;
+  }
+}
 
 // Initialize tables once
 try {
@@ -104,6 +121,18 @@ try {
       kunci TEXT PRIMARY KEY,
       nilai TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      key TEXT PRIMARY KEY,
+      attempts INTEGER NOT NULL DEFAULT 1,
+      first_attempt INTEGER NOT NULL,
+      locked_until INTEGER NOT NULL DEFAULT 0
+    );
+
+    -- Ensure explicit UNIQUE indexes for strict constraint enforcement
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_webhook_events_event_id ON webhook_events(event_id);
   `);
 } catch (e) {
   // If another worker is already initializing, ignore

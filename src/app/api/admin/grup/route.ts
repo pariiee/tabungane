@@ -41,22 +41,28 @@ export async function POST(req: Request) {
   }
 
   const grupId = crypto.randomUUID();
-  db.prepare(`
-    INSERT INTO grup_tabungan (id, kelas_id, nama, target_per_mahasiswa, deadline, status)
-    VALUES (?, ?, ?, ?, ?, 'aktif')
-  `).run(grupId, kelas_id, nama, target, deadline);
+  const { runTransaction } = require("@/lib/db");
 
-  // PRD M3: Tambah seluruh anggota satu kelas sekaligus ke keanggotaan
-  const students = db.prepare("SELECT id FROM users WHERE kelas_id = ? AND role = 'mahasiswa' AND aktif = 1").all(kelas_id) as any[];
-  for (const s of students) {
-    db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
-      crypto.randomUUID(),
-      grupId,
-      s.id
-    );
-  }
+  let totalEnrolled = 0;
+  runTransaction(() => {
+    db.prepare(`
+      INSERT INTO grup_tabungan (id, kelas_id, nama, target_per_mahasiswa, deadline, status)
+      VALUES (?, ?, ?, ?, ?, 'aktif')
+    `).run(grupId, kelas_id, nama, target, deadline);
 
-  logAudit(user.id, "BUAT_GRUP", grupId, `Grup: ${nama}, Target: ${target}, Anggota: ${students.length}`);
+    // PRD M3: Tambah seluruh anggota satu kelas sekaligus ke keanggotaan
+    const students = db.prepare("SELECT id FROM users WHERE kelas_id = ? AND role = 'mahasiswa' AND aktif = 1").all(kelas_id) as any[];
+    totalEnrolled = students.length;
+    for (const s of students) {
+      db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
+        crypto.randomUUID(),
+        grupId,
+        s.id
+      );
+    }
+  });
 
-  return NextResponse.json({ success: true, id: grupId, total_enrolled: students.length });
+  logAudit(user.id, "BUAT_GRUP", grupId, `Grup: ${nama}, Target: ${target}, Anggota: ${totalEnrolled}`);
+
+  return NextResponse.json({ success: true, id: grupId, total_enrolled: totalEnrolled });
 }

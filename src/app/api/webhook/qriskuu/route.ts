@@ -1,64 +1,91 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { verifyWebhookSignature } from "@/lib/qriskuu";
+import { creditPayment } from "@/lib/ledger";
+import { db } from "@/lib/db";
+import { logAudit } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get("x-webhook-signature");
 
-    // In production, signature verification is required
-    const isLocalDev = process.env.NODE_ENV !== "production";
-    if (!isLocalDev && !verifyWebhookSignature(rawBody, signature)) {
+    // Strict signature check
+    const isValidSignature = verifyWebhookSignature(rawBody, signature);
+    if (!isValidSignature) {
+      console.warn("[WEBHOOK] Invalid signature attempt. Header:", signature);
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const payload = JSON.parse(rawBody);
-    const eventId = payload.event_id || payload.id;
-    const trxid = payload.trxid || payload.data?.trxid;
-    const status = payload.status || payload.data?.status;
-    const amount = Number(payload.amount || payload.data?.amount);
+    // Log raw payload
+    console.log("[WEBHOOK RAW PAYLOAD]:", rawBody);
 
-    if (!eventId || !trxid) {
-      return NextResponse.json({ error: "Payload tidak lengkap" }, { status: 400 });
-    }
-
-    // 1. Prevent duplicate processing via webhook_events
+    let payload: any;
     try {
-      db.prepare(
-        "INSERT INTO webhook_events (event_id, qris_trx_id, ringkasan_payload) VALUES (?, ?, ?)"
-      ).run(eventId, trxid, rawBody.slice(0, 500));
-    } catch (err: any) {
-      // Duplicate event_id caught by UNIQUE constraint
-      return NextResponse.json({ message: "Event already processed", duplicate: true });
+      payload = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    // 2. Fetch local transaction
-    const trx = db.prepare("SELECT * FROM transaksi WHERE qris_trx_id = ?").get(trxid) as any;
-    if (!trx) {
-      return NextResponse.json({ error: "Transaksi tidak ditemukan" }, { status: 404 });
+    const eventId = payload.event_id || payload.id || payload.eventId;
+    if (!eventId) {
+      return NextResponse.json({ error: "Missing event_id" }, { status: 400 });
     }
 
-    // 3. Process payment if paid
-    if (status === "paid" || status === "berhasil" || status === "success") {
-      // Validate amount if present
-      if (amount && Math.abs(amount - trx.jumlah) > 1) {
-        return NextResponse.json({ error: "Nominal tidak sesuai" }, { status: 400 });
+    // Dedup via event_id
+    const alreadyProcessed = db
+      .prepare("SELECT event_id FROM webhook_events WHERE event_id = ?")
+      .get(eventId);
+    if (alreadyProcessed) {
+      return NextResponse.json({ message: "Event already processed", duplicate: true }, { status: 200 });
+    }
+
+    const event = String(payload.event || "").toLowerCase();
+    const status = String(payload.status || payload.data?.status || "").toLowerCase();
+    const isPaid = status === "paid" || status === "berhasil" || event === "payment.paid";
+
+    const trxid = String(
+      payload.trxid ||
+      payload.data?.trxid ||
+      payload.id ||
+      payload.data?.id ||
+      payload.qris_trx_id ||
+      ""
+    ).trim();
+
+    const amount = Number(payload.amount ?? payload.data?.amount ?? 0);
+
+    if (!trxid) {
+      logAudit("system", "webhook_missing_trxid", eventId, `Payload missing trxid: ${rawBody.slice(0, 200)}`);
+      return NextResponse.json({ error: "Missing transaction identifier" }, { status: 400 });
+    }
+
+    if (isPaid) {
+      const result = creditPayment(trxid, eventId, rawBody, amount > 0 ? amount : undefined);
+      if (!result.success) {
+        return NextResponse.json({ error: result.error || "Gagal memproses pembayaran" }, { status: 400 });
       }
-
-      // Update to berhasil, even if local status was expired (qriskuu takes precedence)
-      db.prepare(
-        "UPDATE transaksi SET status = 'berhasil', paid_at = CURRENT_TIMESTAMP WHERE id = ?"
-      ).run(trx.id);
-    } else if (status === "expired" || status === "failed") {
-      if (trx.status === "pending") {
-        db.prepare("UPDATE transaksi SET status = 'expired' WHERE id = ?").run(trx.id);
-      }
+      return NextResponse.json({ success: true, processed: true });
     }
 
-    return NextResponse.json({ success: true, processed: true });
+    if (status === "expired" || status === "canceled" || event === "payment.expired" || event === "payment.canceled") {
+      const trx = db.prepare("SELECT id, status FROM transaksi WHERE qris_trx_id = ?").get(trxid) as any;
+      if (trx && trx.status === "pending") {
+        db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(
+          status === "canceled" ? "canceled" : "expired",
+          trx.id
+        );
+      }
+      try {
+        db.prepare(
+          "INSERT INTO webhook_events (event_id, qris_trx_id, ringkasan_payload) VALUES (?, ?, ?)"
+        ).run(eventId, trxid, rawBody.slice(0, 500));
+      } catch {}
+      return NextResponse.json({ success: true, status_updated: status });
+    }
+
+    return NextResponse.json({ received: true, event });
   } catch (err: any) {
-    console.error("Webhook processing error:", err);
+    console.error("[WEBHOOK ERROR]:", err);
     return NextResponse.json({ error: err.message || "Webhook error" }, { status: 500 });
   }
 }
