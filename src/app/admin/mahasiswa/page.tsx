@@ -12,6 +12,8 @@ import {
   FileSpreadsheet,
   Wallet,
   RefreshCw,
+  Pencil,
+  Trash2,
   X
 } from "lucide-react";
 
@@ -40,6 +42,18 @@ export default function AdminMahasiswaPage() {
   const [targetGrupId, setTargetGrupId] = useState("");
   const [nominalManual, setNominalManual] = useState("");
   const [catatanManual, setCatatanManual] = useState("");
+
+  // Modal Edit / Pindah Kelas
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editStudent, setEditStudent] = useState<any>(null);
+  const [editNama, setEditNama] = useState("");
+  const [editKelasId, setEditKelasId] = useState("");
+  const [editAktif, setEditAktif] = useState(true);
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+
+  // Modal Hapus Mahasiswa
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [submittingDelete, setSubmittingDelete] = useState(false);
 
   // Success / Temp Password Alert
   const [alertInfo, setAlertInfo] = useState<any>(null);
@@ -172,6 +186,70 @@ export default function AdminMahasiswaPage() {
     }
   };
 
+  // Edit / Pindah Kelas
+  const handleOpenEdit = (s: any) => {
+    setEditStudent(s);
+    setEditNama(s.nama);
+    setEditKelasId(s.kelas_id || "");
+    setEditAktif(s.aktif !== 0);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editStudent) return;
+    setError("");
+    setSubmittingEdit(true);
+    try {
+      const res = await fetch("/api/admin/mahasiswa", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editStudent.id,
+          nama: editNama,
+          kelas_id: editKelasId,
+          aktif: editAktif,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengupdate mahasiswa");
+
+      setShowEditModal(false);
+      loadData();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
+  // Hapus Mahasiswa
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setError("");
+    setSubmittingDelete(true);
+    try {
+      const res = await fetch(`/api/admin/mahasiswa?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal menghapus mahasiswa");
+
+      if (data.action === "deactivated") {
+        setAlertInfo({
+          title: "Akun Dinonaktifkan",
+          detail: data.message,
+        });
+      }
+      setDeleteTarget(null);
+      loadData();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmittingDelete(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -275,7 +353,11 @@ export default function AdminMahasiswaPage() {
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-xs">
-                    {s.must_change_password ? (
+                    {s.aktif === 0 ? (
+                      <span className="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                        Nonaktif
+                      </span>
+                    ) : s.must_change_password ? (
                       <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
                         Wajib Ganti
                       </span>
@@ -285,26 +367,41 @@ export default function AdminMahasiswaPage() {
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right space-x-1.5">
+                  <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                     <button
                       onClick={() => {
                         setSelectedStudent(s);
                         if (groups.length > 0) setTargetGrupId(groups[0].id);
                         setShowSaldoModal(true);
                       }}
-                      className="px-2.5 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1"
+                      className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                       title="Setor Saldo Tunai"
                     >
                       <Wallet className="w-3 h-3" />
-                      <span>Setor Tunai</span>
+                      <span>Setor</span>
+                    </button>
+                    <button
+                      onClick={() => handleOpenEdit(s)}
+                      className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                      title="Edit Nama / Pindah Kelas"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      <span>Edit</span>
                     </button>
                     <button
                       onClick={() => handleResetPassword(s)}
-                      className="px-2.5 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1"
+                      className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                       title="Reset Password"
                     >
                       <KeyRound className="w-3 h-3" />
                       <span>Reset</span>
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(s)}
+                      className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                      title="Hapus / Nonaktifkan Mahasiswa"
+                    >
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </td>
                 </tr>
@@ -511,6 +608,137 @@ export default function AdminMahasiswaPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit / Pindah Kelas */}
+      {showEditModal && editStudent && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Edit Data & Pindah Kelas</h3>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">NIM: {editStudent.nim}</p>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-black dark:hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Nama Mahasiswa
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editNama}
+                  onChange={(e) => setEditNama(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Kelas Perkuliahan (Pindah Kelas)
+                </label>
+                <select
+                  required
+                  value={editKelasId}
+                  onChange={(e) => setEditKelasId(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                >
+                  <option value="">Pilih Kelas</option>
+                  {kelasList.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      Kelas {k.nama} ({k.tahun_ajaran})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                  Pindah kelas akan otomatis mengikutsertakan mahasiswa ke event tabungan aktif kelas baru.
+                </p>
+              </div>
+
+              <div className="pt-1">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700 dark:text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={editAktif}
+                    onChange={(e) => setEditAktif(e.target.checked)}
+                    className="rounded border-gray-300 text-black focus:ring-black"
+                  />
+                  <span>Status Akun Aktif (Bisa Login & Ikut Event)</span>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingEdit}
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs disabled:opacity-50"
+                >
+                  {submittingEdit ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus / Nonaktifkan */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm flex items-center gap-2">
+                <Trash2 className="w-4 h-4 text-rose-600" />
+                <span>Hapus / Nonaktifkan</span>
+              </h3>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="text-gray-400 hover:text-black dark:hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-600 dark:text-zinc-400">
+              Apakah Anda yakin ingin menghapus mahasiswa <span className="font-bold text-black dark:text-white">{deleteTarget.nama}</span> ({deleteTarget.nim})?
+            </p>
+            <p className="text-[11px] text-gray-400 dark:text-zinc-500 bg-gray-50 dark:bg-zinc-800/50 p-2.5 rounded-lg border border-gray-100 dark:border-zinc-800">
+              Jika mahasiswa sudah memiliki catatan transaksi, akun akan otomatis dinonaktifkan agar rekam jejak ledger tetap terjaga.
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={submittingDelete}
+                className="h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-medium shadow-xs disabled:opacity-50"
+              >
+                {submittingDelete ? "Memproses..." : "Ya, Hapus / Nonaktifkan"}
+              </button>
+            </div>
           </div>
         </div>
       )}

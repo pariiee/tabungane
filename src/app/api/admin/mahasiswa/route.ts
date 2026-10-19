@@ -82,3 +82,119 @@ export async function POST(req: Request) {
     nama,
   });
 }
+
+export async function PATCH(req: Request) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id, nama, kelas_id, aktif } = await req.json();
+  if (!id) {
+    return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
+  }
+
+  const student = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'mahasiswa'").get(id) as any;
+  if (!student) {
+    return NextResponse.json({ error: "Mahasiswa tidak ditemukan" }, { status: 404 });
+  }
+
+  const updates: string[] = [];
+  const params: any[] = [];
+
+  if (nama !== undefined && nama.trim()) {
+    updates.push("nama = ?");
+    params.push(nama.trim());
+  }
+
+  if (aktif !== undefined) {
+    updates.push("aktif = ?");
+    params.push(aktif ? 1 : 0);
+  }
+
+  const kelasChanged = kelas_id !== undefined && kelas_id !== student.kelas_id;
+  if (kelas_id !== undefined) {
+    updates.push("kelas_id = ?");
+    params.push(kelas_id || null);
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).run(...params);
+  }
+
+  // If class changed, auto-enroll into active groups of new class
+  if (kelasChanged && kelas_id) {
+    const groups = db.prepare("SELECT id FROM grup_tabungan WHERE (kelas_id = ? OR kelas_id IS NULL) AND status = 'aktif'").all(kelas_id) as any[];
+    for (const g of groups) {
+      try {
+        db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
+          crypto.randomUUID(),
+          g.id,
+          id
+        );
+      } catch {}
+    }
+  }
+
+  logAudit(
+    user.id,
+    "UPDATE_MAHASISWA",
+    id,
+    `NIM: ${student.nim}${kelasChanged ? ` (Pindah ke kelas: ${kelas_id})` : ""}`
+  );
+
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(req: Request) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
+  }
+
+  const student = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'mahasiswa'").get(id) as any;
+  if (!student) {
+    return NextResponse.json({ error: "Mahasiswa tidak ditemukan" }, { status: 404 });
+  }
+
+  // Check if student has transactions
+  const trxCount = db.prepare(`
+    SELECT COUNT(t.id) as total
+    FROM transaksi t
+    LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+    WHERE t.user_id = ? OR kg.user_id = ?
+  `).get(id, id) as any;
+
+  if (trxCount?.total > 0) {
+    // Soft-delete / nonaktifkan agar ledger append-only tidak rusak
+    db.prepare("UPDATE users SET aktif = 0 WHERE id = ?").run(id);
+    logAudit(user.id, "NONAKTIFKAN_MAHASISWA", id, `NIM: ${student.nim} dinonaktifkan (ada ${trxCount.total} transaksi)`);
+    return NextResponse.json({
+      success: true,
+      action: "deactivated",
+      message: `Mahasiswa memiliki ${trxCount.total} riwayat transaksi. Akun berhasil dinonaktifkan untuk menjaga integritas ledger.`,
+    });
+  }
+
+  // If no transactions, hard delete
+  const { runTransaction } = require("@/lib/db");
+  runTransaction(() => {
+    db.prepare("DELETE FROM keanggotaan WHERE user_id = ?").run(id);
+    db.prepare("DELETE FROM users WHERE id = ?").run(id);
+  });
+
+  logAudit(user.id, "HAPUS_MAHASISWA", id, `NIM: ${student.nim}, Nama: ${student.nama}`);
+
+  return NextResponse.json({
+    success: true,
+    action: "deleted",
+    message: "Mahasiswa berhasil dihapus dari sistem.",
+  });
+}
