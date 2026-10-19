@@ -149,7 +149,7 @@ export default function AdminTransaksiPage() {
           onChange={(e) => setFilterGrup(e.target.value)}
           className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
         >
-          <option value="">Semua Grup</option>
+          <option value="">Semua Event</option>
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
               {g.nama}

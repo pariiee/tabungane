@@ -185,7 +185,7 @@ export default function TopUpPage() {
                 <option value="wallet">Dompet Utama (Saku Pribadi — Bebas Kirim / Alokasi)</option>
                 {groups.map((g) => (
                   <option key={g.grup_id} value={g.grup_id}>
-                    Kas Grup: {g.nama_grup} (Target: Rp {g.target_per_mahasiswa.toLocaleString("id-ID")})
+                    Event: {g.nama_grup} ({g.nama_kelas} &bull; Target: Rp {g.target_per_mahasiswa.toLocaleString("id-ID")})
                   </option>
                 ))}
               </select>

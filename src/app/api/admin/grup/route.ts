@@ -10,14 +10,14 @@ export async function GET() {
   }
 
   const groups = db.prepare(`
-    SELECT g.*, k.nama as nama_kelas, k.tahun_ajaran,
+    SELECT g.*, COALESCE(k.nama, 'Semua Kelas') as nama_kelas, k.tahun_ajaran,
       (SELECT COUNT(*) FROM keanggotaan kg WHERE kg.grup_id = g.id) as total_anggota,
       (SELECT COALESCE(SUM(t.jumlah), 0) 
        FROM transaksi t 
        JOIN keanggotaan kg ON t.keanggotaan_id = kg.id 
        WHERE kg.grup_id = g.id AND t.status = 'berhasil') as total_terkumpul
     FROM grup_tabungan g
-    JOIN kelas k ON g.kelas_id = k.id
+    LEFT JOIN kelas k ON g.kelas_id = k.id
     ORDER BY g.created_at DESC
   `).all();
 
@@ -31,14 +31,17 @@ export async function POST(req: Request) {
   }
 
   const { kelas_id, nama, target_per_mahasiswa, deadline } = await req.json();
-  if (!kelas_id || !nama || !target_per_mahasiswa || !deadline) {
-    return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
+  if (!nama || !target_per_mahasiswa || !deadline) {
+    return NextResponse.json({ error: "Nama event, target, dan deadline wajib diisi" }, { status: 400 });
   }
 
   const target = parseInt(target_per_mahasiswa, 10);
   if (isNaN(target) || target <= 0) {
     return NextResponse.json({ error: "Target harus angka positif" }, { status: 400 });
   }
+
+  const isAllClasses = !kelas_id || kelas_id === "all";
+  const actualKelasId = isAllClasses ? null : kelas_id;
 
   const grupId = crypto.randomUUID();
   const { runTransaction } = require("@/lib/db");
@@ -48,10 +51,13 @@ export async function POST(req: Request) {
     db.prepare(`
       INSERT INTO grup_tabungan (id, kelas_id, nama, target_per_mahasiswa, deadline, status)
       VALUES (?, ?, ?, ?, ?, 'aktif')
-    `).run(grupId, kelas_id, nama, target, deadline);
+    `).run(grupId, actualKelasId, nama, target, deadline);
 
-    // PRD M3: Tambah seluruh anggota satu kelas sekaligus ke keanggotaan
-    const students = db.prepare("SELECT id FROM users WHERE kelas_id = ? AND role = 'mahasiswa' AND aktif = 1").all(kelas_id) as any[];
+    // Enrol mahasiswa aktif (berdasarkan kelas atau semua kelas)
+    const students = isAllClasses
+      ? (db.prepare("SELECT id FROM users WHERE role = 'mahasiswa' AND aktif = 1").all() as any[])
+      : (db.prepare("SELECT id FROM users WHERE kelas_id = ? AND role = 'mahasiswa' AND aktif = 1").all(actualKelasId) as any[]);
+
     totalEnrolled = students.length;
     for (const s of students) {
       db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(
@@ -62,7 +68,7 @@ export async function POST(req: Request) {
     }
   });
 
-  logAudit(user.id, "BUAT_GRUP", grupId, `Grup: ${nama}, Target: ${target}, Anggota: ${totalEnrolled}`);
+  logAudit(user.id, "BUAT_EVENT", grupId, `Event: ${nama}, Target: ${target}, Anggota: ${totalEnrolled}`);
 
   return NextResponse.json({ success: true, id: grupId, total_enrolled: totalEnrolled });
 }

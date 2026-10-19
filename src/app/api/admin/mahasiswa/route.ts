@@ -60,8 +60,8 @@ export async function POST(req: Request) {
       VALUES (?, ?, ?, 'mahasiswa', ?, ?, 1, 1)
     `).run(id, nim, nama, kelas_id, passwordHash);
 
-    // Auto enroll in active groups of this class (idempotent)
-    const groups = db.prepare("SELECT id FROM grup_tabungan WHERE kelas_id = ? AND status = 'aktif'").all(kelas_id) as any[];
+    // Auto enroll in active groups of this class or open to all classes (idempotent)
+    const groups = db.prepare("SELECT id FROM grup_tabungan WHERE (kelas_id = ? OR kelas_id IS NULL) AND status = 'aktif'").all(kelas_id) as any[];
     for (const g of groups) {
       try {
         db.prepare("INSERT OR IGNORE INTO keanggotaan (id, grup_id, user_id) VALUES (?, ?, ?)").run(

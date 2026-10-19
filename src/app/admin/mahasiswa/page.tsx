@@ -452,7 +452,7 @@ export default function AdminMahasiswaPage() {
 
             <form onSubmit={handleManualSaldo} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Grup Tabungan</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Pilih Event Sakune</label>
                 <select
                   required
                   value={targetGrupId}

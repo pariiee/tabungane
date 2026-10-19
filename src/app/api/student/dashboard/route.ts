@@ -17,7 +17,7 @@ export async function GET() {
       g.target_per_mahasiswa,
       g.deadline,
       g.status,
-      k.nama as nama_kelas,
+      COALESCE(k.nama, 'Semua Kelas') as nama_kelas,
       COALESCE((
         SELECT SUM(t.jumlah) 
         FROM transaksi t 
@@ -32,7 +32,7 @@ export async function GET() {
       ), 0) as total_terkumpul_grup
     FROM keanggotaan kg
     JOIN grup_tabungan g ON kg.grup_id = g.id
-    JOIN kelas k ON g.kelas_id = k.id
+    LEFT JOIN kelas k ON g.kelas_id = k.id
     WHERE kg.user_id = ?
     ORDER BY g.created_at DESC
   `).all(user.id, user.id) as any[];

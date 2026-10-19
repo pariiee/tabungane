@@ -75,7 +75,7 @@ export default function AdminLaporanPage() {
 
       {/* Selector Grup */}
       <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex items-center gap-3">
-        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Pilih Grup Kas:</label>
+        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Pilih Event Sakune:</label>
         <select
           value={selectedGrupId}
           onChange={(e) => setSelectedGrupId(e.target.value)}
@@ -83,7 +83,7 @@ export default function AdminLaporanPage() {
         >
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
-              {g.nama} (Kelas {g.nama_kelas})
+              {g.nama} ({g.nama_kelas})
             </option>
           ))}
         </select>

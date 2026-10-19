@@ -273,10 +273,10 @@ export default function StudentDashboardPage() {
           <div>
             <h2 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Kantong Kas & Tabungan Kelas</span>
+              <span>Event Sakune & Kas Kelas</span>
             </h2>
             <p className="text-xs text-gray-400 dark:text-zinc-500">
-              Pilih grup untuk melihat leaderboard dan progres kas kelas.
+              Pilih event untuk melihat leaderboard dan progres iuran bersama.
             </p>
           </div>
         </div>
@@ -485,7 +485,7 @@ export default function StudentDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-                  Alokasi Dana ke Kas Kelas
+                  Alokasi Dana ke Event Sakune
                 </h3>
                 <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
                   Saldo saku Anda: Rp {saldoDompet.toLocaleString("id-ID")}
@@ -518,7 +518,7 @@ export default function StudentDashboardPage() {
             <form onSubmit={handleAllocate} className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
-                  Pilih Grup Kas Tujuan
+                  Pilih Event Sakune Tujuan
                 </label>
                 <select
                   value={selectedGrupId}

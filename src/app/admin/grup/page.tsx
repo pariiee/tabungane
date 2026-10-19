@@ -9,10 +9,10 @@ export default function AdminGrupPage() {
   const [kelasList, setKelasList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Form Buat Grup
+  // Form Buat Event
   const [showModal, setShowModal] = useState(false);
   const [namaGrup, setNamaGrup] = useState("");
-  const [kelasId, setKelasId] = useState("");
+  const [kelasId, setKelasId] = useState("all");
   const [targetPerMhs, setTargetPerMhs] = useState("100000");
   const [deadline, setDeadline] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +29,6 @@ export default function AdminGrupPage() {
       .then((d) => {
         const k = d.data || [];
         setKelasList(k);
-        if (k.length > 0 && !kelasId) setKelasId(k[0].id);
       });
 
     setLoading(false);
@@ -61,9 +60,9 @@ export default function AdminGrupPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal membuat grup");
+      if (!res.ok) throw new Error(data.error || "Gagal membuat event");
 
-      setSuccess(`Grup "${namaGrup}" berhasil dibuat! Otomatis mendaftarkan ${data.total_enrolled} mahasiswa kelas.`);
+      setSuccess(`Event Sakune "${namaGrup}" berhasil dibuat! Otomatis mendaftarkan ${data.total_enrolled} mahasiswa.`);
       setShowModal(false);
       setNamaGrup("");
       loadData();
@@ -81,10 +80,10 @@ export default function AdminGrupPage() {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
             <Layers className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
-            <span>Kelola Grup Kas & Tabungan</span>
+            <span>Event Sakune</span>
           </h1>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-            Grup tabungan kas per kelas dengan target nominal dan tenggat waktu (deadline).
+            Kelola event tabungan, kas per kelas, atau event terbuka untuk semua kelas.
           </p>
         </div>
 
@@ -101,7 +100,7 @@ export default function AdminGrupPage() {
             className="h-9 px-3.5 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Buat Grup Baru</span>
+            <span>Buat Event Baru</span>
           </button>
         </div>
       </div>
@@ -120,7 +119,7 @@ export default function AdminGrupPage() {
         </div>
       )}
 
-      {/* Grid Grup */}
+      {/* Grid Event */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {groups.map((g) => (
           <div
@@ -129,8 +128,12 @@ export default function AdminGrupPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/30 px-2.5 py-0.5 rounded-full">
-                  Kelas {g.nama_kelas}
+                <span className={`text-[10px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                  g.nama_kelas === "Semua Kelas"
+                    ? "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-purple-200/50 dark:border-purple-800/30"
+                    : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-800/30"
+                }`}>
+                  {g.nama_kelas === "Semua Kelas" ? "Semua Kelas (Terbuka)" : `Kelas ${g.nama_kelas}`}
                 </span>
                 <span className="text-[11px] text-gray-400 dark:text-zinc-500">Deadline: {g.deadline}</span>
               </div>
@@ -151,7 +154,7 @@ export default function AdminGrupPage() {
                 </span>
               </div>
               <div className="flex justify-between text-gray-500 dark:text-zinc-400 text-[11px]">
-                <span>Anggota Kelas:</span>
+                <span>Peserta Terdaftar:</span>
                 <span className="font-semibold text-gray-900 dark:text-zinc-100">{g.total_anggota} Mahasiswa</span>
               </div>
             </div>
@@ -175,25 +178,28 @@ export default function AdminGrupPage() {
         ))}
       </div>
 
-      {/* Modal Buat Grup */}
+      {/* Modal Buat Event */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Buat Grup Tabungan Baru</h3>
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Buat Event Sakune Baru</h3>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleCreateGroup} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Kelas</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Target Event
+                </label>
                 <select
                   required
                   value={kelasId}
                   onChange={(e) => setKelasId(e.target.value)}
                   className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 >
+                  <option value="all">Semua Kelas (Terbuka / Lintas Angkatan)</option>
                   {kelasList.map((k) => (
                     <option key={k.id} value={k.id}>
                       Kelas {k.nama} ({k.tahun_ajaran})
@@ -201,16 +207,18 @@ export default function AdminGrupPage() {
                   ))}
                 </select>
                 <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                  Seluruh mahasiswa aktif di kelas ini akan otomatis dimasukkan ke grup tabungan.
+                  Pilih "Semua Kelas" untuk mengikutsertakan seluruh mahasiswa aktif secara otomatis.
                 </p>
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Nama Acara / Grup</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Nama Event Sakune
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Kas Wisuda & Buku Kenangan"
+                  placeholder="Contoh: Kas Wisuda 2026 / Patungan Buka Bersama"
                   value={namaGrup}
                   onChange={(e) => setNamaGrup(e.target.value)}
                   className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
@@ -233,7 +241,9 @@ export default function AdminGrupPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Tenggat Waktu (Deadline)</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Tenggat Waktu (Deadline)
+                </label>
                 <input
                   type="date"
                   required
@@ -256,7 +266,7 @@ export default function AdminGrupPage() {
                   disabled={submitting}
                   className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs"
                 >
-                  {submitting ? "Membuat..." : "Simpan Grup"}
+                  {submitting ? "Membuat..." : "Simpan Event"}
                 </button>
               </div>
             </form>

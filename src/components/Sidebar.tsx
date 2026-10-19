@@ -76,7 +76,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
         { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
         { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
-        { href: "/admin/grup", label: "Grup Tabungan", icon: Layers },
+        { href: "/admin/grup", label: "Event Sakune", icon: Layers },
         { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
         { href: "/admin/laporan", label: "Laporan", icon: FileText },
         { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },

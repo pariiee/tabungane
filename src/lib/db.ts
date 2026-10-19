@@ -64,7 +64,7 @@ try {
 
     CREATE TABLE IF NOT EXISTS grup_tabungan (
       id TEXT PRIMARY KEY,
-      kelas_id TEXT NOT NULL,
+      kelas_id TEXT,
       nama TEXT NOT NULL,
       target_per_mahasiswa INTEGER NOT NULL,
       deadline TEXT NOT NULL,
@@ -168,6 +168,28 @@ try {
         DROP TABLE transaksi;
         ALTER TABLE transaksi_v2 RENAME TO transaksi;
         CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
+        PRAGMA foreign_keys=ON;
+      `);
+    }
+
+    const gCols = db.prepare("PRAGMA table_info(grup_tabungan)").all() as any[];
+    const kCol = gCols.find((c) => c.name === "kelas_id");
+    if (kCol && kCol.notnull === 1) {
+      db.exec(`
+        PRAGMA foreign_keys=OFF;
+        CREATE TABLE IF NOT EXISTS grup_tabungan_v2 (
+          id TEXT PRIMARY KEY,
+          kelas_id TEXT,
+          nama TEXT NOT NULL,
+          target_per_mahasiswa INTEGER NOT NULL,
+          deadline TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'aktif',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (kelas_id) REFERENCES kelas(id) ON DELETE CASCADE
+        );
+        INSERT INTO grup_tabungan_v2 SELECT * FROM grup_tabungan;
+        DROP TABLE grup_tabungan;
+        ALTER TABLE grup_tabungan_v2 RENAME TO grup_tabungan;
         PRAGMA foreign_keys=ON;
       `);
     }
