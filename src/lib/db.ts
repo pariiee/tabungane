@@ -137,11 +137,14 @@ try {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_webhook_events_event_id ON webhook_events(event_id);
   `);
 
-  // Auto-migration for users leaderboard privacy
+  // Auto-migration for users leaderboard privacy & profile photo
   try {
     const uCols = db.prepare("PRAGMA table_info(users)").all() as any[];
     if (!uCols.some((c) => c.name === "tampilkan_saldo_leaderboard")) {
       db.exec("ALTER TABLE users ADD COLUMN tampilkan_saldo_leaderboard INTEGER DEFAULT 0;");
+    }
+    if (!uCols.some((c) => c.name === "foto_url")) {
+      db.exec("ALTER TABLE users ADD COLUMN foto_url TEXT DEFAULT NULL;");
     }
   } catch (err) {
     console.error("Migration users column error:", err);

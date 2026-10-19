@@ -13,6 +13,7 @@ export interface SessionUser {
   must_change_password: boolean;
   kelas_id?: string | null;
   tampilkan_saldo_leaderboard?: boolean;
+  foto_url?: string | null;
 }
 
 export function hashPassword(password: string): string {
@@ -64,7 +65,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     const data = JSON.parse(payload);
     if (!data.id || data.exp < Date.now()) return null;
 
-    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
+    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, foto_url, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
     if (!row || !row.aktif) return null;
 
     return {
@@ -75,6 +76,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       must_change_password: Boolean(row.must_change_password),
       kelas_id: row.kelas_id,
       tampilkan_saldo_leaderboard: Boolean(row.tampilkan_saldo_leaderboard),
+      foto_url: row.foto_url || null,
     };
   } catch {
     return null;

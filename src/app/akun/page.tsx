@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Lock, CheckCircle2, AlertCircle, KeyRound, RefreshCw, Shield, Eye, EyeOff } from "lucide-react";
+import { User, Lock, CheckCircle2, AlertCircle, KeyRound, RefreshCw, Shield, Eye, EyeOff, Camera, Trash2 } from "lucide-react";
 
 export default function AkunPage() {
   const [user, setUser] = useState<any>(null);
@@ -15,6 +15,69 @@ export default function AkunPage() {
   const [tampilkanSaldo, setTampilkanSaldo] = useState(false);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [privacyMsg, setPrivacyMsg] = useState("");
+
+  // Photo profile upload
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [photoSuccess, setPhotoSuccess] = useState("");
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoError("");
+    setPhotoSuccess("");
+
+    if (file.size > 500 * 1024) {
+      setPhotoError("Ukuran file foto maksimal 500 KB.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadingPhoto(true);
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const res = await fetch("/api/auth/me/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengunggah foto profil");
+
+      setUser((prev: any) => ({ ...prev, foto_url: data.foto_url }));
+      setPhotoSuccess("Foto profil berhasil diperbarui!");
+      setTimeout(() => setPhotoSuccess(""), 3000);
+    } catch (err: any) {
+      setPhotoError(err.message);
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  };
+
+  const handlePhotoDelete = async () => {
+    if (!confirm("Hapus foto profil dan gunakan avatar default?")) return;
+    setPhotoError("");
+    setPhotoSuccess("");
+    setUploadingPhoto(true);
+    try {
+      const res = await fetch("/api/auth/me/avatar", {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal menghapus foto");
+
+      setUser((prev: any) => ({ ...prev, foto_url: null }));
+      setPhotoSuccess("Foto profil berhasil dihapus.");
+      setTimeout(() => setPhotoSuccess(""), 3000);
+    } catch (err: any) {
+      setPhotoError(err.message);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -95,20 +158,103 @@ export default function AkunPage() {
       </div>
 
       {user && (
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
-            {user.nama?.charAt(0) || "U"}
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100 truncate">{user.nama}</h2>
-            <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 flex items-center gap-2">
-              <span>NIM: <strong className="text-gray-700 dark:text-zinc-300">{user.nim}</strong></span>
-              <span>&bull;</span>
-              <span className="capitalize px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium text-[10px]">
-                {user.role}
-              </span>
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {/* Avatar Preview with Camera Overlay */}
+              <div className="relative group shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-xl shadow-xs overflow-hidden border border-gray-200 dark:border-zinc-700">
+                  {user.foto_url ? (
+                    <img
+                      src={user.foto_url}
+                      alt={user.nama}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    user.nama?.charAt(0) || "U"
+                  )}
+                </div>
+                <label
+                  htmlFor="avatar-input"
+                  className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black shadow-md border-2 border-white dark:border-zinc-900 cursor-pointer hover:scale-110 transition-transform"
+                  title="Ganti Foto Profil"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <input
+                    id="avatar-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={uploadingPhoto}
+                    onChange={handlePhotoUpload}
+                  />
+                </label>
+              </div>
+
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-gray-900 dark:text-zinc-100 truncate">
+                  {user.nama}
+                </h2>
+                <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 flex items-center gap-2">
+                  <span>
+                    NIM: <strong className="text-gray-700 dark:text-zinc-300">{user.nim}</strong>
+                  </span>
+                  <span>&bull;</span>
+                  <span className="capitalize px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium text-[10px]">
+                    {user.role}
+                  </span>
+                </div>
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                  Format JPG, PNG, WEBP &bull; Maks. 500 KB
+                </p>
+              </div>
+            </div>
+
+            {/* Avatar Actions */}
+            <div className="flex items-center gap-2 self-start sm:self-center">
+              <label
+                htmlFor="avatar-input"
+                className={`px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
+                  uploadingPhoto ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                {uploadingPhoto ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Camera className="w-3.5 h-3.5" />
+                )}
+                <span>{uploadingPhoto ? "Mengunggah..." : "Ubah Foto"}</span>
+              </label>
+
+              {user.foto_url && (
+                <button
+                  type="button"
+                  onClick={handlePhotoDelete}
+                  disabled={uploadingPhoto}
+                  className="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer inline-flex items-center gap-1"
+                  title="Hapus Foto"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Hapus</span>
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Feedback Alerts */}
+          {photoError && (
+            <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{photoError}</span>
+            </div>
+          )}
+
+          {photoSuccess && (
+            <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{photoSuccess}</span>
+            </div>
+          )}
         </div>
       )}
 

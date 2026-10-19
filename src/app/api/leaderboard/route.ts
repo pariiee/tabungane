@@ -21,6 +21,7 @@ export async function GET(req: Request) {
         u.id as user_id,
         u.nim,
         u.nama,
+        u.foto_url,
         COALESCE(k.nama, 'Tanpa Kelas') as nama_kelas,
         COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo,
         COALESCE((
@@ -71,6 +72,7 @@ export async function GET(req: Request) {
         u.id as user_id,
         u.nim,
         u.nama,
+        u.foto_url,
         COALESCE(k.nama, 'Tanpa Kelas') as nama_kelas,
         COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo,
         COALESCE((
@@ -101,6 +103,7 @@ export async function GET(req: Request) {
       rank: idx + 1,
       user_id: m.user_id,
       nama: m.nama,
+      foto_url: m.foto_url || null,
       nim: isMe || isAdmin ? m.nim : `${m.nim.slice(0, 3)}***`,
       nama_kelas: m.nama_kelas,
       is_me: isMe,

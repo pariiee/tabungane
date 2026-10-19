@@ -113,8 +113,12 @@ export default function LeaderboardPage() {
                   {/* Avatar & Player Info */}
                   <div className="flex flex-col items-center mb-3">
                     <div className="relative mb-2">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 border-2 border-slate-300 dark:border-zinc-700 flex items-center justify-center font-bold text-lg text-black dark:text-white shadow-md">
-                        {rank2.nama?.charAt(0) || "2"}
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 border-2 border-slate-300 dark:border-zinc-700 flex items-center justify-center font-bold text-lg text-black dark:text-white shadow-md overflow-hidden">
+                        {rank2.foto_url ? (
+                          <img src={rank2.foto_url} alt={rank2.nama} className="w-full h-full object-cover" />
+                        ) : (
+                          rank2.nama?.charAt(0) || "2"
+                        )}
                       </div>
                       <div className="absolute -bottom-2 -right-1 bg-slate-200 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 p-1 rounded-full border border-white dark:border-zinc-900">
                         <Medal className="w-3.5 h-3.5" />
@@ -156,8 +160,12 @@ export default function LeaderboardPage() {
                   {/* Avatar & Player Info */}
                   <div className="flex flex-col items-center mb-3">
                     <div className="relative mb-2">
-                      <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-black dark:bg-white border-2 border-amber-400 dark:border-amber-300 flex items-center justify-center font-black text-xl text-white dark:text-black shadow-xl">
-                        {rank1.nama?.charAt(0) || "1"}
+                      <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-black dark:bg-white border-2 border-amber-400 dark:border-amber-300 flex items-center justify-center font-black text-xl text-white dark:text-black shadow-xl overflow-hidden">
+                        {rank1.foto_url ? (
+                          <img src={rank1.foto_url} alt={rank1.nama} className="w-full h-full object-cover" />
+                        ) : (
+                          rank1.nama?.charAt(0) || "1"
+                        )}
                       </div>
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-black p-1 rounded-full shadow-md">
                         <Crown className="w-4 h-4" />
@@ -199,8 +207,12 @@ export default function LeaderboardPage() {
                   {/* Avatar & Player Info */}
                   <div className="flex flex-col items-center mb-3">
                     <div className="relative mb-2">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 border-2 border-amber-700/50 dark:border-amber-700/50 flex items-center justify-center font-bold text-lg text-black dark:text-white shadow-md">
-                        {rank3.nama?.charAt(0) || "3"}
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 border-2 border-amber-700/50 dark:border-amber-700/50 flex items-center justify-center font-bold text-lg text-black dark:text-white shadow-md overflow-hidden">
+                        {rank3.foto_url ? (
+                          <img src={rank3.foto_url} alt={rank3.nama} className="w-full h-full object-cover" />
+                        ) : (
+                          rank3.nama?.charAt(0) || "3"
+                        )}
                       </div>
                       <div className="absolute -bottom-2 -right-1 bg-amber-100 dark:bg-zinc-700 text-amber-800 dark:text-amber-500 p-1 rounded-full border border-white dark:border-zinc-900">
                         <Medal className="w-3.5 h-3.5" />
@@ -282,8 +294,12 @@ export default function LeaderboardPage() {
                       #{m.rank}
                     </span>
 
-                    <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-black dark:text-white shrink-0">
-                      {m.nama?.charAt(0) || "U"}
+                    <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-black dark:text-white shrink-0 overflow-hidden">
+                      {m.foto_url ? (
+                        <img src={m.foto_url} alt={m.nama} className="w-full h-full object-cover" />
+                      ) : (
+                        m.nama?.charAt(0) || "U"
+                      )}
                     </div>
 
                     <div className="min-w-0">

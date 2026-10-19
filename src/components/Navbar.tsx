@@ -160,8 +160,12 @@ export default function Navbar() {
                   href="/akun"
                   className="flex items-center gap-2 p-1.5 pr-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
                 >
-                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 flex items-center justify-center text-xs font-semibold">
-                    {user.nama?.charAt(0) || "U"}
+                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 flex items-center justify-center text-xs font-semibold overflow-hidden">
+                    {user.foto_url ? (
+                      <img src={user.foto_url} alt={user.nama} className="w-full h-full object-cover" />
+                    ) : (
+                      user.nama?.charAt(0) || "U"
+                    )}
                   </div>
                   <span className="text-xs font-medium text-gray-900 dark:text-zinc-100 max-w-[100px] truncate">
                     {user.nama}
@@ -223,8 +227,12 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 text-xs font-medium text-gray-800 dark:text-zinc-200"
               >
-                <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-semibold">
-                  {user.nama?.charAt(0) || "U"}
+                <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-semibold overflow-hidden">
+                  {user.foto_url ? (
+                    <img src={user.foto_url} alt={user.nama} className="w-full h-full object-cover" />
+                  ) : (
+                    user.nama?.charAt(0) || "U"
+                  )}
                 </div>
                 <span>{user.nama} ({user.nim})</span>
               </Link>
