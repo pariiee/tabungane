@@ -80,7 +80,6 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
         { href: "/admin/laporan", label: "Laporan", icon: FileText },
         { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
-        { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
       ]
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
