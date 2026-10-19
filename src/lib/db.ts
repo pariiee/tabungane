@@ -137,6 +137,16 @@ try {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_webhook_events_event_id ON webhook_events(event_id);
   `);
 
+  // Auto-migration for users leaderboard privacy
+  try {
+    const uCols = db.prepare("PRAGMA table_info(users)").all() as any[];
+    if (!uCols.some((c) => c.name === "tampilkan_saldo_leaderboard")) {
+      db.exec("ALTER TABLE users ADD COLUMN tampilkan_saldo_leaderboard INTEGER DEFAULT 0;");
+    }
+  } catch (err) {
+    console.error("Migration users column error:", err);
+  }
+
   // Auto-migration for wallet schema
   try {
     const cols = db.prepare("PRAGMA table_info(transaksi)").all() as any[];
@@ -170,11 +180,6 @@ try {
         CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
         PRAGMA foreign_keys=ON;
       `);
-    }
-
-    const uCols = db.prepare("PRAGMA table_info(users)").all() as any[];
-    if (!uCols.some((c) => c.name === "tampilkan_saldo_leaderboard")) {
-      db.exec("ALTER TABLE users ADD COLUMN tampilkan_saldo_leaderboard INTEGER DEFAULT 0;");
     }
 
     const gCols = db.prepare("PRAGMA table_info(grup_tabungan)").all() as any[];

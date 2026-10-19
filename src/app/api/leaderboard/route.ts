@@ -95,7 +95,7 @@ export async function GET(req: Request) {
   const leaderboard = rows.map((m, idx) => {
     const isMe = m.user_id === user.id;
     const isPublic = Boolean(m.tampilkan_saldo);
-    const canSeeAmount = isMe || isAdmin || isPublic;
+    const canSeeAmount = isPublic;
 
     return {
       rank: idx + 1,
@@ -106,8 +106,8 @@ export async function GET(req: Request) {
       is_me: isMe,
       tampilkan_saldo: isPublic,
       total_value: m.total_value,
-      display_value: tab === "rajin" ? `${m.total_value}x Setoran` : canSeeAmount ? `Rp ${m.total_value.toLocaleString("id-ID")}` : null,
-      saldo_nominal: canSeeAmount ? (tab === "rajin" ? m.saldo_nominal : m.total_value) : null,
+      display_value: canSeeAmount ? `Rp ${m.total_value.toLocaleString("id-ID")}` : null,
+      saldo_nominal: canSeeAmount ? m.total_value : null,
       progress_pct: Math.min(Math.round((m.total_value / maxVal) * 100), 100),
     };
   });

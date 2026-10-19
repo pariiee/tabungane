@@ -128,7 +128,14 @@ export default function LeaderboardPage() {
                     </span>
                     {/* Value Badge */}
                     <div className="mt-2 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-[11px] font-mono font-bold text-black dark:text-white border border-gray-200 dark:border-zinc-700 max-w-full truncate">
-                      {rank2.display_value || "•••••••"}
+                      {rank2.display_value ? (
+                        rank2.display_value
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-sans font-normal opacity-80">
+                          <EyeOff className="w-3 h-3" />
+                          <span>•••••••</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -164,7 +171,14 @@ export default function LeaderboardPage() {
                     </span>
                     {/* Value Badge */}
                     <div className="mt-2 px-3 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black text-[11px] font-mono font-bold border border-black dark:border-white shadow-sm max-w-full truncate">
-                      {rank1.display_value || "•••••••"}
+                      {rank1.display_value ? (
+                        rank1.display_value
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-sans font-normal opacity-90">
+                          <EyeOff className="w-3 h-3" />
+                          <span>•••••••</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -200,7 +214,14 @@ export default function LeaderboardPage() {
                     </span>
                     {/* Value Badge */}
                     <div className="mt-2 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-[11px] font-mono font-bold text-black dark:text-white border border-gray-200 dark:border-zinc-700 max-w-full truncate">
-                      {rank3.display_value || "•••••••"}
+                      {rank3.display_value ? (
+                        rank3.display_value
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-sans font-normal opacity-80">
+                          <EyeOff className="w-3 h-3" />
+                          <span>•••••••</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 
