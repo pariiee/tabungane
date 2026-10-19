@@ -99,7 +99,29 @@ try {
       detail TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS pengaturan (
+      kunci TEXT PRIMARY KEY,
+      nilai TEXT NOT NULL
+    );
   `);
 } catch (e) {
   // If another worker is already initializing, ignore
+}
+
+export function getSetting(kunci: string): string | null {
+  try {
+    const row = db.prepare("SELECT nilai FROM pengaturan WHERE kunci = ?").get(kunci) as any;
+    return row ? row.nilai : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setSetting(kunci: string, nilai: string): void {
+  try {
+    db.prepare("INSERT INTO pengaturan (kunci, nilai) VALUES (?, ?) ON CONFLICT(kunci) DO UPDATE SET nilai = excluded.nilai").run(kunci, nilai);
+  } catch (err) {
+    console.error("setSetting error:", err);
+  }
 }

@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { getSetting } from "./auth";
+import { getSetting } from "./db";
 
 const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.web.id";
 
