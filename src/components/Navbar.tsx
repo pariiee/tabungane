@@ -20,7 +20,8 @@ import {
   Sun,
   Menu,
   X,
-  Trophy
+  Trophy,
+  ChevronDown
 } from "lucide-react";
 
 export default function Navbar() {
@@ -29,6 +30,7 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -48,9 +50,10 @@ export default function Navbar() {
     }
   }, [pathname]);
 
-  // Close mobile menu on route change
+  // Close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
+    setOpenDropdown(null);
   }, [pathname]);
 
   const toggleTheme = () => {
@@ -80,12 +83,24 @@ export default function Navbar() {
     ? [
         { href: "/admin", label: "Overview", icon: LayoutDashboard },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-        { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
-        { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
-        { href: "/admin/grup", label: "Event Sakune", icon: Layers },
-        { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
-        { href: "/admin/laporan", label: "Laporan", icon: FileText },
-        { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
+        {
+          label: "Data Kampus",
+          icon: Users,
+          children: [
+            { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
+            { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
+            { href: "/admin/grup", label: "Event Sakune", icon: Layers },
+          ],
+        },
+        {
+          label: "Keuangan & Audit",
+          icon: ArrowRightLeft,
+          children: [
+            { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
+            { href: "/admin/laporan", label: "Laporan Rekap", icon: FileText },
+            { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
+          ],
+        },
       ]
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -120,15 +135,67 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 overflow-x-auto py-1">
+          <nav className="hidden md:flex items-center gap-1.5 py-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+
+              if (item.children) {
+                const isChildActive = item.children.some((c) => pathname === c.href);
+                const isOpen = openDropdown === item.label;
+
+                return (
+                  <div key={item.label} className="relative">
+                    <button
+                      onClick={() => setOpenDropdown(isOpen ? null : item.label)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                        isChildActive
+                          ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-xs"
+                          : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900"
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <span>{item.label}</span>
+                      <ChevronDown
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {isOpen && (
+                      <div className="absolute left-0 mt-1.5 w-44 py-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-lg z-50">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          const isSubActive = pathname === child.href;
+
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              onClick={() => setOpenDropdown(null)}
+                              className={`flex items-center gap-2 px-3 py-2 text-xs transition-colors ${
+                                isSubActive
+                                  ? "bg-gray-100 dark:bg-zinc-800 text-black dark:text-white font-semibold"
+                                  : "text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800/60 hover:text-black dark:hover:text-white"
+                              }`}
+                            >
+                              <ChildIcon className="w-3.5 h-3.5 shrink-0" />
+                              <span>{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               const isActive = pathname === item.href;
 
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href!}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                     isActive
                       ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-xs"
@@ -208,12 +275,45 @@ export default function Navbar() {
           <div className="grid grid-cols-1 gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+
+              if (item.children) {
+                return (
+                  <div key={item.label} className="pt-2">
+                    <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500">
+                      {item.label}
+                    </div>
+                    <div className="grid grid-cols-1 gap-0.5 mt-0.5">
+                      {item.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        const isSubActive = pathname === child.href;
+
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                              isSubActive
+                                ? "bg-black text-white dark:bg-white dark:text-black font-semibold"
+                                : "text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900"
+                            }`}
+                          >
+                            <ChildIcon className="w-4 h-4 shrink-0" />
+                            <span>{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+
               const isActive = pathname === item.href;
 
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href!}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     isActive
