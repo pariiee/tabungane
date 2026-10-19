@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useTransition } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,15 +12,16 @@ import {
   Wallet,
   ArrowRight,
   ShieldCheck,
-  Zap
+  Zap,
+  Sparkles
 } from "lucide-react";
 
 export default function TopUpPage() {
   const searchParams = useSearchParams();
-  const initialGrupId = searchParams.get("grup_id") || "";
+  const initialGrupId = searchParams.get("grup_id") || "wallet";
 
   const [groups, setGroups] = useState<any[]>([]);
-  const [selectedGrup, setSelectedGrup] = useState(initialGrupId);
+  const [selectedDestination, setSelectedDestination] = useState(initialGrupId);
   const [amount, setAmount] = useState<number>(25000);
   const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function TopUpPage() {
 
   // Payment Active State
   const [activePayment, setActivePayment] = useState<any>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes (300s)
+  const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "berhasil" | "expired">("pending");
   const [newBalance, setNewBalance] = useState<number>(0);
   const [simulating, setSimulating] = useState(false);
@@ -36,20 +37,15 @@ export default function TopUpPage() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load groups
   useEffect(() => {
     fetch("/api/student/dashboard")
       .then((res) => res.json())
       .then((data) => {
         const grps = data?.groups || [];
         setGroups(grps);
-        if (!selectedGrup && grps.length > 0) {
-          setSelectedGrup(grps[0].grup_id);
-        }
       });
   }, []);
 
-  // Timer countdown
   useEffect(() => {
     if (activePayment && paymentStatus === "pending") {
       timerRef.current = setInterval(() => {
@@ -68,7 +64,6 @@ export default function TopUpPage() {
     };
   }, [activePayment, paymentStatus]);
 
-  // Polling every 3 seconds to our server (PRD rule 6.1)
   useEffect(() => {
     if (activePayment && paymentStatus === "pending") {
       pollRef.current = setInterval(async () => {
@@ -102,11 +97,7 @@ export default function TopUpPage() {
 
     const finalAmount = customAmount ? parseInt(customAmount, 10) : amount;
     if (isNaN(finalAmount) || finalAmount < 1000 || finalAmount > 1000000) {
-      setError("Nominal harus antara Rp1.000 dan Rp1.000.000");
-      return;
-    }
-    if (!selectedGrup) {
-      setError("Pilih grup tabungan terlebih dahulu");
+      setError("Nominal harus antara Rp 1.000 dan Rp 1.000.000");
       return;
     }
 
@@ -116,13 +107,13 @@ export default function TopUpPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          grup_id: selectedGrup,
+          grup_id: selectedDestination === "wallet" ? null : selectedDestination,
           amount: finalAmount,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal membuat kode QR");
+      if (!res.ok) throw new Error(data.error || "Gagal membuat kode QRIS");
 
       setActivePayment(data);
       setTimeLeft(300);
@@ -134,7 +125,6 @@ export default function TopUpPage() {
     }
   };
 
-  // Simulate payment (useful for testing without waiting for live webhook)
   const handleSimulatePayment = async () => {
     if (!activePayment) return;
     setSimulating(true);
@@ -157,46 +147,45 @@ export default function TopUpPage() {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const timeFormatted = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
   const nominalPresets = [10000, 25000, 50000, 100000];
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <QrCode className="w-6 h-6 text-emerald-600" />
-          Top Up Tabungan QRIS
+        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+          <QrCode className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
+          <span>Top Up Saldo QRIS</span>
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Scan QR menggunakan GoPay, ShopeePay, BCA, atau mobile banking apapun. Tanpa biaya admin.
+        <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+          Scan QR menggunakan GoPay, ShopeePay, BCA, Mandiri, atau mobile banking apapun. Tanpa biaya admin.
         </p>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 text-sm rounded-xl border border-red-200 flex items-center gap-2">
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs rounded-xl border border-rose-200/50 dark:border-rose-800/30 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {!activePayment ? (
-        /* Top Up Form */
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-6 shadow-xs space-y-6">
           <form onSubmit={handleCreateQR} className="space-y-5">
-            {/* Pilih Grup */}
+            {/* Tujuan Saldo */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                Pilih Grup Tabungan
+              <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
+                Tujuan Top Up
               </label>
               <select
-                value={selectedGrup}
-                onChange={(e) => setSelectedGrup(e.target.value)}
-                className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                required
+                value={selectedDestination}
+                onChange={(e) => setSelectedDestination(e.target.value)}
+                className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
               >
+                <option value="wallet">Dompet Utama (Saku Pribadi — Bebas Kirim / Alokasi)</option>
                 {groups.map((g) => (
                   <option key={g.grup_id} value={g.grup_id}>
-                    {g.nama_grup} (Target: Rp{g.target_per_mahasiswa.toLocaleString("id-ID")})
+                    Kas Grup: {g.nama_grup} (Target: Rp {g.target_per_mahasiswa.toLocaleString("id-ID")})
                   </option>
                 ))}
               </select>
@@ -204,7 +193,7 @@ export default function TopUpPage() {
 
             {/* Nominal Presets */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+              <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
                 Pilih Nominal
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
@@ -216,20 +205,20 @@ export default function TopUpPage() {
                       setAmount(preset);
                       setCustomAmount("");
                     }}
-                    className={`py-2.5 px-3 rounded-xl border text-sm font-semibold transition-all ${
+                    className={`h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
                       amount === preset && !customAmount
-                        ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-                        : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                        ? "border-black dark:border-white bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        : "border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-900"
                     }`}
                   >
-                    Rp{preset.toLocaleString("id-ID")}
+                    Rp {preset.toLocaleString("id-ID")}
                   </button>
                 ))}
               </div>
 
               {/* Custom Amount */}
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-sm font-semibold text-gray-400">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-semibold text-gray-400 dark:text-zinc-500">
                   Rp
                 </span>
                 <input
@@ -237,71 +226,71 @@ export default function TopUpPage() {
                   min={1000}
                   max={1000000}
                   step={1000}
-                  placeholder="Atau ketik nominal lain (1.000 - 1.000.000)"
+                  placeholder="Atau ketik nominal kustom (1.000 - 1.000.000)"
                   value={customAmount}
-                  onChange={(e) => {
-                    setCustomAmount(e.target.value);
-                  }}
-                  className="w-full pl-12 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  className="w-full h-10 pl-11 pr-4 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1.5">
-                Minimal Rp1.000, maksimal Rp1.000.000 per transaksi QRIS.
+              <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1.5">
+                Minimal Rp 1.000, maksimal Rp 1.000.000 per transaksi QRIS.
               </p>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading || groups.length === 0}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full h-10 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Menyiapkan QRIS...
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Menyiapkan QRIS Dinamis...</span>
                 </>
               ) : (
                 <>
-                  <QrCode className="w-4 h-4" />
-                  Lanjut Bayar QRIS
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>Lanjut Terbitkan QRIS</span>
                 </>
               )}
             </button>
           </form>
 
-          <div className="border-t border-gray-100 pt-4 flex items-center justify-between text-xs text-gray-500">
+          <div className="border-t border-gray-100 dark:border-zinc-800/50 pt-4 flex items-center justify-between text-[11px] text-gray-400 dark:text-zinc-500">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              Sistem verifikasi otomatis
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Verifikasi otomatis real-time</span>
             </span>
-            <span>Didukung oleh API qriskuu</span>
+            <span>Gateway qriskuu API</span>
           </div>
         </div>
       ) : (
         /* Active Payment Screen with QR Code */
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-sm text-center space-y-6">
+        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-6 sm:p-8 shadow-xs text-center space-y-6">
           {paymentStatus === "pending" && (
             <>
               <div>
-                <span className="text-xs uppercase font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
+                <span className="text-[11px] uppercase tracking-wider font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/30 px-3 py-1 rounded-full">
                   Menunggu Pembayaran
                 </span>
-                <h2 className="text-xl font-bold text-gray-900 mt-2">
-                  Total Bayar: Rp{activePayment.amount.toLocaleString("id-ID")}
+                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">
+                  Total Bayar: Rp {activePayment.amount.toLocaleString("id-ID")}
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">ID Transaksi: {activePayment.trxid}</p>
+                <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                  ID Transaksi: {activePayment.trxid}
+                </p>
               </div>
 
               {/* Countdown Timer */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-50 text-amber-800 rounded-full text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 rounded-full text-xs font-medium">
                 <Clock className="w-3.5 h-3.5" />
-                Sisa waktu: {timeFormatted}
+                <span>Sisa waktu: {timeFormatted}</span>
               </div>
 
               {/* QR Image */}
               <div className="flex justify-center my-2">
-                <div className="p-4 bg-white border-2 border-emerald-500 rounded-2xl shadow-sm inline-block">
+                <div className="p-4 bg-white border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm inline-block">
                   <img
                     src={activePayment.qr_url}
                     alt="QRIS Top Up"
@@ -310,66 +299,60 @@ export default function TopUpPage() {
                 </div>
               </div>
 
-              <div className="text-xs text-gray-500 max-w-sm mx-auto">
+              <div className="text-xs text-gray-400 dark:text-zinc-500 max-w-sm mx-auto">
                 Buka GoPay, ShopeePay, BCA, atau m-Banking Anda, pilih Scan QRIS lalu konfirmasi pembayaran.
               </div>
 
               {/* Testing / Simulator Action */}
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 max-w-sm mx-auto space-y-2">
-                <div className="text-[11px] text-gray-500 flex items-center justify-center gap-1">
+              <div className="p-3 bg-gray-50/80 dark:bg-zinc-900/60 rounded-xl border border-gray-100 dark:border-zinc-800/60 max-w-sm mx-auto space-y-2">
+                <div className="text-[11px] text-gray-500 dark:text-zinc-400 flex items-center justify-center gap-1">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  Mode Dev / Sandbox Testing:
+                  <span>Mode Simulasi Pengujian:</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleSimulatePayment}
                   disabled={simulating}
-                  className="w-full py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-xs font-semibold transition-colors"
+                  className="w-full h-8 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 rounded-lg text-xs font-medium transition-colors"
                 >
                   {simulating ? "Memproses Bayar..." : "Simulasikan Pembayaran Berhasil"}
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setActivePayment(null)}
-                className="text-xs text-gray-400 hover:text-gray-600 underline"
-              >
-                Batalkan & Buat Transaksi Baru
-              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setActivePayment(null)}
+                  className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 underline"
+                >
+                  Batalkan & Buat Transaksi Baru
+                </button>
+              </div>
             </>
           )}
 
           {paymentStatus === "berhasil" && (
             <div className="py-6 space-y-4">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-10 h-10" />
+              <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Pembayaran Berhasil!</h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Saldo Anda telah berhasil ditambahkan sebesar Rp
-                  {activePayment.amount.toLocaleString("id-ID")}.
+                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">Pembayaran Berhasil!</h2>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
+                  Saldo berhasil ditambahkan sebesar Rp {activePayment.amount.toLocaleString("id-ID")}.
                 </p>
-              </div>
-
-              <div className="p-4 bg-emerald-50 rounded-xl max-w-xs mx-auto text-emerald-800 text-sm font-semibold">
-                Total Saldo Anda di Grup Ini:
-                <div className="text-xl font-bold mt-1">
-                  Rp{newBalance.toLocaleString("id-ID")}
-                </div>
               </div>
 
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   href="/dashboard"
-                  className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold"
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium inline-flex items-center justify-center"
                 >
                   Kembali ke Dashboard
                 </Link>
                 <button
                   onClick={() => setActivePayment(null)}
-                  className="py-2.5 px-4 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  className="h-9 px-4 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 inline-flex items-center justify-center"
                 >
                   Top Up Lagi
                 </button>
@@ -379,12 +362,12 @@ export default function TopUpPage() {
 
           {paymentStatus === "expired" && (
             <div className="py-6 space-y-4">
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
-                <AlertCircle className="w-10 h-10" />
+              <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">QR Kedaluwarsa</h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">QR Kedaluwarsa</h2>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
                   Batas waktu pembayaran 5 menit telah habis. Silakan buat kode QR baru.
                 </p>
               </div>
@@ -392,7 +375,7 @@ export default function TopUpPage() {
               <button
                 type="button"
                 onClick={() => setActivePayment(null)}
-                className="py-2.5 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm"
+                className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium inline-flex items-center justify-center shadow-xs"
               >
                 Buat QR Baru
               </button>
@@ -403,3 +386,4 @@ export default function TopUpPage() {
     </div>
   );
 }
+

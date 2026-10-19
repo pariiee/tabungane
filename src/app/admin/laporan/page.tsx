@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { FileText, Download, Filter, Users, Wallet, Trophy, CheckCircle2 } from "lucide-react";
+import { FileText, Download, Filter, Users, Wallet, Trophy, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminLaporanPage() {
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ export default function AdminLaporanPage() {
       });
   }, []);
 
-  useEffect(() => {
+  const loadPreview = () => {
     if (!selectedGrupId) return;
     setLoading(true);
     fetch(`/api/student/grup/${selectedGrupId}`)
@@ -35,6 +35,10 @@ export default function AdminLaporanPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadPreview();
   }, [selectedGrupId]);
 
   const handleExportCsv = () => {
@@ -46,15 +50,15 @@ export default function AdminLaporanPage() {
   const leaderboard = previewData?.leaderboard || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-purple-600" />
-            Ekspor Laporan Tabungan
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
+            <span>Ekspor Laporan Tabungan</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
             Unduh laporan rekapitulasi setoran kas dan tabungan mahasiswa per grup dalam format file CSV.
           </p>
         </div>
@@ -62,20 +66,20 @@ export default function AdminLaporanPage() {
         <button
           onClick={handleExportCsv}
           disabled={!selectedGrupId || leaderboard.length === 0}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50 self-start sm:self-auto"
+          className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors disabled:opacity-50 inline-flex items-center gap-2 self-start sm:self-auto"
         >
-          <Download className="w-4 h-4" />
-          Download File CSV
+          <Download className="w-3.5 h-3.5" />
+          <span>Download File CSV</span>
         </button>
       </div>
 
       {/* Selector Grup */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-        <label className="text-xs font-semibold text-gray-700">Pilih Grup Tabungan:</label>
+      <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex items-center gap-3">
+        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Pilih Grup Kas:</label>
         <select
           value={selectedGrupId}
           onChange={(e) => setSelectedGrupId(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-purple-500 outline-none max-w-sm"
+          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg text-xs font-medium text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white max-w-sm"
         >
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
@@ -86,24 +90,22 @@ export default function AdminLaporanPage() {
       </div>
 
       {/* Preview Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl overflow-hidden shadow-xs">
+        <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold text-gray-900">{grup?.nama || "Pratinjau Data"}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Kelas {grup?.nama_kelas} &bull; Target per Mhs: Rp
-              {grup?.target_per_mahasiswa?.toLocaleString("id-ID")} &bull; Total Terkumpul: Rp
-              {grup?.total_terkumpul?.toLocaleString("id-ID")}
+            <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">{grup?.nama || "Pratinjau Data Laporan"}</h2>
+            <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+              Kelas {grup?.nama_kelas} &bull; Target: Rp {grup?.target_per_mahasiswa?.toLocaleString("id-ID")} &bull; Terkumpul: Rp {grup?.total_terkumpul?.toLocaleString("id-ID")}
             </p>
           </div>
-          <span className="text-xs text-gray-500 font-medium">
+          <span className="text-xs text-gray-400 dark:text-zinc-500 font-medium">
             {leaderboard.length} Mahasiswa terdata
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 text-xs uppercase font-semibold border-b border-gray-100">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
                 <th className="py-3 px-4 w-12 text-center">Rank</th>
                 <th className="py-3 px-4">NIM</th>
@@ -112,32 +114,32 @@ export default function AdminLaporanPage() {
                 <th className="py-3 px-4 text-right">Saldo Terkumpul</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400">
+                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
                     Memuat pratinjau laporan...
                   </td>
                 </tr>
               ) : leaderboard.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400">
+                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
                     Tidak ada anggota di grup ini.
                   </td>
                 </tr>
               ) : (
                 leaderboard.map((m: any) => (
-                  <tr key={m.user_id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 text-center text-xs font-semibold text-gray-500">
+                  <tr key={m.user_id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                    <td className="py-3.5 px-4 text-center font-medium text-gray-400 dark:text-zinc-500 text-xs">
                       {m.rank}
                     </td>
-                    <td className="py-3 px-4 font-mono text-xs text-gray-700">{m.nim}</td>
-                    <td className="py-3 px-4 font-semibold text-gray-900">{m.nama}</td>
-                    <td className="py-3 px-4 text-xs font-bold text-purple-700">
+                    <td className="py-3.5 px-4 font-mono text-gray-700 dark:text-zinc-300">{m.nim}</td>
+                    <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-zinc-100">{m.nama}</td>
+                    <td className="py-3.5 px-4 font-bold text-gray-700 dark:text-zinc-300">
                       {m.progress_pct}%
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-emerald-600 text-sm">
-                      {m.saldo !== null ? `Rp${m.saldo.toLocaleString("id-ID")}` : "-"}
+                    <td className="py-3.5 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 text-xs">
+                      {m.saldo !== null ? `Rp ${m.saldo.toLocaleString("id-ID")}` : "-"}
                     </td>
                   </tr>
                 ))

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminKelasPage() {
   const [kelasList, setKelasList] = useState<any[]>([]);
@@ -64,59 +64,76 @@ export default function AdminKelasPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <GraduationCap className="w-6 h-6 text-purple-600" />
-          Kelola Kelas
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Daftar kelas perkuliahan beserta tahun ajaran untuk pengelompokan mahasiswa dan grup tabungan.
-        </p>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
+            <span>Kelola Kelas Perkuliahan</span>
+          </h1>
+          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+            Daftar kelas perkuliahan beserta tahun ajaran untuk pengelompokan mahasiswa dan grup kas.
+          </p>
+        </div>
+
+        <div>
+          <button
+            onClick={loadData}
+            className="h-9 px-3.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 flex items-center gap-2">
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs rounded-xl border border-rose-200/50 dark:border-rose-800/30 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200 flex items-center gap-2">
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
       {/* Form Tambah Kelas */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-        <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-          <Plus className="w-4 h-4 text-purple-600" />
-          Tambah Kelas Baru
+      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs">
+        <h2 className="text-xs font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <Plus className="w-3.5 h-3.5 text-gray-700 dark:text-zinc-300" />
+          <span>Tambah Kelas Baru</span>
         </h2>
         <form onSubmit={handleAddKelas} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Nama Kelas</label>
+            <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+              Nama Kelas
+            </label>
             <input
               type="text"
               required
               placeholder="Contoh: 3A atau 4B"
               value={nama}
               onChange={(e) => setNama(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
+            <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+              Tahun Ajaran
+            </label>
             <input
               type="text"
               required
               placeholder="2026/2027"
               value={tahunAjaran}
               onChange={(e) => setTahunAjaran(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
             />
           </div>
 
@@ -124,24 +141,25 @@ export default function AdminKelasPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+              className="w-full h-9 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
             >
-              {submitting ? "Menyimpan..." : "Simpan Kelas"}
+              {submitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              <span>Simpan Kelas</span>
             </button>
           </div>
         </form>
       </div>
 
       {/* Tabel Kelas */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-900">Daftar Kelas Aktif</h2>
-          <span className="text-xs text-gray-400">{kelasList.length} kelas terdaftar</span>
+      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl overflow-hidden shadow-xs">
+        <div className="p-4 border-b border-gray-100 dark:border-zinc-800/60 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">Daftar Kelas Aktif</h2>
+          <span className="text-xs text-gray-400 dark:text-zinc-500">{kelasList.length} kelas terdaftar</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
                 <th className="py-3 px-4">Nama Kelas</th>
                 <th className="py-3 px-4">Tahun Ajaran</th>
@@ -149,37 +167,37 @@ export default function AdminKelasPage() {
                 <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-xs text-gray-400">
+                  <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
                     Memuat daftar kelas...
                   </td>
                 </tr>
               ) : kelasList.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-xs text-gray-400">
+                  <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
                     Belum ada kelas yang dibuat.
                   </td>
                 </tr>
               ) : (
                 kelasList.map((k) => (
-                  <tr key={k.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 font-bold text-gray-900">{k.nama}</td>
-                    <td className="py-3 px-4 text-xs text-gray-600">{k.tahun_ajaran}</td>
-                    <td className="py-3 px-4 text-xs">
-                      <span className="inline-flex items-center gap-1 font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full">
-                        <Users className="w-3 h-3" />
-                        {k.jumlah_mahasiswa} Mahasiswa
+                  <tr key={k.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-zinc-100">{k.nama}</td>
+                    <td className="py-3.5 px-4 text-xs text-gray-500 dark:text-zinc-400">{k.tahun_ajaran}</td>
+                    <td className="py-3.5 px-4 text-xs">
+                      <span className="inline-flex items-center gap-1 font-medium text-gray-700 dark:text-zinc-300 bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/50 dark:border-zinc-700/40 px-2 py-0.5 rounded-full text-[11px]">
+                        <Users className="w-3 h-3 text-gray-500" />
+                        <span>{k.jumlah_mahasiswa} Mahasiswa</span>
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={() => handleDeleteKelas(k.id, k.nama)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors"
                         title="Hapus Kelas"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>

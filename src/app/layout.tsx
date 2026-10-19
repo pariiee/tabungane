@@ -4,8 +4,8 @@ import "./globals.css";
 import ClientShell from "@/components/ClientShell";
 
 export const metadata: Metadata = {
-  title: "TABUNGANE SISFOR - Platform Tabungan Bersama Mahasiswa",
-  description: "Web tabungan bersama per kelas dengan QRIS qriskuu dan transparansi leaderboard progres.",
+  title: "SAKUNE SISFOR - Dompet Kampus & Tabungan Mahasiswa",
+  description: "Web dompet digital kampus dan tabungan bersama per kelas dengan QRIS dan transparansi leaderboard progres.",
 };
 
 export default function RootLayout({

@@ -99,15 +99,15 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div>
         <div className={`h-16 flex items-center border-b border-gray-100 dark:border-zinc-800 ${collapsed ? "justify-center px-2" : "px-4 gap-3"} overflow-hidden`}>
           <div className="w-8 h-8 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 font-bold text-sm tracking-tight shadow-xs">
-            Q
+            S
           </div>
           {!collapsed && (
             <div className="truncate">
               <span className="font-bold text-sm tracking-tight text-gray-900 dark:text-zinc-100 block">
-                TABUNGANE
+                SAKUNE
               </span>
               <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium tracking-wider uppercase block">
-                SISFOR &bull; {isAdmin ? "ADMIN" : "MHS"}
+                SISFOR &bull; {isAdmin ? "ADMIN" : "MAHASISWA"}
               </span>
             </div>
           )}

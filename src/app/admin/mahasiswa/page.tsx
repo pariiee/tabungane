@@ -10,7 +10,9 @@ import {
   AlertCircle,
   CheckCircle2,
   FileSpreadsheet,
-  Wallet
+  Wallet,
+  RefreshCw,
+  X
 } from "lucide-react";
 
 export default function AdminMahasiswaPage() {
@@ -175,11 +177,11 @@ export default function AdminMahasiswaPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-6 h-6 text-purple-600" />
-            Kelola Mahasiswa
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+            <Users className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
+            <span>Kelola Mahasiswa</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
             Data mahasiswa per kelas, reset password, dan input setoran tunai manual.
           </p>
         </div>
@@ -187,37 +189,37 @@ export default function AdminMahasiswaPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-sm"
+            className="h-9 px-3.5 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5"
           >
-            <UserPlus className="w-4 h-4" />
-            Tambah Mahasiswa
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Tambah Mahasiswa</span>
           </button>
           <button
             onClick={() => setShowCsvModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold shadow-sm"
+            className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5"
           >
-            <Upload className="w-4 h-4" />
-            Impor CSV
+            <Upload className="w-3.5 h-3.5" />
+            <span>Impor CSV</span>
           </button>
         </div>
       </div>
 
       {/* Info Alert (Password Sementara) */}
       {alertInfo && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/30 rounded-xl flex items-start gap-3">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h4 className="text-sm font-bold text-emerald-900">{alertInfo.title}</h4>
-            <p className="text-xs text-emerald-700 mt-0.5">{alertInfo.message}</p>
+            <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-200">{alertInfo.title}</h4>
+            <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">{alertInfo.message}</p>
             {alertInfo.tempPassword && (
-              <div className="mt-2 p-2 bg-white rounded-lg border border-emerald-300 inline-block font-mono font-bold text-sm text-emerald-800">
+              <div className="mt-2 p-2 bg-white dark:bg-zinc-900 rounded-md border border-emerald-300 dark:border-emerald-700 inline-block font-mono font-bold text-xs text-emerald-800 dark:text-emerald-200">
                 Password Sementara: {alertInfo.tempPassword}
               </div>
             )}
           </div>
           <button
             onClick={() => setAlertInfo(null)}
-            className="text-xs text-emerald-700 hover:text-emerald-900 font-bold"
+            className="text-xs text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 font-bold"
           >
             ✕
           </button>
@@ -225,19 +227,19 @@ export default function AdminMahasiswaPage() {
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 flex items-center gap-2">
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs rounded-xl border border-rose-200/50 dark:border-rose-800/30 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-        <label className="text-xs font-semibold text-gray-600">Filter Kelas:</label>
+      <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex items-center gap-3">
+        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Filter Kelas:</label>
         <select
           value={filterKelas}
           onChange={(e) => setFilterKelas(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-purple-500 outline-none"
+          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
         >
           <option value="">Semua Kelas</option>
           {kelasList.map((k) => (
@@ -246,65 +248,63 @@ export default function AdminMahasiswaPage() {
             </option>
           ))}
         </select>
-        <span className="text-xs text-gray-400 ml-auto">{students.length} Mahasiswa ditemukan</span>
+        <span className="text-xs text-gray-400 dark:text-zinc-500 ml-auto">{students.length} Mahasiswa ditemukan</span>
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 text-xs uppercase font-semibold border-b border-gray-100">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
                 <th className="py-3 px-4">NIM</th>
                 <th className="py-3 px-4">Nama Lengkap</th>
                 <th className="py-3 px-4">Kelas</th>
                 <th className="py-3 px-4">Status Password</th>
-                <th className="py-3 px-4 text-right">Aksi Cepat</th>
+                <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {students.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 font-mono font-bold text-gray-900">{s.nim}</td>
-                  <td className="py-3 px-4 font-semibold text-gray-900">{s.nama}</td>
-                  <td className="py-3 px-4 text-xs">
-                    <span className="bg-gray-100 text-gray-700 font-medium px-2 py-0.5 rounded-full">
+                <tr key={s.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                  <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-zinc-100">{s.nim}</td>
+                  <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-zinc-100">{s.nama}</td>
+                  <td className="py-3.5 px-4 text-xs">
+                    <span className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium px-2 py-0.5 rounded-full text-[10px]">
                       {s.nama_kelas || "Tanpa Kelas"}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-xs">
+                  <td className="py-3.5 px-4 text-xs">
                     {s.must_change_password ? (
-                      <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">
-                        Wajib Ganti Password
+                      <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                        Wajib Ganti
                       </span>
                     ) : (
-                      <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium">
+                      <span className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
                         Aktif
                       </span>
                     )}
                   </td>
-                  <td className="py-3 px-4 text-right space-x-1.5">
-                    {/* Tambah Saldo Manual Button */}
+                  <td className="py-3.5 px-4 text-right space-x-1.5">
                     <button
                       onClick={() => {
                         setSelectedStudent(s);
                         if (groups.length > 0) setTargetGrupId(groups[0].id);
                         setShowSaldoModal(true);
                       }}
-                      className="px-2.5 py-1 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-lg transition-colors inline-flex items-center gap-1"
+                      className="px-2.5 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1"
                       title="Setor Saldo Tunai"
                     >
-                      <Wallet className="w-3.5 h-3.5" />
-                      Setor Tunai
+                      <Wallet className="w-3 h-3" />
+                      <span>Setor Tunai</span>
                     </button>
-                    {/* Reset Password Button */}
                     <button
                       onClick={() => handleResetPassword(s)}
-                      className="px-2.5 py-1 text-xs border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-colors inline-flex items-center gap-1"
+                      className="px-2.5 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1"
                       title="Reset Password"
                     >
-                      <KeyRound className="w-3.5 h-3.5" />
-                      Reset
+                      <KeyRound className="w-3 h-3" />
+                      <span>Reset</span>
                     </button>
                   </td>
                 </tr>
@@ -316,41 +316,46 @@ export default function AdminMahasiswaPage() {
 
       {/* Modal Tambah Mahasiswa */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <h3 className="font-bold text-gray-900 text-base">Tambah Mahasiswa Baru</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Tambah Mahasiswa Baru</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             <form onSubmit={handleAddStudent} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">NIM</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">NIM</label>
                 <input
                   type="text"
                   required
                   placeholder="Contoh: 240102"
                   value={newNim}
                   onChange={(e) => setNewNim(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Nama Mahasiswa</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Nama Mahasiswa</label>
                 <input
                   type="text"
                   required
                   placeholder="Nama Lengkap"
                   value={newNama}
                   onChange={(e) => setNewNama(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Pilih Kelas</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Pilih Kelas</label>
                 <select
                   required
                   value={newKelasId}
                   onChange={(e) => setNewKelasId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 >
                   <option value="">-- Pilih Kelas --</option>
                   {kelasList.map((k) => (
@@ -365,13 +370,13 @@ export default function AdminMahasiswaPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold"
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs"
                 >
                   Simpan Mahasiswa
                 </button>
@@ -383,13 +388,18 @@ export default function AdminMahasiswaPage() {
 
       {/* Modal Import CSV */}
       {showCsvModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div>
-              <h3 className="font-bold text-gray-900 text-base">Impor Data Mahasiswa via CSV</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Format kolom per baris: <code className="bg-gray-100 px-1 py-0.5 rounded font-mono">NIM,Nama Mahasiswa,Nama Kelas</code>
-              </p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Impor Data Mahasiswa via CSV</h3>
+                <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                  Format per baris: <code className="bg-gray-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">NIM,Nama Mahasiswa,Nama Kelas</code>
+                </p>
+              </div>
+              <button onClick={() => setShowCsvModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <form onSubmit={handleImportCsv} className="space-y-3">
@@ -400,7 +410,7 @@ export default function AdminMahasiswaPage() {
                   value={csvText}
                   onChange={(e) => setCsvText(e.target.value)}
                   placeholder={`nim,nama,kelas\n240103,Ahmad Fauzi,3A\n240104,Siti Nurhaliza,3A\n240105,Rian Pratama,3B`}
-                  className="w-full p-3 font-mono text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  className="w-full p-3 font-mono text-xs border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
@@ -408,13 +418,13 @@ export default function AdminMahasiswaPage() {
                 <button
                   type="button"
                   onClick={() => setShowCsvModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold"
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs"
                 >
                   Mulai Impor CSV
                 </button>
@@ -426,23 +436,28 @@ export default function AdminMahasiswaPage() {
 
       {/* Modal Tambah Saldo Manual (M4) */}
       {showSaldoModal && selectedStudent && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <div>
-              <h3 className="font-bold text-gray-900 text-base">Tambah Saldo Manual (Setoran Tunai)</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Untuk mahasiswa: <span className="font-semibold text-gray-800">{selectedStudent.nama}</span> ({selectedStudent.nim})
-              </p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Tambah Saldo Manual (Setoran Tunai)</h3>
+                <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                  Untuk: <span className="font-semibold text-gray-900 dark:text-zinc-100">{selectedStudent.nama}</span> ({selectedStudent.nim})
+                </p>
+              </div>
+              <button onClick={() => setShowSaldoModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <form onSubmit={handleManualSaldo} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Grup Tabungan</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Grup Tabungan</label>
                 <select
                   required
                   value={targetGrupId}
                   onChange={(e) => setTargetGrupId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 >
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>
@@ -453,7 +468,7 @@ export default function AdminMahasiswaPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Nominal (Rp)</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Nominal (Rp)</label>
                 <input
                   type="number"
                   min={1000}
@@ -462,21 +477,21 @@ export default function AdminMahasiswaPage() {
                   placeholder="Contoh: 50000"
                   value={nominalManual}
                   onChange={(e) => setNominalManual(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Catatan Wajib (PRD M4: misalnya "setor tunai ke bendahara, 19 Okt")
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Catatan Wajib
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Setor tunai ke bendahara kelas"
+                  placeholder="Contoh: Setor tunai ke bendahara"
                   value={catatanManual}
                   onChange={(e) => setCatatanManual(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
@@ -484,13 +499,13 @@ export default function AdminMahasiswaPage() {
                 <button
                   type="button"
                   onClick={() => setShowSaldoModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold"
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs"
                 >
                   Simpan Setoran Tunai
                 </button>
