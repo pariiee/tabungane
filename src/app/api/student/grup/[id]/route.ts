@@ -38,6 +38,7 @@ export async function GET(
       u.id as user_id,
       u.nim,
       u.nama,
+      COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo,
       COALESCE((
         SELECT SUM(t.jumlah)
         FROM transaksi t
@@ -64,8 +65,9 @@ export async function GET(
         nim: isMe || isAdmin ? m.nim : `${m.nim.slice(0, 3)}***`,
         is_me: isMe,
         progress_pct: pct,
-        // PRD Section 11: endpoint leaderboard tidak mengirim nominal mahasiswa lain
-        saldo: isMe || isAdmin ? m.saldo : null,
+        tampilkan_saldo: Boolean(m.tampilkan_saldo),
+        // Saldo dikirim jika diri sendiri, admin, ATAU jika mahasiswa mengizinkan tampil publik
+        saldo: isMe || isAdmin || Boolean(m.tampilkan_saldo) ? m.saldo : null,
       };
     })
     .sort((a, b) => {

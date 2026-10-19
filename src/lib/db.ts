@@ -172,6 +172,11 @@ try {
       `);
     }
 
+    const uCols = db.prepare("PRAGMA table_info(users)").all() as any[];
+    if (!uCols.some((c) => c.name === "tampilkan_saldo_leaderboard")) {
+      db.exec("ALTER TABLE users ADD COLUMN tampilkan_saldo_leaderboard INTEGER DEFAULT 0;");
+    }
+
     const gCols = db.prepare("PRAGMA table_info(grup_tabungan)").all() as any[];
     const kCol = gCols.find((c) => c.name === "kelas_id");
     if (kCol && kCol.notnull === 1) {

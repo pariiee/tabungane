@@ -19,7 +19,8 @@ import {
   Moon,
   Sun,
   Menu,
-  X
+  X,
+  Trophy
 } from "lucide-react";
 
 export default function Navbar() {
@@ -78,6 +79,7 @@ export default function Navbar() {
   const navItems = isAdmin
     ? [
         { href: "/admin", label: "Overview", icon: LayoutDashboard },
+        { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
         { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
         { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
         { href: "/admin/grup", label: "Event Sakune", icon: Layers },
@@ -87,6 +89,7 @@ export default function Navbar() {
       ]
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
         { href: "/topup", label: "Top Up QRIS", icon: QrCode },
         { href: "/riwayat", label: "Riwayat", icon: History },
         { href: "/akun", label: "Akun", icon: User },

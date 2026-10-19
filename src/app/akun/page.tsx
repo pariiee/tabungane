@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Lock, CheckCircle2, AlertCircle, KeyRound, RefreshCw, Shield } from "lucide-react";
+import { User, Lock, CheckCircle2, AlertCircle, KeyRound, RefreshCw, Shield, Eye, EyeOff } from "lucide-react";
 
 export default function AkunPage() {
   const [user, setUser] = useState<any>(null);
@@ -11,11 +11,41 @@ export default function AkunPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Privacy setting for leaderboard
+  const [tampilkanSaldo, setTampilkanSaldo] = useState(false);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [privacyMsg, setPrivacyMsg] = useState("");
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => res.json())
-      .then((data) => setUser(data.user));
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+          setTampilkanSaldo(Boolean(data.user.tampilkan_saldo_leaderboard));
+        }
+      });
   }, []);
+
+  const handleTogglePrivacy = async (checked: boolean) => {
+    setTampilkanSaldo(checked);
+    setSavingPrivacy(true);
+    setPrivacyMsg("");
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tampilkan_saldo_leaderboard: checked }),
+      });
+      if (!res.ok) throw new Error("Gagal menyimpan preferensi privasi");
+      setPrivacyMsg(checked ? "Saldo nominal Anda kini ditampilkan di Leaderboard." : "Saldo nominal Anda kini disembunyikan di Leaderboard.");
+      setTimeout(() => setPrivacyMsg(""), 3000);
+    } catch {
+      setTampilkanSaldo(!checked);
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +95,8 @@ export default function AkunPage() {
       </div>
 
       {user && (
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
             {user.nama?.charAt(0) || "U"}
           </div>
           <div className="min-w-0">
@@ -79,6 +109,52 @@ export default function AkunPage() {
               </span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Leaderboard Privacy Settings */}
+      {user?.role === "mahasiswa" && (
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {tampilkanSaldo ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
+              <div>
+                <h3 className="font-bold text-black dark:text-white text-sm">
+                  Privasi Saldo Leaderboard
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                  Tampilkan nominal rupiah tabungan saya di peringkat Leaderboard publik.
+                </p>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={tampilkanSaldo}
+                disabled={savingPrivacy}
+                onChange={(e) => handleTogglePrivacy(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+
+          <div className="text-[11px] text-gray-400 dark:text-zinc-500 bg-gray-50 dark:bg-zinc-950 p-2.5 rounded border border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+            <span>
+              Status saat ini:{" "}
+              <strong className={tampilkanSaldo ? "text-emerald-600 dark:text-emerald-400" : "text-gray-600 dark:text-zinc-300"}>
+                {tampilkanSaldo ? "Nominal Terlihat Publik" : "Nominal Disensor / Tersembunyi"}
+              </strong>
+            </span>
+            {savingPrivacy && <span className="animate-pulse text-xs">Menyimpan...</span>}
+          </div>
+
+          {privacyMsg && (
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs rounded border border-emerald-200/50 dark:border-emerald-800/30">
+              {privacyMsg}
+            </div>
+          )}
         </div>
       )}
 
