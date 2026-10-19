@@ -167,11 +167,17 @@ export default function AkunPage() {
                   {user.foto_url ? (
                     <img
                       src={user.foto_url}
-                      alt={user.nama}
+                      alt=""
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
-                  ) : (
-                    user.nama?.charAt(0) || "U"
+                  ) : null}
+                  {(!user.foto_url || undefined) && (
+                    <span className={user.foto_url ? "hidden" : "block"}>
+                      {user.nama?.charAt(0) || "U"}
+                    </span>
                   )}
                 </div>
                 <label

@@ -162,10 +162,18 @@ export default function Navbar() {
                 >
                   <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 flex items-center justify-center text-xs font-semibold overflow-hidden">
                     {user.foto_url ? (
-                      <img src={user.foto_url} alt={user.nama} className="w-full h-full object-cover" />
-                    ) : (
-                      user.nama?.charAt(0) || "U"
-                    )}
+                      <img
+                        src={user.foto_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : null}
+                    <span className={user.foto_url ? "hidden" : "block"}>
+                      {user.nama?.charAt(0) || "U"}
+                    </span>
                   </div>
                   <span className="text-xs font-medium text-gray-900 dark:text-zinc-100 max-w-[100px] truncate">
                     {user.nama}
