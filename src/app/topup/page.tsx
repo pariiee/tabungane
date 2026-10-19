@@ -150,7 +150,7 @@ export default function TopUpPage() {
   const nominalPresets = [10000, 25000, 50000, 100000];
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6 max-w-2xl">
       {/* Page Header */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">

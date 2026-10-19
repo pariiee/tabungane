@@ -50,7 +50,7 @@ export default function AdminLaporanPage() {
   const leaderboard = previewData?.leaderboard || [];
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

@@ -217,9 +217,9 @@ export default function AdminTransaksiPage() {
                           : t.tipe === "transfer_masuk"
                           ? "Transfer In"
                           : t.tipe === "alokasi_keluar"
-                          ? "Alokasi Kas"
+                          ? "Alokasi Event"
                           : t.tipe === "alokasi_masuk"
-                          ? "Kas Masuk"
+                          ? "Event Masuk"
                           : "Koreksi Pembalik"}
                       </span>
                       {t.catatan && (

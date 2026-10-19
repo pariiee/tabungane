@@ -97,7 +97,7 @@ export default function LoginPage() {
             SAKUNE <span className="text-emerald-600 dark:text-emerald-400">SISFOR</span>
           </h2>
           <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">
-            Dompet Digital Kampus, Kas Kelas & Tabungan Mahasiswa
+            Dompet Digital Kampus & Event Tabungan Mahasiswa
           </p>
         </div>
 

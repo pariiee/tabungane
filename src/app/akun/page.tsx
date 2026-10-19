@@ -52,7 +52,7 @@ export default function AkunPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="space-y-6 max-w-2xl">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">

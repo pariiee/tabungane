@@ -58,10 +58,78 @@ export async function GET() {
   const totalTabungan = formattedGroups.reduce((acc, cur) => acc + cur.saldo_saya, 0);
   const saldoDompet = getWalletBalance(user.id);
 
+  // 2. Chart 14 days for this student
+  const chartDays = [];
+  let total14DaysMasuk = 0;
+  let total14DaysKeluar = 0;
+
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+
+    const masukRow = db
+      .prepare(`
+        SELECT COALESCE(SUM(t.jumlah), 0) as total
+        FROM transaksi t
+        LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+        WHERE (t.user_id = ? OR kg.user_id = ?)
+          AND t.status = 'berhasil'
+          AND t.jumlah > 0
+          AND date(t.created_at) = date(?)
+      `)
+      .get(user.id, user.id, dateStr) as any;
+
+    const keluarRow = db
+      .prepare(`
+        SELECT COALESCE(SUM(ABS(t.jumlah)), 0) as total
+        FROM transaksi t
+        LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+        WHERE (t.user_id = ? OR kg.user_id = ?)
+          AND t.status = 'berhasil'
+          AND t.jumlah < 0
+          AND date(t.created_at) = date(?)
+      `)
+      .get(user.id, user.id, dateStr) as any;
+
+    const valMasuk = Number(masukRow.total || 0);
+    const valKeluar = Number(keluarRow.total || 0);
+    total14DaysMasuk += valMasuk;
+    total14DaysKeluar += valKeluar;
+
+    const [yyyy, mm, dd] = dateStr.split("-");
+    chartDays.push({
+      date: dateStr,
+      shortDate: `${mm}/${dd}`,
+      total_masuk: valMasuk,
+      total_keluar: valKeluar,
+    });
+  }
+
+  // 3. Recent 5 transactions
+  const recent = db
+    .prepare(`
+      SELECT t.*, COALESCE(g.nama, 'Dompet Utama') as nama_grup
+      FROM transaksi t
+      LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+      LEFT JOIN grup_tabungan g ON kg.grup_id = g.id
+      WHERE t.user_id = ? OR kg.user_id = ?
+      ORDER BY t.created_at DESC
+      LIMIT 5
+    `)
+    .all(user.id, user.id);
+
   return NextResponse.json({
     user,
-    saldo_dompet: saldoDompet,
-    total_tabungan: totalTabungan,
+    kpi: {
+      saldo_dompet: saldoDompet,
+      total_tabungan: totalTabungan,
+      total_events: formattedGroups.length,
+      total14DaysMasuk,
+      total14DaysKeluar,
+    },
+    chart: chartDays,
+    recent,
     groups: formattedGroups,
   });
 }

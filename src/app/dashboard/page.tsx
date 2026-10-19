@@ -12,12 +12,13 @@ import {
   ArrowRight,
   TrendingUp,
   Clock,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
   X,
-  ChevronRight,
-  RefreshCw
+  RefreshCw,
+  FileText,
+  ArrowDownLeft,
+  ArrowUpRight
 } from "lucide-react";
 
 export default function StudentDashboardPage() {
@@ -28,6 +29,9 @@ export default function StudentDashboardPage() {
   // Modal states
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showAllocModal, setShowAllocModal] = useState(false);
+  const [selectedTrx, setSelectedTrx] = useState<any | null>(null);
+
+  // Form states
   const [targetNim, setTargetNim] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferNote, setTransferNote] = useState("");
@@ -75,7 +79,10 @@ export default function StudentDashboardPage() {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Transfer gagal");
 
-      setModalMsg({ type: "success", text: `Berhasil transfer Rp ${parseInt(transferAmount, 10).toLocaleString("id-ID")} ke ${resData.target_nama} (${targetNim})!` });
+      setModalMsg({
+        type: "success",
+        text: `Berhasil transfer Rp ${parseInt(transferAmount, 10).toLocaleString("id-ID")} ke ${resData.target_nama} (${targetNim})!`,
+      });
       setTargetNim("");
       setTransferAmount("");
       setTransferNote("");
@@ -108,7 +115,10 @@ export default function StudentDashboardPage() {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Alokasi gagal");
 
-      setModalMsg({ type: "success", text: `Berhasil alokasikan Rp ${parseInt(allocAmount, 10).toLocaleString("id-ID")} ke kas kelas!` });
+      setModalMsg({
+        type: "success",
+        text: `Berhasil alokasikan Rp ${parseInt(allocAmount, 10).toLocaleString("id-ID")} ke event!`,
+      });
       setAllocAmount("");
       setAllocNote("");
       loadData();
@@ -127,20 +137,58 @@ export default function StudentDashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">
-          Memuat data dompet & tabungan...
+          Memuat data dashboard...
         </div>
       </div>
     );
   }
 
   const user = data?.user;
-  const saldoDompet = data?.saldo_dompet || 0;
-  const totalTabungan = data?.total_tabungan || 0;
+  const kpi = data?.kpi || {};
+  const chart = data?.chart || [];
+  const recent = data?.recent || [];
   const groups = data?.groups || [];
+
+  const saldoDompet = kpi.saldo_dompet || 0;
+  const totalTabungan = kpi.total_tabungan || 0;
+
+  // Chart config matching /admin
+  const chartWidth = 520;
+  const chartHeight = 160;
+  const padX = 20;
+  const padY = 25;
+
+  const maxVal = Math.max(
+    ...chart.map((c: any) => Math.max(c.total_masuk || 0, c.total_keluar || 0)),
+    1000
+  );
+
+  const getPoints = (key: string) => {
+    if (chart.length === 0) return { polyline: "", dots: [] as { x: number; y: number }[] };
+    const stepX = (chartWidth - padX * 2) / (chart.length - 1);
+    const dots: { x: number; y: number }[] = [];
+    const polyline = chart
+      .map((item: any, i: number) => {
+        const x = padX + i * stepX;
+        const val = item[key] || 0;
+        const y = chartHeight - padY - (val / maxVal) * (chartHeight - padY * 2);
+        dots.push({ x, y });
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+    return { polyline, dots };
+  };
+
+  const lineMasuk = getPoints("total_masuk");
+  const lineKeluar = getPoints("total_keluar");
+
+  const dateStart = chart[0]?.shortDate || "01/01";
+  const dateMid = chart[Math.floor(chart.length / 2)]?.shortDate || "01/07";
+  const dateEnd = chart[chart.length - 1]?.shortDate || "01/14";
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -152,7 +200,7 @@ export default function StudentDashboardPage() {
             Halo, {user?.nama} 👋
           </h1>
           <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-            Kelola saldo saku pribadi, kirim sesama mahasiswa, dan alokasikan ke kas kelas.
+            Pantau saldo saku, statistik mutasi 14 hari, dan ikuti Event Sakune.
           </p>
         </div>
 
@@ -175,13 +223,13 @@ export default function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* Main KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Dompet Utama (Saku) */}
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Saldo Saku Utama */}
         <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Dompet Utama (Saku)</span>
+              <span>Saldo Dompet Saku</span>
               <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                 <Wallet className="w-3.5 h-3.5" />
               </div>
@@ -190,33 +238,33 @@ export default function StudentDashboardPage() {
               Rp {saldoDompet.toLocaleString("id-ID")}
             </div>
             <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
-              Saldo bebas untuk transfer atau kas
+              Saldo aktif siap pakai
             </p>
           </div>
 
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800/50">
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
             <button
               onClick={() => setShowTransferModal(true)}
-              className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center justify-center gap-1.5"
+              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[10px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center justify-center gap-1"
             >
-              <Send className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-              <span>Transfer NIM</span>
+              <Send className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Transfer</span>
             </button>
             <button
               onClick={() => setShowAllocModal(true)}
-              className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center justify-center gap-1.5"
+              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[10px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center justify-center gap-1"
             >
-              <Layers className="w-3 h-3 text-teal-600 dark:text-teal-400" />
-              <span>Alokasi Kas</span>
+              <Layers className="w-2.5 h-2.5 text-teal-600 dark:text-teal-400" />
+              <span>Alokasi</span>
             </button>
           </div>
         </div>
 
-        {/* Card 2: Total di Kas Kelas */}
+        {/* Card 2: Total di Event Sakune */}
         <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Total di Kas Grup</span>
+              <span>Total di Event</span>
               <div className="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
                 <TrendingUp className="w-3.5 h-3.5" />
               </div>
@@ -225,68 +273,284 @@ export default function StudentDashboardPage() {
               Rp {totalTabungan.toLocaleString("id-ID")}
             </div>
             <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
-              Akumulasi setoran di seluruh grup kelas
+              Akumulasi iuran di seluruh event
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800/50">
-            <span>Grup Diikuti</span>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">{groups.length} Grup</span>
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+            <span>Event Diikuti</span>
+            <span className="font-semibold text-gray-900 dark:text-zinc-100">{groups.length} Event</span>
           </div>
         </div>
 
-        {/* Card 3: Gateway QRIS Otomatis */}
+        {/* Card 3: Uang Masuk 14 Hari */}
         <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
-              <span>Metode Pembayaran</span>
-              <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                <QrCode className="w-3.5 h-3.5" />
+              <span>Uang Masuk (14H)</span>
+              <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 flex items-center justify-center">
+                <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
-            <div className="text-base font-bold text-gray-900 dark:text-zinc-100 mt-2 flex items-center gap-2">
-              <span>QRIS Dynamic</span>
-              <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30 px-2 py-0.5 rounded-full font-medium">
-                Zero Fee
-              </span>
+            <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-2">
+              Rp {(kpi.total14DaysMasuk || 0).toLocaleString("id-ID")}
             </div>
             <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
-              GoPay, ShopeePay, BCA, Mandiri, BRI dll
+              Top up & transfer masuk
             </p>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800/50">
-            <Link
-              href="/riwayat"
-              className="text-xs font-medium text-gray-600 dark:text-zinc-300 hover:text-black dark:hover:text-white inline-flex items-center gap-1 transition-colors"
-            >
-              <span>Lihat Riwayat Mutasi</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+            <span>Periode</span>
+            <span className="font-semibold text-gray-900 dark:text-zinc-100">14 Hari Terakhir</span>
+          </div>
+        </div>
+
+        {/* Card 4: Uang Keluar 14 Hari */}
+        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-gray-400 dark:text-zinc-500 text-[11px] font-medium uppercase tracking-wider">
+              <span>Uang Keluar (14H)</span>
+              <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 flex items-center justify-center">
+                <ArrowUpRight className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">
+              Rp {(kpi.total14DaysKeluar || 0).toLocaleString("id-ID")}
+            </div>
+            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
+              Alokasi event & transfer keluar
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/50">
+            <span>Metode</span>
+            <span className="font-semibold text-gray-900 dark:text-zinc-100">Internal Ledger</span>
           </div>
         </div>
       </div>
 
-      {/* Groups Section */}
+      {/* Middle Dual-Column Section (Persis Layout /admin) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Kolom Kiri (7/12): Grafik Statistik Mutasi 14 Hari */}
+        <div className="lg:col-span-7 bg-white dark:bg-[#111113] rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs p-5 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                Statistik Mutasi Saku (14 Hari)
+              </h2>
+              <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                Perbandingan uang masuk (solid) dan uang keluar (putus-putus)
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <span className="flex items-center gap-1.5 text-gray-700 dark:text-zinc-300">
+                <span className="w-2.5 h-2.5 bg-black dark:bg-white rounded-full inline-block" />
+                <span>Masuk</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-gray-400 dark:text-zinc-500">
+                <span className="w-2.5 h-0.5 bg-gray-400 dark:bg-zinc-500 inline-block" />
+                <span>Keluar</span>
+              </span>
+            </div>
+          </div>
+
+          {/* SVG Canvas Chart */}
+          <div className="w-full overflow-hidden">
+            <svg
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              className="w-full h-40 overflow-visible"
+            >
+              <line
+                x1={padX}
+                y1={padY}
+                x2={chartWidth - padX}
+                y2={padY}
+                className="stroke-gray-100 dark:stroke-zinc-800/60"
+                strokeWidth="1"
+              />
+              <line
+                x1={padX}
+                y1={(chartHeight - padY) / 2}
+                x2={chartWidth - padX}
+                y2={(chartHeight - padY) / 2}
+                className="stroke-gray-100 dark:stroke-zinc-800/60"
+                strokeWidth="1"
+              />
+              <line
+                x1={padX}
+                y1={chartHeight - padY}
+                x2={chartWidth - padX}
+                y2={chartHeight - padY}
+                className="stroke-gray-100 dark:stroke-zinc-800/60"
+                strokeWidth="1"
+              />
+
+              {/* Solid Line (Uang Masuk) */}
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                className="text-black dark:text-white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={lineMasuk.polyline}
+              />
+
+              {lineMasuk.dots.map((pt, i) => (
+                <circle
+                  key={`masuk-dot-${i}`}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r="2.5"
+                  className="fill-black dark:fill-white"
+                />
+              ))}
+
+              {/* Dashed Line (Uang Keluar) */}
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                className="text-gray-400 dark:text-zinc-500"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={lineKeluar.polyline}
+              />
+            </svg>
+
+            {/* Sumbu X: 3 Tanggal */}
+            <div className="flex justify-between text-[11px] text-gray-400 dark:text-zinc-500 pt-1 px-4">
+              <span>{dateStart}</span>
+              <span>{dateMid}</span>
+              <span>{dateEnd}</span>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/50 text-[11px] text-gray-400 dark:text-zinc-500 flex justify-between">
+            <span>Total Masuk: Rp {(kpi.total14DaysMasuk || 0).toLocaleString("id-ID")}</span>
+            <span>Total Keluar: Rp {(kpi.total14DaysKeluar || 0).toLocaleString("id-ID")}</span>
+          </div>
+        </div>
+
+        {/* Kolom Kanan (5/12): Card Riwayat Transaksi Terbaru */}
+        <div className="lg:col-span-5 bg-white dark:bg-[#111113] rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs p-5 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-black dark:text-white" />
+              <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                Mutasi Terbaru
+              </h2>
+            </div>
+            <Link
+              href="/riwayat"
+              className="text-xs text-gray-400 hover:text-black dark:hover:text-white font-medium transition-colors"
+            >
+              Lihat semua &rarr;
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase font-semibold border-b border-gray-100 dark:border-zinc-800/60">
+                <tr>
+                  <th className="py-2 px-2 font-semibold">TIPE</th>
+                  <th className="py-2 px-2 font-semibold">STATUS</th>
+                  <th className="py-2 px-2 font-semibold text-right">NOMINAL</th>
+                  <th className="py-2 px-2 font-semibold text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+                {recent.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
+                      Belum ada mutasi transaksi.
+                    </td>
+                  </tr>
+                ) : (
+                  recent.map((t: any) => {
+                    const isPositive = t.jumlah > 0;
+                    const isSuccess = t.status === "berhasil";
+
+                    return (
+                      <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                        <td className="py-3 px-2">
+                          <span className="font-semibold text-gray-900 dark:text-zinc-100 block truncate max-w-[130px]">
+                            {t.tipe === "topup_qris"
+                              ? "Top Up QRIS"
+                              : t.tipe === "transfer_masuk"
+                              ? "Transfer In"
+                              : t.tipe === "transfer_keluar"
+                              ? "Transfer Out"
+                              : t.tipe === "alokasi_masuk"
+                              ? "Alokasi In"
+                              : t.tipe === "alokasi_keluar"
+                              ? "Alokasi Out"
+                              : t.tipe}
+                          </span>
+                          <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate max-w-[130px]">
+                            {new Date(t.created_at).toLocaleDateString("id-ID", { month: "short", day: "numeric" })} &bull; {t.nama_grup}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-2 whitespace-nowrap">
+                          {isSuccess ? (
+                            <span className="bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 rounded-full text-[10px] font-semibold inline-flex items-center gap-1">
+                              Berhasil
+                            </span>
+                          ) : (
+                            <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                              {t.status}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-2 text-right font-mono font-bold whitespace-nowrap">
+                          <span className={isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
+                            {isPositive ? "+" : ""}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-2 text-right">
+                          <button
+                            onClick={() => setSelectedTrx(t)}
+                            className="p-1 rounded text-gray-400 hover:text-black dark:hover:text-white"
+                            title="Detail"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section: Event Sakune */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Event Sakune & Kas Kelas</span>
+              <span>Event Sakune</span>
             </h2>
             <p className="text-xs text-gray-400 dark:text-zinc-500">
-              Pilih event untuk melihat leaderboard dan progres iuran bersama.
+              Daftar event tabungan dan iuran yang Anda ikuti.
             </p>
           </div>
         </div>
 
         {groups.length === 0 ? (
           <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-8 text-center text-xs text-gray-400 dark:text-zinc-500 shadow-xs">
-            Belum ada grup tabungan aktif untuk kelas Anda saat ini.
+            Belum ada Event Sakune aktif yang diikuti saat ini.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {groups.map((g: any) => {
               const progressCapped = Math.min(g.progress_pct, 100);
               return (
@@ -296,8 +560,12 @@ export default function StudentDashboardPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/30 px-2 py-0.5 rounded-full">
-                        Kelas {g.nama_kelas}
+                      <span className={`text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                        g.nama_kelas === "Semua Kelas"
+                          ? "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-purple-200/50 dark:border-purple-800/30"
+                          : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-800/30"
+                      }`}>
+                        {g.nama_kelas === "Semua Kelas" ? "Semua Kelas" : `Kelas ${g.nama_kelas}`}
                       </span>
                       <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm mt-2">{g.nama_grup}</h3>
                     </div>
@@ -316,7 +584,7 @@ export default function StudentDashboardPage() {
                   {/* Saldo vs Target */}
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800/50">
                     <div>
-                      <div className="text-[11px] text-gray-400 dark:text-zinc-500">Saldo Saya di Kas</div>
+                      <div className="text-[11px] text-gray-400 dark:text-zinc-500">Iuran Saya</div>
                       <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                         Rp {g.saldo_saya.toLocaleString("id-ID")}
                       </div>
@@ -345,7 +613,7 @@ export default function StudentDashboardPage() {
 
                   {/* Total Collected */}
                   <div className="text-[11px] text-gray-500 dark:text-zinc-400 bg-gray-50/80 dark:bg-zinc-900/60 p-2.5 rounded-lg flex justify-between items-center border border-gray-100 dark:border-zinc-800/60">
-                    <span>Total Kas Terkumpul:</span>
+                    <span>Total Terkumpul Event:</span>
                     <span className="font-bold text-gray-900 dark:text-zinc-100">
                       Rp {g.total_terkumpul_grup.toLocaleString("id-ID")}
                     </span>
@@ -365,7 +633,7 @@ export default function StudentDashboardPage() {
                       className="flex-1 h-8 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <QrCode className="w-3 h-3" />
-                      <span>Bayar Kas</span>
+                      <span>Bayar Iuran</span>
                     </Link>
                   </div>
                 </div>
@@ -375,7 +643,66 @@ export default function StudentDashboardPage() {
         )}
       </div>
 
-      {/* Modal 1: Transfer P2P NIM */}
+      {/* Modal 1: Detail Transaksi */}
+      {selectedTrx && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Detail Mutasi</h3>
+              <button
+                onClick={() => setSelectedTrx(null)}
+                className="text-gray-400 hover:text-black dark:hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
+                <span className="text-gray-400">ID Transaksi</span>
+                <span className="font-mono text-gray-700 dark:text-zinc-300">{selectedTrx.id}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
+                <span className="text-gray-400">Tipe</span>
+                <span className="font-semibold text-gray-900 dark:text-zinc-100">{selectedTrx.tipe}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
+                <span className="text-gray-400">Nominal</span>
+                <span className="font-bold text-gray-900 dark:text-zinc-100">
+                  Rp {Math.abs(selectedTrx.jumlah).toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
+                <span className="text-gray-400">Status</span>
+                <span className="font-semibold uppercase text-emerald-600 dark:text-emerald-400">{selectedTrx.status}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800">
+                <span className="text-gray-400">Tujuan / Event</span>
+                <span className="font-semibold text-gray-900 dark:text-zinc-100">{selectedTrx.nama_grup}</span>
+              </div>
+              {selectedTrx.catatan && (
+                <div className="py-1">
+                  <span className="text-gray-400 block mb-1">Catatan:</span>
+                  <p className="p-2 bg-gray-50 dark:bg-zinc-900 rounded border border-gray-100 dark:border-zinc-800 text-gray-700 dark:text-zinc-300">
+                    {selectedTrx.catatan}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setSelectedTrx(null)}
+                className="w-full h-9 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Transfer P2P NIM */}
       {showTransferModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
@@ -478,7 +805,7 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* Modal 2: Alokasi ke Kas Kelas */}
+      {/* Modal 3: Alokasi ke Event Sakune */}
       {showAllocModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
@@ -555,7 +882,7 @@ export default function StudentDashboardPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Misal: Iuran minggu ke-3"
+                  placeholder="Misal: Iuran buku kenangan / konsumsi"
                   value={allocNote}
                   onChange={(e) => setAllocNote(e.target.value)}
                   className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
@@ -586,4 +913,3 @@ export default function StudentDashboardPage() {
     </div>
   );
 }
-

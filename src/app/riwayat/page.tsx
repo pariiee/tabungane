@@ -68,7 +68,7 @@ export default function RiwayatPage() {
         };
       case "alokasi_keluar":
         return {
-          label: "Alokasi ke Kas Kelas",
+          label: "Alokasi ke Event Sakune",
           icon: <Layers className="w-4 h-4 text-teal-600 dark:text-teal-400" />,
         };
       case "alokasi_masuk":
@@ -95,7 +95,7 @@ export default function RiwayatPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -103,8 +103,8 @@ export default function RiwayatPage() {
             <History className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
             <span>Riwayat Transaksi Saya</span>
           </h1>
-          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-            Semua catatan mutasi dompet utama, setoran kas kelas, dan transfer antar NIM.
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+            Semua catatan mutasi dompet utama, setoran event Sakune, dan transfer antar NIM.
           </p>
         </div>
 

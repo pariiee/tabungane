@@ -38,7 +38,7 @@ export default function GroupDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">Memuat data grup kas...</div>
+        <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">Memuat data event...</div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function GroupDetailPage() {
   const leaderboard = data?.leaderboard || [];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6">
       {/* Back button & Action */}
       <div className="flex items-center justify-between">
         <Link
@@ -62,7 +62,7 @@ export default function GroupDetailPage() {
           className="h-8 px-3.5 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center gap-1.5 shadow-xs"
         >
           <QrCode className="w-3 h-3" />
-          <span>Top Up Kas Ini</span>
+          <span>Top Up Event Ini</span>
         </Link>
       </div>
 
