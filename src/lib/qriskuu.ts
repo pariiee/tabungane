@@ -1,8 +1,7 @@
 import crypto from "node:crypto";
+import { getSetting } from "./auth";
 
-const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://api.qriskuu.com/v1";
-const QRISKUU_API_KEY = process.env.QRISKUU_API_KEY || "";
-const QRISKUU_WEBHOOK_SECRET = process.env.QRISKUU_WEBHOOK_SECRET || "sim_webhook_secret_2026";
+const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.web.id";
 
 export interface CreatePaymentResponse {
   trxid: string;
@@ -13,26 +12,27 @@ export interface CreatePaymentResponse {
 }
 
 export async function createQrisPayment(amount: number, note: string): Promise<CreatePaymentResponse> {
-  // If real API key is present, attempt live qriskuu API
-  if (QRISKUU_API_KEY) {
+  const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
+
+  // If real API key is configured, call official qriskuu REST API
+  if (apiKey) {
     try {
       const res = await fetch(`${QRISKUU_BASE_URL}/payments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${QRISKUU_API_KEY}`,
+          "X-API-Key": apiKey,
         },
         body: JSON.stringify({
           amount,
-          note,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
         return {
-          trxid: data.trxid || data.id,
-          qr_url: data.qr_url || data.qr_image,
+          trxid: data.id || data.trxid,
+          qr_url: data.qr_url,
           qr_string: data.qr_string,
           expired_at: data.expired_at || new Date(Date.now() + 5 * 60 * 1000).toISOString(),
           is_mock: false,
@@ -45,7 +45,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
   }
 
   // Simulator mode (ponytail: mock SVG QR code when API key not set or during testing)
-  const trxid = `QSIM-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const trxid = `qsim${Math.random().toString(36).substring(2, 6)}`;
   const expired_at = new Date(Date.now() + 5 * 60 * 1000).toISOString();
   
   // Clean QR placeholder SVG URL
@@ -62,12 +62,42 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
 export function verifyWebhookSignature(rawBody: string, signatureHeader: string | null): boolean {
   if (!signatureHeader) return false;
   try {
+    const secret = getSetting("qriskuu_webhook_secret") || process.env.QRISKUU_WEBHOOK_SECRET || "sim_webhook_secret_2026";
+    const cleanSignature = signatureHeader.replace(/^sha256=/, "").trim();
     const computed = crypto
-      .createHmac("sha256", QRISKUU_WEBHOOK_SECRET)
+      .createHmac("sha256", secret)
       .update(rawBody)
       .digest("hex");
-    return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(computed));
+    if (cleanSignature.length !== computed.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(cleanSignature), Buffer.from(computed));
   } catch {
     return false;
+  }
+}
+
+export async function syncQriskuuWebhook(webhookUrl: string): Promise<{ success: boolean; message: string }> {
+  const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
+  if (!apiKey) return { success: false, message: "API key qriskuu belum diatur" };
+
+  try {
+    const res = await fetch(`${QRISKUU_BASE_URL}/merchant/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+      },
+      body: JSON.stringify({
+        webhook: webhookUrl,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, message: "Webhook qriskuu berhasil diperbarui!" };
+    }
+    const errText = await res.text();
+    return { success: false, message: `Gagal memperbarui webhook: ${errText}` };
+  } catch (err: any) {
+    return { success: false, message: err.message };
   }
 }
