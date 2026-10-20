@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { LeaderboardSkeleton } from "@/components/Skeletons";
 import {
   Trophy,
   Crown,
@@ -93,11 +94,7 @@ export default function LeaderboardPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">
-            Memuat data leaderboard...
-          </div>
-        </div>
+        <LeaderboardSkeleton />
       ) : leaderboard.length === 0 ? (
         <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-12 text-center text-xs text-gray-400 dark:text-zinc-500">
           Belum ada data peringkat untuk kategori ini.

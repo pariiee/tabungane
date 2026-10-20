@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatTrxType, formatTrxStatus } from "@/lib/format";
+import { ListRowsSkeleton } from "@/components/Skeletons";
 import {
   History,
   ArrowUpRight,
@@ -41,10 +42,12 @@ export default function RiwayatPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">
-          Memuat riwayat transaksi...
+      <div className="space-y-6">
+        <div className="space-y-2 animate-pulse">
+          <div className="h-6 w-44 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+          <div className="h-3.5 w-64 bg-gray-100 dark:bg-zinc-800/60 rounded" />
         </div>
+        <ListRowsSkeleton count={6} />
       </div>
     );
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { TableRowsSkeleton } from "@/components/Skeletons";
 import { FileText, Download, Filter, Users, Wallet, Trophy, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminLaporanPage() {
@@ -116,11 +117,7 @@ export default function AdminLaporanPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
-                    Memuat pratinjau laporan...
-                  </td>
-                </tr>
+                <TableRowsSkeleton rows={5} cols={5} />
               ) : leaderboard.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">

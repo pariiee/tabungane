@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatTrxType, formatTrxStatus } from "@/lib/format";
+import { DashboardSkeleton } from "@/components/Skeletons";
 import {
   TrendingUp,
   RefreshCw,
@@ -49,13 +50,7 @@ export default function AdminDashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">
-          Memuat data dashboard...
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const kpi = data?.kpi || {};

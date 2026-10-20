@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TableRowsSkeleton } from "@/components/Skeletons";
 import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminKelasPage() {
@@ -169,11 +170,7 @@ export default function AdminKelasPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {loading ? (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
-                    Memuat daftar kelas...
-                  </td>
-                </tr>
+                <TableRowsSkeleton rows={4} cols={4} />
               ) : kelasList.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">

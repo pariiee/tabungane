@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ListRowsSkeleton } from "@/components/Skeletons";
 import {
   Trophy,
   Users,
@@ -38,8 +39,18 @@ export default function GroupDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-xs text-gray-400 dark:text-zinc-500 animate-pulse">Memuat data event...</div>
+      <div className="space-y-6 animate-pulse">
+        <div className="h-4 w-32 bg-gray-200 dark:bg-zinc-800 rounded" />
+        <div className="p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-4">
+          <div className="h-6 w-48 bg-gray-200 dark:bg-zinc-800 rounded-md" />
+          <div className="h-3.5 w-72 bg-gray-100 dark:bg-zinc-800/60 rounded" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 bg-gray-100 dark:bg-zinc-800/40 rounded-xl" />
+            ))}
+          </div>
+        </div>
+        <ListRowsSkeleton count={4} />
       </div>
     );
   }

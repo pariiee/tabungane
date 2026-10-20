@@ -19,7 +19,18 @@ export default function RootLayout({
         {/* Garis tipis gelap setinggi 3px di paling atas halaman */}
         <div className="h-[3px] bg-zinc-900 dark:bg-zinc-100 w-full fixed top-0 left-0 z-50 pointer-events-none" />
 
-        <Suspense fallback={<div className="p-8 text-center text-xs text-gray-400">Memuat antarmuka...</div>}>
+        <Suspense
+          fallback={
+            <div className="max-w-7xl mx-auto p-6 space-y-6 animate-pulse">
+              <div className="h-9 w-44 bg-gray-200 dark:bg-zinc-800 rounded-lg" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="h-32 bg-gray-100 dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800" />
+                <div className="h-32 bg-gray-100 dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800" />
+                <div className="h-32 bg-gray-100 dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800" />
+              </div>
+            </div>
+          }
+        >
           <ClientShell>
             {children}
           </ClientShell>

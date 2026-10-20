@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatAuditAction } from "@/lib/format";
+import { TableRowsSkeleton } from "@/components/Skeletons";
 import { ShieldAlert, Clock, User, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminLogPage() {
@@ -66,11 +67,7 @@ export default function AdminLogPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
-                    Memuat log audit...
-                  </td>
-                </tr>
+                <TableRowsSkeleton rows={6} cols={5} />
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
