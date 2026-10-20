@@ -1,7 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Lock, CheckCircle2, AlertCircle, KeyRound, RefreshCw, Shield, Eye, EyeOff, Camera, Trash2 } from "lucide-react";
+import {
+  User,
+  Lock,
+  CheckCircle2,
+  AlertCircle,
+  KeyRound,
+  RefreshCw,
+  Shield,
+  Eye,
+  EyeOff,
+  Camera,
+  Trash2,
+  Wifi,
+  Copy,
+  Check,
+  CreditCard,
+} from "lucide-react";
 
 export default function AkunPage() {
   const [user, setUser] = useState<any>(null);
@@ -20,6 +36,18 @@ export default function AkunPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [photoSuccess, setPhotoSuccess] = useState("");
+
+  // Virtual Wallet Card State
+  const [wallet, setWallet] = useState<{ balance: number } | null>(null);
+  const [showCardBalance, setShowCardBalance] = useState(true);
+  const [copiedNIM, setCopiedNIM] = useState(false);
+
+  const formatCardNumber = (nim: string = "") => {
+    const clean = nim.replace(/\D/g, "");
+    if (!clean) return "2405 •••• •••• 9999";
+    const last4 = clean.slice(-4).padStart(4, "0");
+    return `2405  ••••  ••••  ${last4}`;
+  };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,6 +116,15 @@ export default function AkunPage() {
           setTampilkanSaldo(Boolean(data.user.tampilkan_saldo_leaderboard));
         }
       });
+
+    fetch("/api/student/wallet")
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.balance === "number") {
+          setWallet(data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleTogglePrivacy = async (checked: boolean) => {
@@ -261,6 +298,129 @@ export default function AkunPage() {
               <span>{photoSuccess}</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Virtual Credit / Debit Card Wallet */}
+      {user && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 flex items-center gap-1.5 uppercase tracking-wider">
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Kartu Digital Mahasiswa</span>
+            </span>
+            <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-mono">
+              Virtual Debit
+            </span>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white p-6 sm:p-7 shadow-xl border border-zinc-800/80 group">
+            {/* Ambient Background Accents */}
+            <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-700" />
+            <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+
+            {/* Top Row: Chip + Contactless & Logo */}
+            <div className="flex items-start justify-between relative z-10">
+              <div className="flex items-center gap-3">
+                {/* Metallic Microchip */}
+                <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 border border-amber-300/50 relative shadow-inner overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-[1px] bg-amber-800/50 absolute top-1/2 -translate-y-1/2" />
+                  <div className="h-full w-[1px] bg-amber-800/50 absolute left-1/3" />
+                  <div className="h-full w-[1px] bg-amber-800/50 absolute right-1/3" />
+                  <div className="w-3.5 h-3.5 rounded-sm border border-amber-900/40 bg-amber-400/20" />
+                </div>
+                {/* Contactless Wave */}
+                <Wifi className="w-5 h-5 text-zinc-400 rotate-90" />
+              </div>
+
+              <div className="text-right">
+                <div className="flex items-center justify-end gap-1.5 font-black text-xs tracking-wider">
+                  <span className="text-white">SAKUNE</span>
+                  <span className="text-emerald-400">SISFOR</span>
+                </div>
+                <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-semibold block">
+                  {user.role === "admin" ? "Staff Debit" : "Platinum Student"}
+                </span>
+              </div>
+            </div>
+
+            {/* Middle Row: Saldo & Masked Card / NIM Number */}
+            <div className="my-6 relative z-10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] tracking-wider uppercase text-zinc-400 font-medium block">
+                    Saldo Dompet Utama
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-2xl sm:text-3xl font-extrabold tracking-tight font-mono text-white">
+                      {showCardBalance
+                        ? wallet !== null
+                          ? `Rp ${wallet.balance.toLocaleString("id-ID")}`
+                          : "Rp 0"
+                        : "Rp ••••••••"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowCardBalance(!showCardBalance)}
+                      className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                      title={showCardBalance ? "Sembunyikan Saldo" : "Tampilkan Saldo"}
+                    >
+                      {showCardBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Card Network Rings (Emblem) */}
+                <div className="flex items-center -space-x-2.5 opacity-80">
+                  <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 backdrop-blur-xs" />
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/30 border border-emerald-400/40 backdrop-blur-xs" />
+                </div>
+              </div>
+
+              {/* Virtual Card Number based on NIM */}
+              <div className="pt-1 flex items-center justify-between text-zinc-300 font-mono text-sm sm:text-base tracking-[0.2em]">
+                <span>{formatCardNumber(user.nim)}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.nim || "");
+                    setCopiedNIM(true);
+                    setTimeout(() => setCopiedNIM(false), 2000);
+                  }}
+                  className="p-1 text-zinc-400 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1 font-sans tracking-normal"
+                  title="Salin Nomor Identitas (NIM)"
+                >
+                  {copiedNIM ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span className="text-[10px] text-zinc-400">{copiedNIM ? "Tersalin" : "NIM"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Row: Holder Name & Expiry */}
+            <div className="flex items-end justify-between relative z-10 pt-3 border-t border-white/10 text-xs">
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-medium block">
+                  Cardholder
+                </span>
+                <span className="font-semibold tracking-wide uppercase text-zinc-100 font-mono truncate max-w-[200px] sm:max-w-xs block">
+                  {user.nama || "MAHASISWA SISFOR"}
+                </span>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-medium block">
+                  Valid Thru
+                </span>
+                <span className="font-mono text-zinc-100 font-semibold tracking-wider">
+                  12/28
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
