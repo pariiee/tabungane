@@ -17,6 +17,10 @@ export interface SessionUser {
   foto_url?: string | null;
 }
 
+export function isAdminUser(user: SessionUser | null): boolean {
+  return Boolean(user && (user.role === "admin" || user.role === "super_admin"));
+}
+
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString("hex");
   const hash = crypto.scryptSync(password, salt, 64).toString("hex");
