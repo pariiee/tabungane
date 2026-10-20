@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
-import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2, RefreshCw, Building2 } from "lucide-react";
 
 export default function AdminKelasPage() {
   const [kelasList, setKelasList] = useState<any[]>([]);
+  const [prodiList, setProdiList] = useState<any[]>([]);
+  const [prodiId, setProdiId] = useState("");
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [nama, setNama] = useState("");
   const [tahunAjaran, setTahunAjaran] = useState("2026/2027");
   const [loading, setLoading] = useState(true);
@@ -13,18 +16,36 @@ export default function AdminKelasPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const loadData = () => {
-    fetch("/api/admin/kelas")
-      .then((res) => res.json())
-      .then((d) => {
-        setKelasList(d.data || []);
-        setLoading(false);
-      });
+  const loadData = async () => {
+    try {
+      const [kRes, pRes, uRes] = await Promise.all([
+        fetch("/api/admin/kelas"),
+        fetch("/api/admin/prodi"),
+        fetch("/api/auth/me"),
+      ]);
+      const kData = await kRes.json();
+      const pData = await pRes.json();
+      const uData = await uRes.json();
+
+      setKelasList(kData.data || []);
+      setProdiList(pData.data || []);
+      setCurrentUser(uData.user);
+
+      if (pData.data && pData.data.length > 0 && !prodiId) {
+        setProdiId(pData.data[0].id);
+      }
+    } catch {
+      setError("Gagal memuat data kelas");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadData();
   }, []);
+
+  const isSuperAdmin = currentUser?.role === "super_admin";
 
   const handleAddKelas = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +57,11 @@ export default function AdminKelasPage() {
       const res = await fetch("/api/admin/kelas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, tahun_ajaran: tahunAjaran }),
+        body: JSON.stringify({
+          nama,
+          tahun_ajaran: tahunAjaran,
+          prodi_id: isSuperAdmin ? prodiId : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menambah kelas");
@@ -109,7 +134,26 @@ export default function AdminKelasPage() {
           <Plus className="w-3.5 h-3.5 text-gray-700 dark:text-zinc-300" />
           <span>Tambah Kelas Baru</span>
         </h2>
-        <form onSubmit={handleAddKelas} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <form onSubmit={handleAddKelas} className={`grid grid-cols-1 ${isSuperAdmin ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-3`}>
+          {isSuperAdmin && (
+            <div>
+              <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                Program Studi
+              </label>
+              <select
+                value={prodiId}
+                onChange={(e) => setProdiId(e.target.value)}
+                className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+              >
+                {prodiList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama} ({p.kode})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
               Nama Kelas
@@ -163,6 +207,7 @@ export default function AdminKelasPage() {
             <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
                 <th className="py-3 px-4">Nama Kelas</th>
+                <th className="py-3 px-4">Program Studi</th>
                 <th className="py-3 px-4">Tahun Ajaran</th>
                 <th className="py-3 px-4">Jumlah Mahasiswa</th>
                 <th className="py-3 px-4 text-right">Aksi</th>
@@ -170,10 +215,10 @@ export default function AdminKelasPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {loading ? (
-                <TableRowsSkeleton rows={4} cols={4} />
+                <TableRowsSkeleton rows={4} cols={5} />
               ) : kelasList.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
+                  <td colSpan={5} className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
                     Belum ada kelas yang dibuat.
                   </td>
                 </tr>
@@ -181,6 +226,12 @@ export default function AdminKelasPage() {
                 kelasList.map((k) => (
                   <tr key={k.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-zinc-100">{k.nama}</td>
+                    <td className="py-3.5 px-4 text-xs">
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/60 dark:border-zinc-700/60">
+                        <Building2 className="w-3 h-3 text-gray-400" />
+                        {k.nama_prodi || "Sistem Informasi"}
+                      </span>
+                    </td>
                     <td className="py-3.5 px-4 text-xs text-gray-500 dark:text-zinc-400">{k.tahun_ajaran}</td>
                     <td className="py-3.5 px-4 text-xs">
                       <span className="inline-flex items-center gap-1 font-medium text-gray-700 dark:text-zinc-300 bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/50 dark:border-zinc-700/40 px-2 py-0.5 rounded-full text-[11px]">

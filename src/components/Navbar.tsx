@@ -23,7 +23,9 @@ import {
   Menu,
   X,
   Trophy,
-  ChevronDown
+  ChevronDown,
+  Building2,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -63,7 +65,18 @@ export default function Navbar() {
 
   if (pathname === "/login") return null;
 
-  const isAdmin = user?.role === "admin";
+  const isSuperAdmin = user?.role === "super_admin";
+  const isAdmin = isSuperAdmin || user?.role === "admin";
+
+  const kampusChildren = [
+    { href: "/admin/prodi", label: "Program Studi", icon: Building2 },
+    { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
+    { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
+    { href: "/admin/grup", label: "Event Sakune", icon: Layers },
+    ...(isSuperAdmin
+      ? [{ href: "/admin/pengguna-admin", label: "Kelola Admin", icon: ShieldCheck }]
+      : []),
+  ];
 
   const navItems = isAdmin
     ? [
@@ -72,11 +85,7 @@ export default function Navbar() {
         {
           label: "Data Kampus",
           icon: Users,
-          children: [
-            { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
-            { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
-            { href: "/admin/grup", label: "Event Sakune", icon: Layers },
-          ],
+          children: kampusChildren,
         },
         {
           label: "Keuangan & Audit",
@@ -84,7 +93,9 @@ export default function Navbar() {
           children: [
             { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
             { href: "/admin/laporan", label: "Laporan Rekap", icon: FileText },
-            { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
+            ...(isSuperAdmin
+              ? [{ href: "/admin/log", label: "Audit Log", icon: ShieldAlert }]
+              : []),
           ],
         },
       ]
@@ -103,11 +114,7 @@ export default function Navbar() {
         {
           label: "Kampus",
           icon: Users,
-          children: [
-            { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
-            { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
-            { href: "/admin/grup", label: "Event Sakune", icon: Layers },
-          ],
+          children: kampusChildren,
         },
         {
           label: "Keuangan",
@@ -115,7 +122,9 @@ export default function Navbar() {
           children: [
             { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
             { href: "/admin/laporan", label: "Laporan Rekap", icon: FileText },
-            { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
+            ...(isSuperAdmin
+              ? [{ href: "/admin/log", label: "Audit Log", icon: ShieldAlert }]
+              : []),
           ],
         },
       ]
@@ -145,7 +154,7 @@ export default function Navbar() {
                   SAKUNE SISFOR
                 </span>
                 <span className="text-[11px] text-[#777] dark:text-zinc-500 uppercase tracking-[0.08em] font-medium mt-1">
-                  {isAdmin ? "SUPER ADMIN" : "STUDENT PORTAL"}
+                  {isSuperAdmin ? "SUPER ADMIN" : isAdmin ? "ADMIN PRODI" : "STUDENT PORTAL"}
                 </span>
               </div>
             </Link>

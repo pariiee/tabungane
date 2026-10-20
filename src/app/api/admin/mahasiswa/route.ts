@@ -1,25 +1,38 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, hashPassword, logAudit } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canAccessKelas, canAccessMahasiswa, getProdiScope } from "@/lib/scope";
 import crypto from "node:crypto";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
   const kelas_id = searchParams.get("kelas_id");
+  const prodi_id = searchParams.get("prodi_id");
+  const prodiScope = getProdiScope(user);
 
   let query = `
     SELECT u.id, u.nim, u.nama, u.role, u.kelas_id, u.must_change_password, u.aktif, u.created_at,
-           k.nama as nama_kelas, k.tahun_ajaran
+           k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi
     FROM users u
     LEFT JOIN kelas k ON u.kelas_id = k.id
+    LEFT JOIN prodi p ON k.prodi_id = p.id
     WHERE u.role = 'mahasiswa'
   `;
   const params: any[] = [];
+
+  // Scoping Admin Prodi
+  if (prodiScope) {
+    query += " AND k.prodi_id = ?";
+    params.push(prodiScope);
+  } else if (prodi_id) {
+    query += " AND k.prodi_id = ?";
+    params.push(prodi_id);
+  }
 
   if (kelas_id) {
     query += " AND u.kelas_id = ?";
@@ -34,13 +47,17 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { nim, nama, kelas_id } = await req.json();
   if (!nim || !nama || !kelas_id) {
     return NextResponse.json({ error: "NIM, nama, dan kelas wajib diisi" }, { status: 400 });
+  }
+
+  if (!canAccessKelas(user, kelas_id)) {
+    return NextResponse.json({ error: "Anda tidak berhak mendaftarkan mahasiswa ke kelas di luar Prodi Anda" }, { status: 403 });
   }
 
   const existing = db.prepare("SELECT id FROM users WHERE nim = ?").get(nim);
@@ -85,13 +102,21 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id, nama, kelas_id, aktif } = await req.json();
   if (!id) {
     return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
+  }
+
+  if (!canAccessMahasiswa(user, id)) {
+    return NextResponse.json({ error: "Anda tidak berhak mengubah mahasiswa di luar Program Studi Anda" }, { status: 403 });
+  }
+
+  if (kelas_id && !canAccessKelas(user, kelas_id)) {
+    return NextResponse.json({ error: "Anda tidak berhak memindahkan mahasiswa ke kelas di luar Program Studi Anda" }, { status: 403 });
   }
 
   const student = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'mahasiswa'").get(id) as any;
@@ -149,7 +174,7 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -157,6 +182,10 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
+  }
+
+  if (!canAccessMahasiswa(user, id)) {
+    return NextResponse.json({ error: "Anda tidak berhak menghapus mahasiswa di luar Program Studi Anda" }, { status: 403 });
   }
 
   const student = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'mahasiswa'").get(id) as any;

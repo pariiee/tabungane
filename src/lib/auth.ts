@@ -9,7 +9,8 @@ export interface SessionUser {
   id: string;
   nim: string;
   nama: string;
-  role: "admin" | "mahasiswa";
+  role: "super_admin" | "admin" | "mahasiswa";
+  prodi_id?: string | null;
   must_change_password: boolean;
   kelas_id?: string | null;
   tampilkan_saldo_leaderboard?: boolean;
@@ -65,14 +66,18 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     const data = JSON.parse(payload);
     if (!data.id || data.exp < Date.now()) return null;
 
-    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, foto_url, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
+    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, prodi_id, foto_url, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
     if (!row || !row.aktif) return null;
+
+    // Normalisasi role: jika role admin tanpa prodi_id, jadikan super_admin
+    const effectiveRole = (row.role === "admin" && !row.prodi_id) ? "super_admin" : row.role;
 
     return {
       id: row.id,
       nim: row.nim,
       nama: row.nama,
-      role: row.role,
+      role: effectiveRole,
+      prodi_id: row.prodi_id || null,
       must_change_password: Boolean(row.must_change_password),
       kelas_id: row.kelas_id,
       tampilkan_saldo_leaderboard: Boolean(row.tampilkan_saldo_leaderboard),

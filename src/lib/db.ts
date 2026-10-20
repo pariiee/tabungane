@@ -42,11 +42,20 @@ export function runTransaction<T>(fn: () => T): T {
 // Initialize tables once
 try {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS kelas (
+    CREATE TABLE IF NOT EXISTS prodi (
       id TEXT PRIMARY KEY,
       nama TEXT NOT NULL,
-      tahun_ajaran TEXT NOT NULL,
+      kode TEXT UNIQUE NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS kelas (
+      id TEXT PRIMARY KEY,
+      prodi_id TEXT,
+      nama TEXT NOT NULL,
+      tahun_ajaran TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (prodi_id) REFERENCES prodi(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -140,6 +149,33 @@ try {
     CREATE INDEX IF NOT EXISTS idx_transaksi_user_status_tipe ON transaksi(user_id, status, tipe);
     CREATE INDEX IF NOT EXISTS idx_transaksi_keanggotaan_status ON transaksi(keanggotaan_id, status);
   `);
+
+  // Auto-migration for prodi & multi-jurusan scoping
+  try {
+    const kCols = db.prepare("PRAGMA table_info(kelas)").all() as any[];
+    if (!kCols.some((c) => c.name === "prodi_id")) {
+      db.exec("ALTER TABLE kelas ADD COLUMN prodi_id TEXT REFERENCES prodi(id);");
+    }
+
+    const uCols = db.prepare("PRAGMA table_info(users)").all() as any[];
+    if (!uCols.some((c) => c.name === "prodi_id")) {
+      db.exec("ALTER TABLE users ADD COLUMN prodi_id TEXT REFERENCES prodi(id);");
+    }
+
+    // Ensure default Prodi SI exists
+    const existingProdi = db.prepare("SELECT id FROM prodi WHERE kode = 'SI'").get();
+    if (!existingProdi) {
+      db.prepare("INSERT INTO prodi (id, nama, kode) VALUES ('prodi-si', 'Sistem Informasi', 'SI')").run();
+    }
+
+    // Attach existing classes without prodi to default prodi
+    db.exec("UPDATE kelas SET prodi_id = 'prodi-si' WHERE prodi_id IS NULL;");
+
+    // Upgrade existing admin without prodi_id to super_admin
+    db.exec("UPDATE users SET role = 'super_admin' WHERE role = 'admin' AND prodi_id IS NULL;");
+  } catch (err) {
+    console.error("Migration prodi error:", err);
+  }
 
   // Auto-migration for users leaderboard privacy & profile photo
   try {
