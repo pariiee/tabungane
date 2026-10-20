@@ -128,67 +128,67 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      {/* 4 KPI Cards (Proporsi Referensi, Data Tabungan Mahasiswa) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 4 KPI Cards Grid 2x2 di Mobile, 4 Kolom di Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 items-stretch">
         {/* Card 1: SETORAN HARI INI */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-            <span>SETORAN HARI INI</span>
-            <Inbox className="w-4 h-4 text-black dark:text-white" />
+        <div className="bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+            <span className="truncate">SETORAN HARI INI</span>
+            <Inbox className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-black dark:text-white shrink-0" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-bold text-black dark:text-white tracking-tight">
+          <div className="mt-1.5">
+            <div className="text-lg sm:text-xl font-bold text-black dark:text-white tracking-tight tabular-nums truncate min-w-0">
               Rp {kpi.today_revenue?.toLocaleString("id-ID")}
             </div>
-            <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
               {kpi.today_paid_count} setoran lunas
             </div>
           </div>
         </div>
 
         {/* Card 2: TOTAL DANA TERKUMPUL */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-            <span>TOTAL DANA TERKUMPUL</span>
-            <Bookmark className="w-4 h-4 text-black dark:text-white" />
+        <div className="bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+            <span className="truncate">TOTAL DANA</span>
+            <Bookmark className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-black dark:text-white shrink-0" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-bold text-black dark:text-white tracking-tight">
+          <div className="mt-1.5">
+            <div className="text-lg sm:text-xl font-bold text-black dark:text-white tracking-tight tabular-nums truncate min-w-0">
               Rp {kpi.total_revenue?.toLocaleString("id-ID")}
             </div>
-            <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-              {kpi.total_paid_count} total setoran lunas
+            <div className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+              {kpi.total_paid_count} setoran lunas
             </div>
           </div>
         </div>
 
         {/* Card 3: MENUNGGU PEMBAYARAN */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-            <span>MENUNGGU PEMBAYARAN</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+        <div className="bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+            <span className="truncate">MENUNGGU</span>
+            <Clock className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-amber-500 shrink-0" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-bold text-black dark:text-white tracking-tight">
+          <div className="mt-1.5">
+            <div className="text-lg sm:text-xl font-bold text-black dark:text-white tracking-tight tabular-nums truncate min-w-0">
               {kpi.pending_count}
             </div>
-            <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-              {kpi.total_trx_count} total percobaan transaksi
+            <div className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+              {kpi.total_trx_count} percobaan trx
             </div>
           </div>
         </div>
 
         {/* Card 4: MAHASISWA & KELAS */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-            <span>MAHASISWA &amp; KELAS</span>
-            <XCircle className="w-4 h-4 text-rose-500" />
+        <div className="bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+            <span className="truncate">MAHASISWA</span>
+            <XCircle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-rose-500 shrink-0" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-bold text-black dark:text-white tracking-tight">
+          <div className="mt-1.5">
+            <div className="text-lg sm:text-xl font-bold text-black dark:text-white tracking-tight tabular-nums truncate min-w-0">
               {kpi.total_mahasiswa}
             </div>
-            <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
               {kpi.total_kelas} kelas terdaftar
             </div>
           </div>
