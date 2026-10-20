@@ -12,14 +12,15 @@ export async function GET() {
   const list = db
     .prepare(
       `SELECT 
-        u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.aktif, u.created_at,
+        u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.custom_title, u.aktif, u.created_at,
         CASE
+          WHEN u.custom_title IS NOT NULL THEN u.custom_title
           WHEN u.role = 'admin_kelas' THEN 'Adminya Kelas'
           WHEN u.prodi_id IS NOT NULL THEN 'Kaprodi ' || p.nama
           WHEN u.fakultas IS NOT NULL THEN 'Dekan / ' || u.fakultas
-          ELSE 'Seluruh Kampus (Super Admin)'
+          ELSE 'Tim Developer'
         END as nama_prodi,
-        COALESCE(p.kode, CASE WHEN u.role = 'admin_kelas' THEN 'KELAS' WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'GLOBAL' END) as kode_prodi
+        COALESCE(p.kode, CASE WHEN u.role = 'admin_kelas' THEN 'KELAS' WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'DEV' END) as kode_prodi
       FROM users u
       LEFT JOIN prodi p ON u.prodi_id = p.id
       WHERE u.role IN ('super_admin', 'admin', 'admin_kelas')
@@ -33,10 +34,10 @@ export async function GET() {
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user || user.role !== "super_admin") {
-    return NextResponse.json({ error: "Hanya Super Admin yang dapat membuat akun Admin" }, { status: 403 });
+    return NextResponse.json({ error: "Hanya Tim Developer yang dapat membuat akun Admin" }, { status: 403 });
   }
 
-  const { nim, nama, password, role: inputRole, prodi_id, fakultas, managed_kelas_ids } = await req.json();
+  const { nim, nama, password, role: inputRole, prodi_id, fakultas, managed_kelas_ids, custom_title } = await req.json();
 
   if (!nim || !nama || !password) {
     return NextResponse.json({ error: "NIM/NIP, Nama, dan Password wajib diisi" }, { status: 400 });
@@ -64,17 +65,17 @@ export async function POST(req: Request) {
   // Jika super admin tidak butuh scope
   if (role === "super_admin") {
     db.prepare(`
-      INSERT INTO users (id, nim, nama, role, password_hash, must_change_password, aktif)
-      VALUES (?, ?, ?, 'super_admin', ?, 0, 1)
-    `).run(id, cleanNim, nama.trim(), passwordHash);
+      INSERT INTO users (id, nim, nama, role, custom_title, password_hash, must_change_password, aktif)
+      VALUES (?, ?, ?, 'super_admin', ?, ?, 0, 1)
+    `).run(id, cleanNim, nama.trim(), custom_title || "Tim Developer", passwordHash);
   } else {
     const serializedKelas = Array.isArray(managed_kelas_ids)
       ? JSON.stringify(managed_kelas_ids)
       : managed_kelas_ids || null;
 
     db.prepare(`
-      INSERT INTO users (id, nim, nama, role, prodi_id, fakultas, managed_kelas_ids, password_hash, must_change_password, aktif)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1)
+      INSERT INTO users (id, nim, nama, role, prodi_id, fakultas, managed_kelas_ids, custom_title, password_hash, must_change_password, aktif)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1)
     `).run(
       id,
       cleanNim,
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
       prodi_id || null,
       fakultas || null,
       serializedKelas,
+      custom_title ? custom_title.trim() : null,
       passwordHash
     );
   }

@@ -109,7 +109,7 @@ export default function AdminProdiPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded-sm bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold tracking-wider uppercase">
-              {isSuperAdmin ? "SUPER ADMIN ACCESS" : "ADMIN PRODI SCOPE"}
+              {isSuperAdmin ? "TIM DEVELOPER ACCESS" : "ADMIN PRODI SCOPE"}
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white mt-1">
@@ -240,7 +240,7 @@ export default function AdminProdiPage() {
                 <ShieldAlert className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
               </div>
               <h2 className="text-base font-bold text-black dark:text-white">
-                Akses Khusus Super Admin
+                Akses Khusus Tim Developer
               </h2>
               <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
                 Anda login sebagai <strong>Admin Prodi</strong>. Anda hanya memiliki wewenang untuk mengawasi kelas dan mahasiswa di dalam Program Studi yang ditugaskan kepada Anda.

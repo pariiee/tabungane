@@ -9,12 +9,17 @@ export interface SessionUser {
   id: string;
   nim: string;
   nama: string;
+  username?: string | null;
+  custom_title?: string | null;
   role: "super_admin" | "admin" | "admin_kelas" | "mahasiswa";
   prodi_id?: string | null;
   fakultas?: string | null;
   managed_kelas_ids?: string | null;
   must_change_password: boolean;
   kelas_id?: string | null;
+  nama_kelas?: string | null;
+  nama_prodi?: string | null;
+  nama_fakultas?: string | null;
   tampilkan_saldo_leaderboard?: boolean;
   foto_url?: string | null;
 }
@@ -77,7 +82,21 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     const data = JSON.parse(payload);
     if (!data.id || data.exp < Date.now()) return null;
 
-    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, prodi_id, fakultas, managed_kelas_ids, foto_url, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
+    const row = db.prepare(`
+      SELECT 
+        u.id, u.nim, u.nama, u.username, u.custom_title, u.role, u.must_change_password, u.aktif, 
+        u.kelas_id, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.foto_url, 
+        COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard,
+        k.nama as nama_kelas,
+        COALESCE(p.nama, p2.nama) as nama_prodi,
+        COALESCE(u.fakultas, p.fakultas, p2.fakultas, f.nama) as nama_fakultas
+      FROM users u
+      LEFT JOIN kelas k ON u.kelas_id = k.id
+      LEFT JOIN prodi p ON k.prodi_id = p.id
+      LEFT JOIN prodi p2 ON u.prodi_id = p2.id
+      LEFT JOIN fakultas f ON (p.fakultas_id = f.id OR p2.fakultas_id = f.id)
+      WHERE u.id = ?
+    `).get(data.id) as any;
     if (!row || !row.aktif) return null;
 
     // Normalisasi role: jika role admin tanpa prodi_id dan tanpa fakultas dan tanpa kelas, jadikan super_admin
@@ -87,12 +106,17 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       id: row.id,
       nim: row.nim,
       nama: row.nama,
+      username: row.username || null,
+      custom_title: row.custom_title || null,
       role: effectiveRole,
       prodi_id: row.prodi_id || null,
       fakultas: row.fakultas || null,
       managed_kelas_ids: row.managed_kelas_ids || null,
       must_change_password: Boolean(row.must_change_password),
       kelas_id: row.kelas_id,
+      nama_kelas: row.nama_kelas || null,
+      nama_prodi: row.nama_prodi || null,
+      nama_fakultas: row.nama_fakultas || null,
       tampilkan_saldo_leaderboard: Boolean(row.tampilkan_saldo_leaderboard),
       foto_url: row.foto_url || null,
     };

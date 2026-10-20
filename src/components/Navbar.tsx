@@ -161,8 +161,10 @@ export default function Navbar() {
                   SAKUNE SISFOR
                 </span>
                 <span className="text-[11px] text-[#777] dark:text-zinc-500 uppercase tracking-[0.08em] font-medium mt-1">
-                  {isSuperAdmin
-                    ? "SUPER ADMIN"
+                  {user?.custom_title
+                    ? user.custom_title.toUpperCase()
+                    : isSuperAdmin
+                    ? "TIM DEVELOPER"
                     : isAdminKelas
                     ? "Adminya Kelas"
                     : user?.role === "admin"

@@ -20,6 +20,7 @@ export default function PenggunaAdminPage() {
   const [nama, setNama] = useState("");
   const [nim, setNim] = useState("");
   const [password, setPassword] = useState("");
+  const [customTitle, setCustomTitle] = useState("");
   const [role, setRole] = useState("admin");
   const [scopeTarget, setScopeTarget] = useState("");
   const [fakultasList, setFakultasList] = useState<any[]>([]);
@@ -100,6 +101,7 @@ export default function PenggunaAdminPage() {
           prodi_id,
           fakultas,
           managed_kelas_ids,
+          custom_title: customTitle || undefined,
         }),
       });
 
@@ -110,6 +112,7 @@ export default function PenggunaAdminPage() {
       setNama("");
       setNim("");
       setPassword("");
+      setCustomTitle("");
       setSelectedKelasIds([]);
       loadData();
     } catch (err: any) {
@@ -145,7 +148,7 @@ export default function PenggunaAdminPage() {
         </div>
         <h1 className="text-xl font-bold text-black dark:text-white">Akses Dibatasi</h1>
         <p className="text-sm text-gray-500 dark:text-zinc-400 mt-2">
-          Hanya Super Admin yang berhak mengelola akun admin pengawas program studi.
+          Hanya Tim Developer yang berhak mengelola akun admin sistem.
         </p>
       </div>
     );
@@ -158,7 +161,7 @@ export default function PenggunaAdminPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded-sm bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold tracking-wider uppercase">
-              SUPER ADMIN CONSOLE
+              TIM DEVELOPER CONSOLE
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white mt-1">
@@ -259,6 +262,22 @@ export default function PenggunaAdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                  Sebutan / Custom Nickname (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder="Contoh: Ketua Angkatan 2026, Bendahara 1, dsb."
+                  className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
+                  Jika diisi, nama sebutan ini akan tampil di profil dan lencana admin.
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
                   Role / Jabatan
                 </label>
                 <select
@@ -268,7 +287,7 @@ export default function PenggunaAdminPage() {
                 >
                   <option value="admin">Admin Prodi / Dekan</option>
                   <option value="admin_kelas">Adminya Kelas (Komting / Bendahara)</option>
-                  <option value="super_admin">Super Admin (Akses Penuh Seluruh Kampus)</option>
+                  <option value="super_admin">Tim Developer (Akses Penuh)</option>
                 </select>
               </div>
 
@@ -431,7 +450,7 @@ export default function PenggunaAdminPage() {
                               }`}
                             >
                               {isSuper
-                                ? "Super Admin"
+                                ? "Tim Developer"
                                 : a.role === "admin_kelas"
                                 ? "Adminya Kelas"
                                 : a.fakultas

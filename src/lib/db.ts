@@ -220,6 +220,12 @@ try {
     if (!uCols.some((c) => c.name === "foto_url")) {
       db.exec("ALTER TABLE users ADD COLUMN foto_url TEXT DEFAULT NULL;");
     }
+    if (!uCols.some((c) => c.name === "username")) {
+      db.exec("ALTER TABLE users ADD COLUMN username TEXT UNIQUE DEFAULT NULL;");
+    }
+    if (!uCols.some((c) => c.name === "custom_title")) {
+      db.exec("ALTER TABLE users ADD COLUMN custom_title TEXT DEFAULT NULL;");
+    }
   } catch (err) {
     console.error("Migration users column error:", err);
   }

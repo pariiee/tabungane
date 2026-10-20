@@ -21,6 +21,7 @@ export default function TopUpPage() {
   const initialGrupId = searchParams.get("grup_id") || "wallet";
 
   const [groups, setGroups] = useState<any[]>([]);
+  const [topupHistory, setTopupHistory] = useState<any[]>([]);
   const [selectedDestination, setSelectedDestination] = useState(initialGrupId);
   const [amount, setAmount] = useState<number>(25000);
   const [customAmount, setCustomAmount] = useState("");
@@ -37,6 +38,12 @@ export default function TopUpPage() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
+  const loadHistory = () => {
+    fetch("/api/student/riwayat?tipe=topup&limit=5")
+      .then((res) => res.json())
+      .then((d) => setTopupHistory(d.data || []));
+  };
+
   useEffect(() => {
     fetch("/api/student/dashboard")
       .then((res) => res.json())
@@ -44,6 +51,7 @@ export default function TopUpPage() {
         const grps = data?.groups || [];
         setGroups(grps);
       });
+    loadHistory();
   }, []);
 
   useEffect(() => {
@@ -383,6 +391,70 @@ export default function TopUpPage() {
           )}
         </div>
       )}
+
+      {/* Card Riwayat Top Up Terakhir */}
+      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/60">
+          <div className="flex items-center gap-2">
+            <QrCode className="w-4 h-4 text-black dark:text-white" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">
+              Riwayat Top Up QRIS
+            </h3>
+          </div>
+          <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+            5 Terakhir
+          </span>
+        </div>
+
+        {topupHistory.length === 0 ? (
+          <div className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
+            Belum ada riwayat top up QRIS.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-zinc-800/60">
+            {topupHistory.map((trx) => {
+              const isBerhasil = trx.status === "berhasil";
+              const isPending = trx.status === "pending";
+              const cleanDate = new Date(trx.created_at).toLocaleString("id-ID", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              });
+
+              return (
+                <div key={trx.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-black dark:text-white">
+                        +Rp {trx.jumlah.toLocaleString("id-ID")}
+                      </span>
+                      <span
+                        className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                          isBerhasil
+                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                            : isPending
+                            ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+                            : "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400"
+                        }`}
+                      >
+                        {trx.status}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate mt-0.5">
+                      {cleanDate} &bull; {trx.qris_trx_id || trx.id.slice(0, 8)}
+                    </span>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-[11px] font-mono text-gray-500 dark:text-zinc-400">
+                      {trx.nama_grup}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
