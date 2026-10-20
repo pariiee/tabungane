@@ -4,38 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LeaderboardSkeleton } from "@/components/Skeletons";
 import {
-  Trophy,
   Crown,
   Wallet,
   ArrowDownLeft,
-  Eye,
   EyeOff,
-  Clock,
-  Coins,
-  ChevronDown,
 } from "lucide-react";
 
 export default function LeaderboardPage() {
   const [tab, setTab] = useState<"saldo" | "topup">("saldo");
-  const [selectedGrupId, setSelectedGrupId] = useState("");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [allGroups, setAllGroups] = useState<any[]>([]);
-  const [grupInfo, setGrupInfo] = useState<any>(null);
   const [myStanding, setMyStanding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [hideMyValue, setHideMyValue] = useState(false);
 
-  const loadData = async (activeTab = tab, grupId = selectedGrupId) => {
+  const loadData = async (activeTab = tab) => {
     try {
-      const q = new URLSearchParams();
-      q.set("tab", activeTab);
-      if (grupId) q.set("grup_id", grupId);
-
-      const res = await fetch(`/api/leaderboard?${q.toString()}`);
+      const res = await fetch(`/api/leaderboard?tab=${activeTab}`);
       const data = await res.json();
       setLeaderboard(data.leaderboard || []);
-      setAllGroups(data.all_groups || []);
-      setGrupInfo(data.grup_info || null);
       setMyStanding(data.my_standing || null);
     } catch (e) {
       console.error(e);
@@ -45,8 +30,8 @@ export default function LeaderboardPage() {
   };
 
   useEffect(() => {
-    loadData(tab, selectedGrupId);
-  }, [tab, selectedGrupId]);
+    loadData(tab);
+  }, [tab]);
 
   // Always extract Top 3
   const rank1 = leaderboard[0] || null;
@@ -121,7 +106,7 @@ export default function LeaderboardPage() {
             {item ? item.nama : "-"}
           </span>
 
-          {/* Pill Persen Progres (Bukan Nominal) */}
+          {/* Pill Persen Progres */}
           {item ? (
             <div className="mt-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-[10px] font-mono font-bold text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
               {progressPct}%
@@ -132,18 +117,17 @@ export default function LeaderboardPage() {
             </div>
           )}
 
-          {/* Nominal Khusus Milik Sendiri dengan Toggle Mata */}
-          {isMe && item?.display_value && (
-            <div className="mt-1 flex items-center gap-1 text-[10px] font-mono font-bold text-black dark:text-white bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-md">
-              <span>{hideMyValue ? "•••••••" : item.display_value}</span>
-              <button
-                type="button"
-                onClick={() => setHideMyValue(!hideMyValue)}
-                className="cursor-pointer text-gray-400 hover:text-black dark:hover:text-white"
-                title={hideMyValue ? "Tampilkan Saldo" : "Samarkan Saldo"}
-              >
-                {hideMyValue ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              </button>
+          {/* Nominal Saldo: Tampil jika user mengizinkan (tampilkan_saldo == 1), sensor jika privat */}
+          {item && (
+            <div className="mt-1 text-[11px] font-mono font-bold text-black dark:text-white flex items-center gap-1">
+              {item.display_value ? (
+                <span>{item.display_value}</span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-sans font-normal text-gray-400 dark:text-zinc-500">
+                  <EyeOff className="w-3 h-3" />
+                  <span>•••••••</span>
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -212,47 +196,6 @@ export default function LeaderboardPage() {
             <span>Top Setoran</span>
           </button>
         </div>
-
-        {/* 3. Pemilih Grup Tabungan & Ringkasan Deadline / Terkumpul */}
-        <div className="w-full max-w-xs space-y-1.5 pt-1">
-          <div className="relative">
-            <select
-              value={selectedGrupId}
-              onChange={(e) => {
-                setSelectedGrupId(e.target.value);
-                setLoading(true);
-              }}
-              className="w-full appearance-none px-3.5 py-2 pr-8 text-xs font-semibold rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-black dark:text-white shadow-xs outline-none focus:ring-1 focus:ring-black dark:focus:ring-white cursor-pointer"
-            >
-              <option value="">Semua Grup Tabungan</option>
-              {allGroups.map((g: any) => (
-                <option key={g.id} value={g.id}>
-                  {g.nama}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {grupInfo && (
-            <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 pt-0.5">
-              <span className="inline-flex items-center gap-1">
-                <Clock className="w-3 h-3 text-gray-400" />
-                <span>{formatDeadline(grupInfo.deadline)}</span>
-              </span>
-              <span>&bull;</span>
-              <span className="inline-flex items-center gap-1">
-                <Coins className="w-3 h-3 text-emerald-500" />
-                <span>
-                  Total:{" "}
-                  <strong className="text-black dark:text-white font-mono">
-                    Rp {grupInfo.total_terkumpul?.toLocaleString("id-ID")}
-                  </strong>
-                </span>
-              </span>
-            </div>
-          )}
-        </div>
       </div>
 
       {loading ? (
@@ -273,12 +216,12 @@ export default function LeaderboardPage() {
             </div>
           </div>
 
-          {/* 2. Panel Daftar Peringkat 4 Ke Bawah (Rounded-t-3xl Menimpa Dasar Podium) */}
+          {/* 2. Panel Daftar Peringkat 4 - 10 (Rounded-t-3xl Menimpa Dasar Podium) */}
           <div className="relative z-20 -mt-3 max-w-xl mx-auto rounded-t-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-md p-4 sm:p-5">
             {/* Header Mini Panel */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800 text-xs">
               <span className="font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 text-[10px]">
-                Daftar Peringkat
+                Peringkat 4 - 10
               </span>
               {myStanding && (
                 <span className="text-[11px] text-gray-400 dark:text-zinc-500">
@@ -348,10 +291,10 @@ export default function LeaderboardPage() {
                         </div>
                       </div>
 
-                      {/* Right: Progress bar tipis 4px + persen */}
+                      {/* Right: Progress bar tipis 4px + persen + Nominal */}
                       <div className="flex items-center gap-2.5 shrink-0">
                         {/* Progress Bar 4px */}
-                        <div className="w-20 sm:w-28 h-1 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="hidden sm:block w-20 sm:w-24 h-1 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-black dark:bg-white rounded-full transition-all duration-500"
                             style={{ width: `${m.progress_pct}%` }}
@@ -362,20 +305,19 @@ export default function LeaderboardPage() {
                           {m.progress_pct}%
                         </span>
 
-                        {/* Nominal jika milik sendiri */}
-                        {isMe && m.display_value && (
-                          <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono font-bold text-black dark:text-white ml-1">
-                            <span>{hideMyValue ? "•••••••" : m.display_value}</span>
-                            <button
-                              type="button"
-                              onClick={() => setHideMyValue(!hideMyValue)}
-                              className="cursor-pointer text-gray-400 hover:text-black dark:hover:text-white"
-                              title={hideMyValue ? "Tampilkan Saldo" : "Samarkan Saldo"}
-                            >
-                              {hideMyValue ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                            </button>
-                          </div>
-                        )}
+                        {/* Nominal Saldo: Tampil jika user mengizinkan (tampilkan_saldo == 1), sensor jika privat */}
+                        <div className="w-20 sm:w-24 text-right">
+                          {m.display_value ? (
+                            <span className="font-mono text-xs sm:text-sm font-bold text-black dark:text-white">
+                              {m.display_value}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-sans font-normal text-gray-400 dark:text-zinc-500">
+                              <EyeOff className="w-3.5 h-3.5" />
+                              <span>•••••••</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
