@@ -12,16 +12,18 @@ export async function GET() {
   const list = db
     .prepare(
       `SELECT 
-        u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.aktif, u.created_at,
+        u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.aktif, u.created_at,
         CASE
-          WHEN u.prodi_id IS NOT NULL THEN p.nama
-          WHEN u.fakultas IS NOT NULL THEN 'Dekan / Fakultas ' || u.fakultas
-          ELSE 'Semua Prodi (Super)'
+          WHEN u.role = 'komting' THEN 'Komting / Ketua Kelas'
+          WHEN u.role = 'bendahara' THEN 'Bendahara Kelas'
+          WHEN u.prodi_id IS NOT NULL THEN 'Kaprodi ' || p.nama
+          WHEN u.fakultas IS NOT NULL THEN 'Dekan / ' || u.fakultas
+          ELSE 'Seluruh Kampus (Super Admin)'
         END as nama_prodi,
-        COALESCE(p.kode, CASE WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'GLOBAL' END) as kode_prodi
+        COALESCE(p.kode, CASE WHEN u.role IN ('komting', 'bendahara') THEN 'KELAS' WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'GLOBAL' END) as kode_prodi
       FROM users u
       LEFT JOIN prodi p ON u.prodi_id = p.id
-      WHERE u.role IN ('super_admin', 'admin')
+      WHERE u.role IN ('super_admin', 'admin', 'komting', 'bendahara')
       ORDER BY u.role DESC, u.nama ASC`
     )
     .all();
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Hanya Super Admin yang dapat membuat akun Admin" }, { status: 403 });
   }
 
-  const { nim, nama, password, prodi_id, fakultas } = await req.json();
+  const { nim, nama, password, role: inputRole, prodi_id, fakultas, managed_kelas_ids } = await req.json();
 
   if (!nim || !nama || !password) {
     return NextResponse.json({ error: "NIM/NIP, Nama, dan Password wajib diisi" }, { status: 400 });
@@ -53,28 +55,49 @@ export async function POST(req: Request) {
 
   const id = crypto.randomUUID();
   const passwordHash = hashPassword(password);
-  // Role 'admin' for scoped admin prodi / fakultas, or 'super_admin' if no prodi_id and no fakultas specified
-  const isScoped = Boolean(prodi_id || fakultas);
-  const role = isScoped ? "admin" : "super_admin";
 
-  db.prepare(`
-    INSERT INTO users (id, nim, nama, role, prodi_id, fakultas, password_hash, must_change_password, aktif)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1)
-  `).run(id, cleanNim, nama.trim(), role, prodi_id || null, fakultas || null, passwordHash);
+  // Validasi Role
+  let role = inputRole || "admin";
+  if (!["super_admin", "admin", "komting", "bendahara"].includes(role)) {
+    role = "admin";
+  }
 
-  const prodi = prodi_id ? db.prepare("SELECT nama FROM prodi WHERE id = ?").get(prodi_id) as any : null;
-  const scopeDesc = prodi ? `Prodi: ${prodi.nama}` : fakultas ? `Fakultas: ${fakultas}` : "Global";
+  // Jika super admin tidak butuh scope
+  if (role === "super_admin") {
+    db.prepare(`
+      INSERT INTO users (id, nim, nama, role, password_hash, must_change_password, aktif)
+      VALUES (?, ?, ?, 'super_admin', ?, 0, 1)
+    `).run(id, cleanNim, nama.trim(), passwordHash);
+  } else {
+    const serializedKelas = Array.isArray(managed_kelas_ids)
+      ? JSON.stringify(managed_kelas_ids)
+      : managed_kelas_ids || null;
+
+    db.prepare(`
+      INSERT INTO users (id, nim, nama, role, prodi_id, fakultas, managed_kelas_ids, password_hash, must_change_password, aktif)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1)
+    `).run(
+      id,
+      cleanNim,
+      nama.trim(),
+      role,
+      prodi_id || null,
+      fakultas || null,
+      serializedKelas,
+      passwordHash
+    );
+  }
 
   logAudit(
     user.id,
     "BUAT_ADMIN",
     id,
-    `Membuat akun Admin: ${nama} (${cleanNim}) - Scope: ${scopeDesc}`
+    `Membuat akun [${role}]: ${nama} (${cleanNim})`
   );
 
   return NextResponse.json({
     success: true,
-    data: { id, nim: cleanNim, nama: nama.trim(), role, prodi_id },
+    data: { id, nim: cleanNim, nama: nama.trim(), role },
   });
 }
 

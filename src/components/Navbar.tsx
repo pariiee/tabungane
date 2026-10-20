@@ -67,7 +67,9 @@ export default function Navbar() {
   if (pathname === "/login") return null;
 
   const isSuperAdmin = user?.role === "super_admin";
-  const isAdmin = isSuperAdmin || user?.role === "admin";
+  const isKomting = user?.role === "komting";
+  const isBendahara = user?.role === "bendahara";
+  const isAdmin = isSuperAdmin || user?.role === "admin" || isKomting || isBendahara;
 
   const kampusChildren = [
     ...(isSuperAdmin
@@ -160,7 +162,17 @@ export default function Navbar() {
                   SAKUNE SISFOR
                 </span>
                 <span className="text-[11px] text-[#777] dark:text-zinc-500 uppercase tracking-[0.08em] font-medium mt-1">
-                  {isSuperAdmin ? "SUPER ADMIN" : isAdmin ? "ADMIN PRODI" : "STUDENT PORTAL"}
+                  {isSuperAdmin
+                    ? "SUPER ADMIN"
+                    : isKomting
+                    ? "KOMTING"
+                    : isBendahara
+                    ? "BENDAHARA"
+                    : user?.role === "admin"
+                    ? user?.fakultas
+                      ? "DEKAN"
+                      : "ADMIN PRODI"
+                    : "STUDENT PORTAL"}
                 </span>
               </div>
             </Link>

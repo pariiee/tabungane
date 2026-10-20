@@ -9,9 +9,10 @@ export interface SessionUser {
   id: string;
   nim: string;
   nama: string;
-  role: "super_admin" | "admin" | "mahasiswa";
+  role: "super_admin" | "admin" | "komting" | "bendahara" | "mahasiswa";
   prodi_id?: string | null;
   fakultas?: string | null;
+  managed_kelas_ids?: string | null;
   must_change_password: boolean;
   kelas_id?: string | null;
   tampilkan_saldo_leaderboard?: boolean;
@@ -19,7 +20,13 @@ export interface SessionUser {
 }
 
 export function isAdminUser(user: SessionUser | null): user is SessionUser {
-  return Boolean(user && (user.role === "admin" || user.role === "super_admin"));
+  return Boolean(
+    user &&
+      (user.role === "admin" ||
+        user.role === "super_admin" ||
+        user.role === "komting" ||
+        user.role === "bendahara")
+  );
 }
 
 export function hashPassword(password: string): string {
@@ -71,11 +78,11 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     const data = JSON.parse(payload);
     if (!data.id || data.exp < Date.now()) return null;
 
-    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, prodi_id, fakultas, foto_url, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
+    const row = db.prepare("SELECT id, nim, nama, role, must_change_password, aktif, kelas_id, prodi_id, fakultas, managed_kelas_ids, foto_url, COALESCE(tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard FROM users WHERE id = ?").get(data.id) as any;
     if (!row || !row.aktif) return null;
 
-    // Normalisasi role: jika role admin tanpa prodi_id dan tanpa fakultas, jadikan super_admin
-    const effectiveRole = (row.role === "admin" && !row.prodi_id && !row.fakultas) ? "super_admin" : row.role;
+    // Normalisasi role: jika role admin tanpa prodi_id dan tanpa fakultas dan tanpa kelas, jadikan super_admin
+    const effectiveRole = (row.role === "admin" && !row.prodi_id && !row.fakultas && !row.managed_kelas_ids) ? "super_admin" : row.role;
 
     return {
       id: row.id,
@@ -84,6 +91,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       role: effectiveRole,
       prodi_id: row.prodi_id || null,
       fakultas: row.fakultas || null,
+      managed_kelas_ids: row.managed_kelas_ids || null,
       must_change_password: Boolean(row.must_change_password),
       kelas_id: row.kelas_id,
       tampilkan_saldo_leaderboard: Boolean(row.tampilkan_saldo_leaderboard),

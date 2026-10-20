@@ -26,39 +26,61 @@ export function getAllowedProdiIds(user: SessionUser): string[] | null {
 }
 
 /**
- * Validates if the admin (Super Admin, Dekan Fakultas, or Kaprodi) has authorization to access/modify a specific class.
+ * Returns array of allowed class IDs for this user,
+ * or null if user is Super Admin (unrestricted campus access).
  */
-export function canAccessKelas(user: SessionUser, kelasId: string): boolean {
-  if (user.role === "super_admin") return true;
+export function getAllowedKelasIds(user: SessionUser): string[] | null {
+  if (user.role === "super_admin") return null;
 
-  const row = db
-    .prepare("SELECT k.prodi_id, p.fakultas FROM kelas k LEFT JOIN prodi p ON k.prodi_id = p.id WHERE k.id = ?")
-    .get(kelasId) as any;
-  if (!row) return false;
+  // Jika Komting / Bendahara mengawasi kelas tertentu (1 atau beberapa kelas)
+  if (user.managed_kelas_ids) {
+    try {
+      const parsed = JSON.parse(user.managed_kelas_ids);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      const parts = user.managed_kelas_ids.split(",").map((s) => s.trim()).filter(Boolean);
+      if (parts.length > 0) return parts;
+    }
+  }
 
-  if (user.prodi_id && row.prodi_id === user.prodi_id) return true;
-  if (user.fakultas && row.fakultas === user.fakultas) return true;
-  return false;
+  // Jika Komting / Bendahara terikat pada kelasnya
+  if ((user.role === "komting" || user.role === "bendahara") && user.kelas_id) {
+    return [user.kelas_id];
+  }
+
+  // Jika Admin Prodi
+  if (user.prodi_id) {
+    const rows = db.prepare("SELECT id FROM kelas WHERE prodi_id = ?").all(user.prodi_id) as any[];
+    return rows.map((r) => r.id);
+  }
+
+  // Jika Dekan / Pengawas Fakultas
+  if (user.fakultas) {
+    const rows = db
+      .prepare("SELECT k.id FROM kelas k JOIN prodi p ON k.prodi_id = p.id WHERE p.fakultas = ?")
+      .all(user.fakultas) as any[];
+    return rows.map((r) => r.id);
+  }
+
+  return [];
 }
 
 /**
- * Validates if the admin has authorization to access/modify a specific student.
+ * Validates if the user (Super Admin, Dekan, Kaprodi, Komting, Bendahara) has authorization to access/modify a class.
+ */
+export function canAccessKelas(user: SessionUser, kelasId: string): boolean {
+  if (user.role === "super_admin") return true;
+  const allowed = getAllowedKelasIds(user);
+  if (allowed === null) return true;
+  return allowed.includes(kelasId);
+}
+
+/**
+ * Validates if the user has authorization to access/modify a specific student.
  */
 export function canAccessMahasiswa(user: SessionUser, userId: string): boolean {
   if (user.role === "super_admin") return true;
-
-  const row = db
-    .prepare(
-      `SELECT k.prodi_id, p.fakultas
-       FROM users u
-       LEFT JOIN kelas k ON u.kelas_id = k.id
-       LEFT JOIN prodi p ON k.prodi_id = p.id
-       WHERE u.id = ?`
-    )
-    .get(userId) as any;
-  if (!row) return false;
-
-  if (user.prodi_id && row.prodi_id === user.prodi_id) return true;
-  if (user.fakultas && row.fakultas === user.fakultas) return true;
-  return false;
+  const row = db.prepare("SELECT kelas_id FROM users WHERE id = ?").get(userId) as any;
+  if (!row || !row.kelas_id) return false;
+  return canAccessKelas(user, row.kelas_id);
 }

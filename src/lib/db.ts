@@ -189,6 +189,9 @@ try {
     if (!uCols.some((c) => c.name === "fakultas")) {
       db.exec("ALTER TABLE users ADD COLUMN fakultas TEXT DEFAULT NULL;");
     }
+    if (!uCols.some((c) => c.name === "managed_kelas_ids")) {
+      db.exec("ALTER TABLE users ADD COLUMN managed_kelas_ids TEXT DEFAULT NULL;");
+    }
 
     // Ensure default Prodi SI exists
     const existingProdi = db.prepare("SELECT id FROM prodi WHERE kode = 'SI'").get();

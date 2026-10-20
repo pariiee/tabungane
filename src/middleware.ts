@@ -14,10 +14,8 @@ export async function middleware(request: NextRequest) {
       const [encoded] = sessionCookie.split(".");
       if (!encoded) return NextResponse.redirect(new URL("/login", request.url));
       const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
-      if (
-        (payload.role !== "admin" && payload.role !== "super_admin") ||
-        payload.exp < Date.now()
-      ) {
+      const adminRoles = ["admin", "super_admin", "komting", "bendahara"];
+      if (!adminRoles.includes(payload.role) || payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
     } catch {

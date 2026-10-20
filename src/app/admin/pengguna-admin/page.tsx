@@ -20,8 +20,11 @@ export default function PenggunaAdminPage() {
   const [nama, setNama] = useState("");
   const [nim, setNim] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("admin");
   const [scopeTarget, setScopeTarget] = useState("");
   const [fakultasList, setFakultasList] = useState<any[]>([]);
+  const [kelasList, setKelasList] = useState<any[]>([]);
+  const [selectedKelasIds, setSelectedKelasIds] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -30,22 +33,25 @@ export default function PenggunaAdminPage() {
 
   const loadData = async () => {
     try {
-      const [uRes, aRes, pRes, fRes] = await Promise.all([
+      const [uRes, aRes, pRes, fRes, kRes] = await Promise.all([
         fetch("/api/auth/me"),
         fetch("/api/admin/pengguna-admin"),
         fetch("/api/admin/prodi"),
         fetch("/api/admin/fakultas"),
+        fetch("/api/admin/kelas"),
       ]);
 
       const uData = await uRes.json();
       const aData = await aRes.json();
       const pData = await pRes.json();
       const fData = await fRes.json();
+      const kData = await kRes.json();
 
       setCurrentUser(uData.user);
       setAdminList(aData.data || []);
       setProdiList(pData.data || []);
       setFakultasList(fData.data || []);
+      setKelasList(kData.data || []);
     } catch {
       setError("Gagal memuat data Admin");
     } finally {
@@ -65,10 +71,21 @@ export default function PenggunaAdminPage() {
 
     let prodi_id = null;
     let fakultas = null;
-    if (scopeTarget.startsWith("prodi:")) {
-      prodi_id = scopeTarget.replace("prodi:", "");
-    } else if (scopeTarget.startsWith("fakultas:")) {
-      fakultas = scopeTarget.replace("fakultas:", "");
+    let managed_kelas_ids: string[] | null = null;
+
+    if (role === "komting" || role === "bendahara") {
+      if (selectedKelasIds.length === 0) {
+        setError("Pilih minimal 1 kelas yang diawasi oleh Komting / Bendahara");
+        setSubmitting(false);
+        return;
+      }
+      managed_kelas_ids = selectedKelasIds;
+    } else {
+      if (scopeTarget.startsWith("prodi:")) {
+        prodi_id = scopeTarget.replace("prodi:", "");
+      } else if (scopeTarget.startsWith("fakultas:")) {
+        fakultas = scopeTarget.replace("fakultas:", "");
+      }
     }
 
     try {
@@ -79,18 +96,21 @@ export default function PenggunaAdminPage() {
           nama,
           nim,
           password,
+          role,
           prodi_id,
           fakultas,
+          managed_kelas_ids,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal membuat akun Admin");
+      if (!res.ok) throw new Error(data.error || "Gagal membuat akun");
 
-      setSuccess(`Akun Admin ${nama} (${nim}) berhasil dibuat!`);
+      setSuccess(`Akun [${role.toUpperCase()}] ${nama} (${nim}) berhasil dibuat!`);
       setNama("");
       setNim("");
       setPassword("");
+      setSelectedKelasIds([]);
       loadData();
     } catch (err: any) {
       setError(err.message);
@@ -239,42 +259,98 @@ export default function PenggunaAdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
-                  Wilayah Pengawasan Admin
+                  Role / Jabatan
                 </label>
-                <div className="relative">
-                  <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-                  <select
-                    value={scopeTarget}
-                    onChange={(e) => setScopeTarget(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                  >
-                    <option value="">Akses Global Seluruh Kampus (Super Admin)</option>
-
-                    {fakultasList.length > 0 && (
-                      <optgroup label="Tingkat Fakultas (Dekan / Pengawas Fakultas)">
-                        {fakultasList.map((f) => (
-                          <option key={f.id} value={`fakultas:${f.nama}`}>
-                            Dekan - {f.nama} ({f.kode})
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-
-                    {prodiList.length > 0 && (
-                      <optgroup label="Tingkat Program Studi (Kaprodi / Admin Jurusan)">
-                        {prodiList.map((p) => (
-                          <option key={p.id} value={`prodi:${p.id}`}>
-                            Kaprodi - {p.nama} ({p.kode})
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </select>
-                </div>
-                <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 block">
-                  Pilih wilayah akses: seluruh kampus, satu fakultas (semua prodinya), atau satu jurusan saja.
-                </span>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                >
+                  <option value="admin">Admin Prodi / Dekan</option>
+                  <option value="komting">Komting / Ketua Kelas</option>
+                  <option value="bendahara">Bendahara Kelas</option>
+                  <option value="super_admin">Super Admin (Akses Penuh Seluruh Kampus)</option>
+                </select>
               </div>
+
+              {role === "admin" && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                    Wilayah Pengawasan (Fakultas / Prodi)
+                  </label>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                    <select
+                      value={scopeTarget}
+                      onChange={(e) => setScopeTarget(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                    >
+                      <option value="">-- Pilih Wilayah --</option>
+
+                      {fakultasList.length > 0 && (
+                        <optgroup label="Tingkat Fakultas (Dekan / Pengawas Fakultas)">
+                          {fakultasList.map((f) => (
+                            <option key={f.id} value={`fakultas:${f.nama}`}>
+                              Dekan - {f.nama} ({f.kode})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+
+                      {prodiList.length > 0 && (
+                        <optgroup label="Tingkat Program Studi (Kaprodi / Admin Jurusan)">
+                          {prodiList.map((p) => (
+                            <option key={p.id} value={`prodi:${p.id}`}>
+                              Kaprodi - {p.nama} ({p.kode})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {(role === "komting" || role === "bendahara") && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                    Kelas Yang Diawasi (Bisa Pilih 1 atau Beberapa Kelas)
+                  </label>
+                  <div className="border border-gray-200 dark:border-zinc-800 rounded-sm p-3 max-h-48 overflow-y-auto space-y-2 bg-gray-50/50 dark:bg-zinc-900/50">
+                    {kelasList.length === 0 ? (
+                      <span className="text-xs text-gray-400">Belum ada kelas yang dibuat.</span>
+                    ) : (
+                      kelasList.map((k) => {
+                        const checked = selectedKelasIds.includes(k.id);
+                        return (
+                          <label
+                            key={k.id}
+                            className="flex items-center gap-2.5 text-xs text-gray-800 dark:text-zinc-200 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 p-1.5 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedKelasIds([...selectedKelasIds, k.id]);
+                                } else {
+                                  setSelectedKelasIds(selectedKelasIds.filter((id) => id !== k.id));
+                                }
+                              }}
+                              className="rounded border-gray-300 text-black focus:ring-black"
+                            />
+                            <span className="font-bold">{k.nama}</span>
+                            <span className="text-[10px] text-gray-400">({k.nama_prodi || "SI"} - {k.tahun_ajaran})</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 block">
+                    {selectedKelasIds.length} kelas dipilih untuk akun ini.
+                  </span>
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -348,10 +424,22 @@ export default function PenggunaAdminPage() {
                               className={`px-2 py-0.5 rounded-sm text-[10px] font-bold tracking-wider uppercase border ${
                                 isSuper
                                   ? "bg-black text-white dark:bg-white dark:text-black border-black dark:border-white"
+                                  : a.role === "komting"
+                                  ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                                  : a.role === "bendahara"
+                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                                   : "bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-300 border-gray-200 dark:border-zinc-700"
                               }`}
                             >
-                              {isSuper ? "Super Admin" : "Admin Prodi"}
+                              {isSuper
+                                ? "Super Admin"
+                                : a.role === "komting"
+                                ? "Komting"
+                                : a.role === "bendahara"
+                                ? "Bendahara"
+                                : a.fakultas
+                                ? "Dekan"
+                                : "Admin Prodi"}
                             </span>
                           </td>
                           <td className="px-6 py-4">
