@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
@@ -14,6 +14,7 @@ export type BottomNavItem = {
 
 export default function BottomNav({ items }: { items: BottomNavItem[] }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeSheet, setActiveSheet] = useState<BottomNavItem | null>(null);
 
   // Close sheet on route change
@@ -22,6 +23,30 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
   }, [pathname]);
 
   if (pathname === "/login") return null;
+
+  // Active tab index for sliding pill
+  const activeIndex = items.findIndex((item) =>
+    item.children ? item.children.some((c) => pathname === c.href) : pathname === item.href
+  );
+  const safeActiveIndex = activeIndex >= 0 ? activeIndex : 0;
+
+  // Touch gesture to slide between tabs ala iPhone
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const tabEl = target?.closest("[data-tab-index]") as HTMLElement | null;
+    if (tabEl) {
+      const idx = parseInt(tabEl.dataset.tabIndex || "-1", 10);
+      if (idx >= 0 && idx < items.length && idx !== activeIndex) {
+        const item = items[idx];
+        if (item.children) {
+          setActiveSheet(item);
+        } else if (item.href) {
+          router.push(item.href);
+        }
+      }
+    }
+  };
 
   return (
     <>
@@ -81,14 +106,26 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
         </div>
       )}
 
-      {/* Floating Bottom Tab Bar Pill (Hanya di bawah breakpoint lg) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(12px,env(safe-area-inset-bottom))] px-3 pointer-events-none lg:hidden">
+      {/* Ramping Floating iOS Pill Navbar (Bisa Digeser & Meluncur Halus) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[max(10px,env(safe-area-inset-bottom))] px-3 pointer-events-none lg:hidden">
         <nav
           aria-label="Navigasi Bawah Mobile"
-          className="w-full max-w-md pointer-events-auto rounded-full bg-white dark:bg-zinc-900 p-2 shadow-[0_12px_32px_rgba(0,0,0,0.14)] border border-gray-100 dark:border-zinc-800"
+          onTouchMove={handleTouchMove}
+          className="pointer-events-auto w-[88%] max-w-[310px] p-1 rounded-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/70 dark:border-zinc-800 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.18)] select-none"
         >
-          <div className="rounded-full bg-[#ececee] dark:bg-zinc-800 p-1.5 shadow-[inset_0_2px_6px_rgba(0,0,0,0.08)] grid grid-cols-4 gap-1">
-            {items.map((item) => {
+          {/* Inner Track dengan Sliding Pill Indicator */}
+          <div className="relative flex items-center p-0.5 rounded-full bg-gray-100/90 dark:bg-zinc-800/90">
+            {/* Sliding Pill Indicator (Efek Geser Meluncur Ala iPhone) */}
+            <div
+              className="absolute top-0.5 bottom-0.5 rounded-full bg-[#1c1c1e] dark:bg-white shadow-[0_2px_8px_rgba(0,0,0,0.22)] transition-[left] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
+              style={{
+                width: `calc(25% - 4px)`,
+                left: `calc(${safeActiveIndex * 25}% + 2px)`,
+              }}
+            />
+
+            {/* Nav Items */}
+            {items.map((item, idx) => {
               const Icon = item.icon;
               const isChildActive = item.children?.some((c) => pathname === c.href);
               const isActive = item.children ? isChildActive : pathname === item.href;
@@ -98,19 +135,20 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
                   <button
                     key={item.label}
                     type="button"
+                    data-tab-index={idx}
                     onClick={() =>
                       setActiveSheet(activeSheet?.label === item.label ? null : item)
                     }
                     aria-current={isActive ? "page" : undefined}
                     aria-label={item.label}
-                    className={`flex flex-col items-center justify-center gap-1 rounded-full py-2.5 min-h-[56px] transition-all duration-200 cursor-pointer ${
+                    className={`relative z-10 flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 h-11 rounded-full transition-colors duration-200 cursor-pointer ${
                       isActive
-                        ? "bg-[#1c1c1e] text-white shadow-[0_6px_14px_rgba(0,0,0,0.25)]"
-                        : "text-[#555] dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                        ? "text-white dark:text-black font-semibold"
+                        : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
                     }`}
                   >
-                    <Icon className="w-[22px] h-[22px] stroke-[1.6]" />
-                    <span className="text-[12px] sm:text-[13px] font-normal leading-none tracking-tight">
+                    <Icon className="w-[18px] h-[18px] stroke-[1.8]" />
+                    <span className="text-[10px] leading-none tracking-tight">
                       {item.label}
                     </span>
                   </button>
@@ -121,16 +159,17 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
                 <Link
                   key={item.href}
                   href={item.href!}
+                  data-tab-index={idx}
                   aria-current={isActive ? "page" : undefined}
                   aria-label={item.label}
-                  className={`flex flex-col items-center justify-center gap-1 rounded-full py-2.5 min-h-[56px] transition-all duration-200 cursor-pointer ${
+                  className={`relative z-10 flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 h-11 rounded-full transition-colors duration-200 cursor-pointer ${
                     isActive
-                      ? "bg-[#1c1c1e] text-white shadow-[0_6px_14px_rgba(0,0,0,0.25)]"
-                      : "text-[#555] dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                      ? "text-white dark:text-black font-semibold"
+                      : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
                   }`}
                 >
-                  <Icon className="w-[22px] h-[22px] stroke-[1.6]" />
-                  <span className="text-[12px] sm:text-[13px] font-normal leading-none tracking-tight">
+                  <Icon className="w-[18px] h-[18px] stroke-[1.8]" />
+                  <span className="text-[10px] leading-none tracking-tight">
                     {item.label}
                   </span>
                 </Link>
