@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, isAdminUser, logAudit } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canAccessKelas, getProdiScope } from "@/lib/scope";
 import crypto from "node:crypto";
 
 export async function GET() {
@@ -9,17 +10,35 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const groups = db.prepare(`
-    SELECT g.*, COALESCE(k.nama, 'Semua Kelas') as nama_kelas, k.tahun_ajaran,
-      (SELECT COUNT(*) FROM keanggotaan kg WHERE kg.grup_id = g.id) as total_anggota,
-      (SELECT COALESCE(SUM(t.jumlah), 0) 
-       FROM transaksi t 
-       JOIN keanggotaan kg ON t.keanggotaan_id = kg.id 
-       WHERE kg.grup_id = g.id AND t.status = 'berhasil') as total_terkumpul
-    FROM grup_tabungan g
-    LEFT JOIN kelas k ON g.kelas_id = k.id
-    ORDER BY g.created_at DESC
-  `).all();
+  const prodiScope = getProdiScope(user);
+
+  let groups = [];
+  if (prodiScope) {
+    groups = db.prepare(`
+      SELECT g.*, COALESCE(k.nama, 'Semua Kelas') as nama_kelas, k.tahun_ajaran,
+        (SELECT COUNT(*) FROM keanggotaan kg WHERE kg.grup_id = g.id) as total_anggota,
+        (SELECT COALESCE(SUM(t.jumlah), 0) 
+         FROM transaksi t 
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id 
+         WHERE kg.grup_id = g.id AND t.status = 'berhasil') as total_terkumpul
+      FROM grup_tabungan g
+      JOIN kelas k ON g.kelas_id = k.id
+      WHERE k.prodi_id = ?
+      ORDER BY g.created_at DESC
+    `).all(prodiScope);
+  } else {
+    groups = db.prepare(`
+      SELECT g.*, COALESCE(k.nama, 'Semua Kelas') as nama_kelas, k.tahun_ajaran,
+        (SELECT COUNT(*) FROM keanggotaan kg WHERE kg.grup_id = g.id) as total_anggota,
+        (SELECT COALESCE(SUM(t.jumlah), 0) 
+         FROM transaksi t 
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id 
+         WHERE kg.grup_id = g.id AND t.status = 'berhasil') as total_terkumpul
+      FROM grup_tabungan g
+      LEFT JOIN kelas k ON g.kelas_id = k.id
+      ORDER BY g.created_at DESC
+    `).all();
+  }
 
   return NextResponse.json({ data: groups });
 }
@@ -42,6 +61,15 @@ export async function POST(req: Request) {
 
   const isAllClasses = !kelas_id || kelas_id === "all";
   const actualKelasId = isAllClasses ? null : kelas_id;
+
+  if (user.role === "admin") {
+    if (isAllClasses || !actualKelasId || !canAccessKelas(user, actualKelasId)) {
+      return NextResponse.json(
+        { error: "Admin Prodi hanya berhak membuat event pada kelas di prodinya sendiri" },
+        { status: 403 }
+      );
+    }
+  }
 
   const grupId = crypto.randomUUID();
   const { runTransaction } = require("@/lib/db");

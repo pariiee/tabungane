@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getProdiScope } from "@/lib/scope";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!isAdminUser(user)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const prodiScope = getProdiScope(user);
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
@@ -24,6 +27,11 @@ export async function GET(req: Request) {
     WHERE 1=1
   `;
   const params: any[] = [];
+
+  if (prodiScope) {
+    query += " AND k.prodi_id = ?";
+    params.push(prodiScope);
+  }
 
   if (status) {
     query += " AND t.status = ?";

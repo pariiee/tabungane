@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getProdiScope } from "@/lib/scope";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -8,54 +9,139 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 1. TODAY'S REVENUE (Zona Waktu WIB Asia/Jakarta)
+  const prodiScope = getProdiScope(user);
   const todayWib = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
-  const todayRow = db
-    .prepare(
-      `SELECT 
-         COALESCE(SUM(jumlah), 0) as total,
-         COUNT(*) as count 
-       FROM transaksi 
-       WHERE status = 'berhasil' AND date(datetime(created_at, '+7 hours')) = date(?)`
-    )
-    .get(todayWib) as any;
 
-  // 2. TOTAL REVENUE
-  const totalRow = db
-    .prepare(
-      `SELECT 
-         COALESCE(SUM(jumlah), 0) as total,
-         COUNT(*) as count 
-       FROM transaksi 
-       WHERE status = 'berhasil'`
-    )
-    .get() as any;
+  // 1. TODAY'S REVENUE (Zona Waktu WIB Asia/Jakarta)
+  let todayRow: any;
+  let totalRow: any;
+  let pendingRow: any;
+  let allTrxRow: any;
+  let expiredRow: any;
+  let canceledRow: any;
+  let studentRow: any;
+  let kelasRow: any;
 
-  // 3. PENDING
-  const pendingRow = db
-    .prepare("SELECT COUNT(*) as count FROM transaksi WHERE status = 'pending'")
-    .get() as any;
+  if (prodiScope) {
+    todayRow = db
+      .prepare(
+        `SELECT COALESCE(SUM(t.jumlah), 0) as total, COUNT(*) as count 
+         FROM transaksi t
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON kg.user_id = u.id
+         JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'berhasil' AND date(datetime(t.created_at, '+7 hours')) = date(?) AND k.prodi_id = ?`
+      )
+      .get(todayWib, prodiScope) as any;
 
-  // Total All Transactions count
-  const allTrxRow = db
-    .prepare("SELECT COUNT(*) as count FROM transaksi")
-    .get() as any;
+    totalRow = db
+      .prepare(
+        `SELECT COALESCE(SUM(t.jumlah), 0) as total, COUNT(*) as count 
+         FROM transaksi t
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON kg.user_id = u.id
+         JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'berhasil' AND k.prodi_id = ?`
+      )
+      .get(prodiScope) as any;
 
-  // 4. FAILED / CANCELED
-  const expiredRow = db
-    .prepare("SELECT COUNT(*) as count FROM transaksi WHERE status = 'expired'")
-    .get() as any;
-  const canceledRow = db
-    .prepare("SELECT COUNT(*) as count FROM transaksi WHERE status = 'canceled'")
-    .get() as any;
+    pendingRow = db
+      .prepare(
+        `SELECT COUNT(*) as count 
+         FROM transaksi t
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON kg.user_id = u.id
+         JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'pending' AND k.prodi_id = ?`
+      )
+      .get(prodiScope) as any;
 
-  // Total Mahasiswa & Kelas
-  const studentRow = db
-    .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'mahasiswa' AND aktif = 1")
-    .get() as any;
-  const kelasRow = db
-    .prepare("SELECT COUNT(*) as count FROM kelas")
-    .get() as any;
+    allTrxRow = db
+      .prepare(
+        `SELECT COUNT(*) as count 
+         FROM transaksi t
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON kg.user_id = u.id
+         JOIN kelas k ON u.kelas_id = k.id
+         WHERE k.prodi_id = ?`
+      )
+      .get(prodiScope) as any;
+
+    expiredRow = db
+      .prepare(
+        `SELECT COUNT(*) as count 
+         FROM transaksi t
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON kg.user_id = u.id
+         JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'expired' AND k.prodi_id = ?`
+      )
+      .get(prodiScope) as any;
+
+    canceledRow = db
+      .prepare(
+        `SELECT COUNT(*) as count 
+         FROM transaksi t
+         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON kg.user_id = u.id
+         JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'canceled' AND k.prodi_id = ?`
+      )
+      .get(prodiScope) as any;
+
+    studentRow = db
+      .prepare(
+        `SELECT COUNT(*) as count 
+         FROM users u 
+         JOIN kelas k ON u.kelas_id = k.id 
+         WHERE u.role = 'mahasiswa' AND u.aktif = 1 AND k.prodi_id = ?`
+      )
+      .get(prodiScope) as any;
+
+    kelasRow = db.prepare("SELECT COUNT(*) as count FROM kelas WHERE prodi_id = ?").get(prodiScope) as any;
+  } else {
+    todayRow = db
+      .prepare(
+        `SELECT 
+           COALESCE(SUM(jumlah), 0) as total,
+           COUNT(*) as count 
+         FROM transaksi 
+         WHERE status = 'berhasil' AND date(datetime(created_at, '+7 hours')) = date(?)`
+      )
+      .get(todayWib) as any;
+
+    totalRow = db
+      .prepare(
+        `SELECT 
+           COALESCE(SUM(jumlah), 0) as total,
+           COUNT(*) as count 
+         FROM transaksi 
+         WHERE status = 'berhasil'`
+      )
+      .get() as any;
+
+    pendingRow = db
+      .prepare("SELECT COUNT(*) as count FROM transaksi WHERE status = 'pending'")
+      .get() as any;
+
+    allTrxRow = db
+      .prepare("SELECT COUNT(*) as count FROM transaksi")
+      .get() as any;
+
+    expiredRow = db
+      .prepare("SELECT COUNT(*) as count FROM transaksi WHERE status = 'expired'")
+      .get() as any;
+    canceledRow = db
+      .prepare("SELECT COUNT(*) as count FROM transaksi WHERE status = 'canceled'")
+      .get() as any;
+
+    studentRow = db
+      .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'mahasiswa' AND aktif = 1")
+      .get() as any;
+    kelasRow = db
+      .prepare("SELECT COUNT(*) as count FROM kelas")
+      .get() as any;
+  }
 
   // 5. CHART 14 DAYS
   const chartDays = [];
@@ -65,20 +151,51 @@ export async function GET() {
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split("T")[0];
 
-    const berhasilRow = db
-      .prepare(
-        "SELECT COALESCE(SUM(jumlah), 0) as total FROM transaksi WHERE status = 'berhasil' AND date(created_at) = date(?)"
-      )
-      .get(dateStr) as any;
+    let paidAmt = 0;
+    let totalAmt = 0;
 
-    const allAttemptedRow = db
-      .prepare(
-        "SELECT COALESCE(SUM(ABS(jumlah)), 0) as total FROM transaksi WHERE status IN ('berhasil', 'pending') AND date(created_at) = date(?)"
-      )
-      .get(dateStr) as any;
+    if (prodiScope) {
+      const berhasilRow = db
+        .prepare(
+          `SELECT COALESCE(SUM(t.jumlah), 0) as total 
+           FROM transaksi t
+           JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+           JOIN users u ON kg.user_id = u.id
+           JOIN kelas k ON u.kelas_id = k.id
+           WHERE t.status = 'berhasil' AND date(t.created_at) = date(?) AND k.prodi_id = ?`
+        )
+        .get(dateStr, prodiScope) as any;
 
-    const paidAmt = berhasilRow.total || 0;
-    const totalAmt = Math.max(allAttemptedRow.total || 0, paidAmt);
+      const allAttemptedRow = db
+        .prepare(
+          `SELECT COALESCE(SUM(ABS(t.jumlah)), 0) as total 
+           FROM transaksi t
+           JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+           JOIN users u ON kg.user_id = u.id
+           JOIN kelas k ON u.kelas_id = k.id
+           WHERE t.status IN ('berhasil', 'pending') AND date(t.created_at) = date(?) AND k.prodi_id = ?`
+        )
+        .get(dateStr, prodiScope) as any;
+
+      paidAmt = berhasilRow?.total || 0;
+      totalAmt = Math.max(allAttemptedRow?.total || 0, paidAmt);
+    } else {
+      const berhasilRow = db
+        .prepare(
+          "SELECT COALESCE(SUM(jumlah), 0) as total FROM transaksi WHERE status = 'berhasil' AND date(created_at) = date(?)"
+        )
+        .get(dateStr) as any;
+
+      const allAttemptedRow = db
+        .prepare(
+          "SELECT COALESCE(SUM(ABS(jumlah)), 0) as total FROM transaksi WHERE status IN ('berhasil', 'pending') AND date(created_at) = date(?)"
+        )
+        .get(dateStr) as any;
+
+      paidAmt = berhasilRow?.total || 0;
+      totalAmt = Math.max(allAttemptedRow?.total || 0, paidAmt);
+    }
+
     total14Days += paidAmt;
 
     // Short date: MM/DD
@@ -94,18 +211,36 @@ export async function GET() {
   }
 
   // 6. RECENT TRANSACTIONS (Latest 7)
-  const recent = db
-    .prepare(`
-      SELECT t.id, t.qris_trx_id, t.jumlah, t.status, t.created_at, t.tipe,
-             u.nim, u.nama as nama_mahasiswa, g.nama as nama_grup
-      FROM transaksi t
-      JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-      JOIN users u ON kg.user_id = u.id
-      JOIN grup_tabungan g ON kg.grup_id = g.id
-      ORDER BY t.created_at DESC
-      LIMIT 7
-    `)
-    .all() as any[];
+  let recent: any[] = [];
+  if (prodiScope) {
+    recent = db
+      .prepare(`
+        SELECT t.id, t.qris_trx_id, t.jumlah, t.status, t.created_at, t.tipe,
+               u.nim, u.nama as nama_mahasiswa, g.nama as nama_grup
+        FROM transaksi t
+        JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+        JOIN users u ON kg.user_id = u.id
+        JOIN kelas k ON u.kelas_id = k.id
+        JOIN grup_tabungan g ON kg.grup_id = g.id
+        WHERE k.prodi_id = ?
+        ORDER BY t.created_at DESC
+        LIMIT 7
+      `)
+      .all(prodiScope) as any[];
+  } else {
+    recent = db
+      .prepare(`
+        SELECT t.id, t.qris_trx_id, t.jumlah, t.status, t.created_at, t.tipe,
+               u.nim, u.nama as nama_mahasiswa, g.nama as nama_grup
+        FROM transaksi t
+        JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+        JOIN users u ON kg.user_id = u.id
+        JOIN grup_tabungan g ON kg.grup_id = g.id
+        ORDER BY t.created_at DESC
+        LIMIT 7
+      `)
+      .all() as any[];
+  }
 
   // Format ID to clean lowercase short string if UUID
   const formattedRecent = recent.map((r) => {

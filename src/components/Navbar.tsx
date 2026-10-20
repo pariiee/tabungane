@@ -69,7 +69,9 @@ export default function Navbar() {
   const isAdmin = isSuperAdmin || user?.role === "admin";
 
   const kampusChildren = [
-    { href: "/admin/prodi", label: "Program Studi", icon: Building2 },
+    ...(isSuperAdmin
+      ? [{ href: "/admin/prodi", label: "Program Studi", icon: Building2 }]
+      : []),
     { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
     { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
     { href: "/admin/grup", label: "Event Sakune", icon: Layers },
