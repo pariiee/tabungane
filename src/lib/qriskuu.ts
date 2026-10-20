@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { getSetting } from "./db";
 
-const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.web.id";
+const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
 
 export interface CreatePaymentResponse {
   trxid: string;

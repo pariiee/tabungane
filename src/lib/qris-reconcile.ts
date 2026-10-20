@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { creditPayment } from "./ledger";
 
-const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.web.id";
+const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
 
 export async function runQrisReconcileJob() {
   try {

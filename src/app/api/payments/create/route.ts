@@ -57,7 +57,8 @@ export async function POST(req: Request) {
         try {
           const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
           if (apiKey) {
-            await fetch(`https://qriskuu.web.id/payments/${encodeURIComponent(p.qris_trx_id)}/cancel`, {
+            const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
+            await fetch(`${baseUrl}/payments/${encodeURIComponent(p.qris_trx_id)}/cancel`, {
               method: "POST",
               headers: {
                 "X-API-Key": apiKey,
