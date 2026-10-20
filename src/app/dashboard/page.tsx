@@ -232,34 +232,37 @@ export default function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Saldo Saku Utama */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-              <span>SALDO DOMPET SAKU</span>
-              <Wallet className="w-4 h-4 text-black dark:text-white" />
+      {/* KPI Cards Grid 2x2 di Mobile, 4 Kolom di Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 items-stretch">
+        {/* Card 1: Saldo Dompet Saku */}
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-3 sm:p-4 lg:p-4 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+              <span className="truncate">SALDO SAKU</span>
+              <Wallet className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-black dark:text-white shrink-0" />
             </div>
-            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
+            <div className="text-lg sm:text-xl font-bold tracking-tight text-black dark:text-white mt-1.5 tabular-nums truncate min-w-0">
               Rp {saldoDompet.toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-              Saldo aktif siap pakai
+            <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+              Siap pakai
             </p>
           </div>
 
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+          {/* Desktop Only Actions inside Card */}
+          <div className="hidden lg:flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <button
+              type="button"
               onClick={() => setShowTransferModal(true)}
-              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1"
+              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
             >
               <Send className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
               <span>Transfer</span>
             </button>
             <button
+              type="button"
               onClick={() => setShowAllocModal(true)}
-              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1"
+              className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
             >
               <Layers className="w-2.5 h-2.5 text-teal-600 dark:text-teal-400" />
               <span>Alokasi</span>
@@ -268,67 +271,87 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Card 2: Total di Event Sakune */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-              <span>TOTAL DI EVENT</span>
-              <TrendingUp className="w-4 h-4 text-black dark:text-white" />
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-3 sm:p-4 lg:p-4 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+              <span className="truncate">TOTAL DI EVENT</span>
+              <TrendingUp className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-black dark:text-white shrink-0" />
             </div>
-            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
+            <div className="text-lg sm:text-xl font-bold tracking-tight text-black dark:text-white mt-1.5 tabular-nums truncate min-w-0">
               Rp {totalTabungan.toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-              Akumulasi iuran di seluruh event
+            <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+              Seluruh event
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+          <div className="hidden lg:flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <span>Event Diikuti</span>
             <span className="font-semibold text-black dark:text-white">{groups.length} Event</span>
           </div>
         </div>
 
         {/* Card 3: Uang Masuk 14 Hari */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-              <span>UANG MASUK (14H)</span>
-              <ArrowDownLeft className="w-4 h-4 text-emerald-500" />
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-3 sm:p-4 lg:p-4 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+              <span className="truncate">UANG MASUK (14H)</span>
+              <ArrowDownLeft className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-emerald-500 shrink-0" />
             </div>
-            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
+            <div className="text-lg sm:text-xl font-bold tracking-tight text-black dark:text-white mt-1.5 tabular-nums truncate min-w-0">
               Rp {(kpi.total14DaysMasuk || 0).toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-              Top up & transfer masuk
+            <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+              14 hari terakhir
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+          <div className="hidden lg:flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <span>Periode</span>
             <span className="font-semibold text-black dark:text-white">14 Hari Terakhir</span>
           </div>
         </div>
 
         {/* Card 4: Uang Keluar 14 Hari */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] font-semibold uppercase tracking-wider">
-              <span>UANG KELUAR (14H)</span>
-              <ArrowUpRight className="w-4 h-4 text-rose-500" />
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-3 sm:p-4 lg:p-4 shadow-xs flex flex-col justify-between min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
+              <span className="truncate">UANG KELUAR (14H)</span>
+              <ArrowUpRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-rose-500 shrink-0" />
             </div>
-            <div className="text-xl font-bold tracking-tight text-black dark:text-white mt-2">
+            <div className="text-lg sm:text-xl font-bold tracking-tight text-black dark:text-white mt-1.5 tabular-nums truncate min-w-0">
               Rp {(kpi.total14DaysKeluar || 0).toLocaleString("id-ID")}
             </div>
-            <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-              Alokasi event & transfer keluar
+            <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+              Event &amp; transfer keluar
             </p>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+          <div className="hidden lg:flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
             <span>Metode</span>
             <span className="font-semibold text-black dark:text-white">Internal Ledger</span>
           </div>
         </div>
+      </div>
+
+      {/* Tombol Transfer dan Alokasi Mobile (Tepat di bawah grid 2x2, min-h 44px) */}
+      <div className="grid grid-cols-2 gap-3 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setShowTransferModal(true)}
+          className="min-h-[44px] py-2.5 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-xs inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+        >
+          <Send className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>Transfer</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowAllocModal(true)}
+          className="min-h-[44px] py-2.5 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-xs inline-flex items-center justify-center gap-2 cursor-pointer transition-colors"
+        >
+          <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+          <span>Alokasi</span>
+        </button>
       </div>
 
       {/* Middle Dual-Column Section (Persis Layout /admin) */}
