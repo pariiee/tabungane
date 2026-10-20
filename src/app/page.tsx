@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import LandingDemo from "@/components/LandingDemo";
 import {
   Wallet,
   QrCode,
@@ -13,6 +14,8 @@ import {
   TrendingUp,
   CreditCard,
   Landmark,
+  HelpCircle,
+  ChevronDown,
 } from "lucide-react";
 
 export default async function Home() {
@@ -98,48 +101,9 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Interactive Virtual Card Showcase */}
-          <div className="mt-14 max-w-md mx-auto">
-            <div className="relative rounded-2xl p-6 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 text-white shadow-2xl border border-zinc-800 transform hover:-translate-y-1 transition-transform duration-300">
-              {/* Card Header */}
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
-                  SAKUNE SISFOR CARD
-                </span>
-                <div className="w-7 h-5 rounded bg-amber-400/80 border border-amber-300/40 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_50%,transparent_75%)]" />
-                </div>
-              </div>
-
-              {/* Card Chip & RFID */}
-              <div className="mt-6 flex items-center gap-2">
-                <div className="w-9 h-7 rounded bg-amber-300/90 border border-amber-200 shadow-inner flex items-center justify-center">
-                  <div className="w-7 h-5 border border-amber-500/50 rounded-xs" />
-                </div>
-                <span className="text-xs text-zinc-400 font-mono tracking-wider">WALLET DIGITAL</span>
-              </div>
-
-              {/* Realtime Balance Demo */}
-              <div className="mt-6">
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
-                  Saldo Siap Pakai
-                </span>
-                <div className="flex items-center justify-between mt-0.5">
-                  <span className="text-2xl font-bold font-mono tracking-tight text-white">
-                    Rp 1.250.000
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-semibold border border-emerald-500/30">
-                    Aktif
-                  </span>
-                </div>
-              </div>
-
-              {/* Card Footer */}
-              <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-                <span className="font-mono">NIM: 240101••••</span>
-                <span className="text-[11px] font-semibold text-zinc-300">MAHASISWA PORTAL</span>
-              </div>
-            </div>
+          {/* Interactive Virtual Card Showcase with Live Simulator */}
+          <div className="mt-14 max-w-xl mx-auto">
+            <LandingDemo />
           </div>
         </div>
       </section>
@@ -361,7 +325,63 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 5. FOOTER */}
+      {/* 5. FAQ ACCORDION */}
+      <section className="py-16 md:py-24 border-b border-gray-100 dark:border-zinc-800/80">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+              FREQUENTLY ASKED QUESTIONS
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-black dark:text-white mt-1">
+              Pertanyaan yang Sering Diajukan
+            </h2>
+          </div>
+
+          <div className="space-y-3.5">
+            <details className="group border border-gray-200 dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900/50 [&_summary::-webkit-details-marker]:hidden cursor-pointer transition-all">
+              <summary className="flex items-center justify-between font-semibold text-sm text-black dark:text-white select-none">
+                <span>Apakah saldo kas kelas bisa bocor atau dilihat oleh mahasiswa jurusan/prodi lain?</span>
+                <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
+              </summary>
+              <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
+                Sama sekali tidak. Sistem kami menerapkan <strong>strict data isolation</strong>. Kaprodi, Dekan, maupun ADMINYA KELAS hanya dapat melihat data mahasiswa dan kelas yang berada di bawah wewenangnya. Di leaderboard kampus pun, mahasiswa berhak menyensor nominal saldonya menjadi simbol titik-titik (•••••••).
+              </p>
+            </details>
+
+            <details className="group border border-gray-200 dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900/50 [&_summary::-webkit-details-marker]:hidden cursor-pointer transition-all">
+              <summary className="flex items-center justify-between font-semibold text-sm text-black dark:text-white select-none">
+                <span>Bagaimana jika mahasiswa tidak memiliki m-banking atau e-wallet untuk scan QRIS?</span>
+                <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
+              </summary>
+              <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
+                Mahasiswa tetap bisa menitipkan uang kas secara tunai (cash) kepada <strong>ADMINYA KELAS</strong> (Komting atau Bendahara Kelas). Pengurus kelas memiliki akses untuk mencatat setoran manual di sistem agar masuk ke pencatatan ledger resmi kelas secara realtime.
+              </p>
+            </details>
+
+            <details className="group border border-gray-200 dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900/50 [&_summary::-webkit-details-marker]:hidden cursor-pointer transition-all">
+              <summary className="flex items-center justify-between font-semibold text-sm text-black dark:text-white select-none">
+                <span>Bagaimana jika bendahara salah menginput nominal setoran tunai?</span>
+                <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
+              </summary>
+              <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
+                Sistem kami menggunakan <strong>Double-Entry Append-Only Ledger</strong>. Data transaksi tidak pernah dihapus atau diubah angka aslinya, melainkan dibuatkan transaksi koreksi pembalik (<em>reversal transaction</em>) lengkap dengan alasan pembatalan dan audit trail yang jelas demi transparansi.
+              </p>
+            </details>
+
+            <details className="group border border-gray-200 dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900/50 [&_summary::-webkit-details-marker]:hidden cursor-pointer transition-all">
+              <summary className="flex items-center justify-between font-semibold text-sm text-black dark:text-white select-none">
+                <span>Siapa saja yang berhak membuka Event Sakune tabungan baru?</span>
+                <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
+              </summary>
+              <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
+                Super Admin dapat membuka event skala kampus, Kaprodi dapat membuka event jurusan, dan ADMINYA KELAS dapat membuka event khusus untuk kelas yang mereka bina (seperti Kas Semester, Buka Puasa Bersama, atau Kunjungan Industri).
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. FOOTER */}
       <footer className="py-12 bg-white dark:bg-zinc-950 text-xs text-gray-500 dark:text-zinc-400">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
