@@ -43,8 +43,8 @@ export function getAllowedKelasIds(user: SessionUser): string[] | null {
     }
   }
 
-  // Jika Komting / Bendahara terikat pada kelasnya
-  if ((user.role === "komting" || user.role === "bendahara") && user.kelas_id) {
+  // Jika ADMINYA KELAS (Komting / Bendahara) terikat pada kelasnya
+  if (user.role === "admin_kelas" && user.kelas_id) {
     return [user.kelas_id];
   }
 

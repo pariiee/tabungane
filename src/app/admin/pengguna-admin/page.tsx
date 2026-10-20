@@ -73,9 +73,9 @@ export default function PenggunaAdminPage() {
     let fakultas = null;
     let managed_kelas_ids: string[] | null = null;
 
-    if (role === "komting" || role === "bendahara") {
+    if (role === "admin_kelas") {
       if (selectedKelasIds.length === 0) {
-        setError("Pilih minimal 1 kelas yang diawasi oleh Komting / Bendahara");
+        setError("Pilih minimal 1 kelas yang diawasi oleh ADMINYA KELAS");
         setSubmitting(false);
         return;
       }
@@ -267,8 +267,7 @@ export default function PenggunaAdminPage() {
                   className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 >
                   <option value="admin">Admin Prodi / Dekan</option>
-                  <option value="komting">Komting / Ketua Kelas</option>
-                  <option value="bendahara">Bendahara Kelas</option>
+                  <option value="admin_kelas">ADMINYA KELAS (Komting / Bendahara)</option>
                   <option value="super_admin">Super Admin (Akses Penuh Seluruh Kampus)</option>
                 </select>
               </div>
@@ -311,7 +310,7 @@ export default function PenggunaAdminPage() {
                 </div>
               )}
 
-              {(role === "komting" || role === "bendahara") && (
+              {role === "admin_kelas" && (
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
                     Kelas Yang Diawasi (Bisa Pilih 1 atau Beberapa Kelas)

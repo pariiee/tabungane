@@ -67,9 +67,8 @@ export default function Navbar() {
   if (pathname === "/login") return null;
 
   const isSuperAdmin = user?.role === "super_admin";
-  const isKomting = user?.role === "komting";
-  const isBendahara = user?.role === "bendahara";
-  const isAdmin = isSuperAdmin || user?.role === "admin" || isKomting || isBendahara;
+  const isAdminKelas = user?.role === "admin_kelas";
+  const isAdmin = isSuperAdmin || user?.role === "admin" || isAdminKelas;
 
   const kampusChildren = [
     ...(isSuperAdmin
@@ -164,10 +163,8 @@ export default function Navbar() {
                 <span className="text-[11px] text-[#777] dark:text-zinc-500 uppercase tracking-[0.08em] font-medium mt-1">
                   {isSuperAdmin
                     ? "SUPER ADMIN"
-                    : isKomting
-                    ? "KOMTING"
-                    : isBendahara
-                    ? "BENDAHARA"
+                    : isAdminKelas
+                    ? "ADMINYA KELAS"
                     : user?.role === "admin"
                     ? user?.fakultas
                       ? "DEKAN"

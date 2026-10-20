@@ -9,7 +9,7 @@ export interface SessionUser {
   id: string;
   nim: string;
   nama: string;
-  role: "super_admin" | "admin" | "komting" | "bendahara" | "mahasiswa";
+  role: "super_admin" | "admin" | "admin_kelas" | "mahasiswa";
   prodi_id?: string | null;
   fakultas?: string | null;
   managed_kelas_ids?: string | null;
@@ -24,8 +24,7 @@ export function isAdminUser(user: SessionUser | null): user is SessionUser {
     user &&
       (user.role === "admin" ||
         user.role === "super_admin" ||
-        user.role === "komting" ||
-        user.role === "bendahara")
+        user.role === "admin_kelas")
   );
 }
 

@@ -14,16 +14,15 @@ export async function GET() {
       `SELECT 
         u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.aktif, u.created_at,
         CASE
-          WHEN u.role = 'komting' THEN 'Komting / Ketua Kelas'
-          WHEN u.role = 'bendahara' THEN 'Bendahara Kelas'
+          WHEN u.role = 'admin_kelas' THEN 'ADMINYA KELAS'
           WHEN u.prodi_id IS NOT NULL THEN 'Kaprodi ' || p.nama
           WHEN u.fakultas IS NOT NULL THEN 'Dekan / ' || u.fakultas
           ELSE 'Seluruh Kampus (Super Admin)'
         END as nama_prodi,
-        COALESCE(p.kode, CASE WHEN u.role IN ('komting', 'bendahara') THEN 'KELAS' WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'GLOBAL' END) as kode_prodi
+        COALESCE(p.kode, CASE WHEN u.role = 'admin_kelas' THEN 'KELAS' WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'GLOBAL' END) as kode_prodi
       FROM users u
       LEFT JOIN prodi p ON u.prodi_id = p.id
-      WHERE u.role IN ('super_admin', 'admin', 'komting', 'bendahara')
+      WHERE u.role IN ('super_admin', 'admin', 'admin_kelas')
       ORDER BY u.role DESC, u.nama ASC`
     )
     .all();
@@ -58,7 +57,7 @@ export async function POST(req: Request) {
 
   // Validasi Role
   let role = inputRole || "admin";
-  if (!["super_admin", "admin", "komting", "bendahara"].includes(role)) {
+  if (!["super_admin", "admin", "admin_kelas"].includes(role)) {
     role = "admin";
   }
 

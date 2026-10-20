@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
       const [encoded] = sessionCookie.split(".");
       if (!encoded) return NextResponse.redirect(new URL("/login", request.url));
       const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
-      const adminRoles = ["admin", "super_admin", "komting", "bendahara"];
+      const adminRoles = ["admin", "super_admin", "admin_kelas"];
       if (!adminRoles.includes(payload.role) || payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
