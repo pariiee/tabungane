@@ -15,18 +15,18 @@ export async function GET() {
     list = db
       .prepare(
         `SELECT 
-          p.id, p.nama, p.kode, p.created_at,
+          p.id, p.nama, p.kode, COALESCE(p.fakultas, 'Umum') as fakultas, p.created_at,
           (SELECT COUNT(k.id) FROM kelas k WHERE k.prodi_id = p.id) as total_kelas,
           (SELECT COUNT(u.id) FROM users u JOIN kelas k2 ON u.kelas_id = k2.id WHERE k2.prodi_id = p.id AND u.role = 'mahasiswa' AND u.aktif = 1) as total_mahasiswa
         FROM prodi p
-        ORDER BY p.nama ASC`
+        ORDER BY p.fakultas ASC, p.nama ASC`
       )
       .all();
   } else {
     list = db
       .prepare(
         `SELECT 
-          p.id, p.nama, p.kode, p.created_at,
+          p.id, p.nama, p.kode, COALESCE(p.fakultas, 'Umum') as fakultas, p.created_at,
           (SELECT COUNT(k.id) FROM kelas k WHERE k.prodi_id = p.id) as total_kelas,
           (SELECT COUNT(u.id) FROM users u JOIN kelas k2 ON u.kelas_id = k2.id WHERE k2.prodi_id = p.id AND u.role = 'mahasiswa' AND u.aktif = 1) as total_mahasiswa
         FROM prodi p
@@ -46,26 +46,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Hanya Super Admin yang dapat membuat Program Studi" }, { status: 403 });
   }
 
-  const { nama, kode } = await req.json();
+  const { nama, kode, fakultas } = await req.json();
 
   if (!nama || !kode) {
     return NextResponse.json({ error: "Nama dan Kode Prodi wajib diisi" }, { status: 400 });
   }
 
   const cleanKode = kode.trim().toUpperCase();
+  const cleanFakultas = (fakultas || "Umum").trim();
   const existing = db.prepare("SELECT id FROM prodi WHERE kode = ?").get(cleanKode);
   if (existing) {
     return NextResponse.json({ error: "Kode Program Studi sudah terdaftar" }, { status: 400 });
   }
 
   const id = crypto.randomUUID();
-  db.prepare("INSERT INTO prodi (id, nama, kode) VALUES (?, ?, ?)").run(id, nama.trim(), cleanKode);
+  db.prepare("INSERT INTO prodi (id, nama, kode, fakultas) VALUES (?, ?, ?, ?)").run(
+    id,
+    nama.trim(),
+    cleanKode,
+    cleanFakultas
+  );
 
-  logAudit(user.id, "TAMBAH_PRODI", id, `Menambahkan prodi: ${nama} (${cleanKode})`);
+  logAudit(user.id, "TAMBAH_PRODI", id, `Menambahkan prodi: ${nama} (${cleanKode}) - Fak: ${cleanFakultas}`);
 
   return NextResponse.json({
     success: true,
-    data: { id, nama: nama.trim(), kode: cleanKode },
+    data: { id, nama: nama.trim(), kode: cleanKode, fakultas: cleanFakultas },
   });
 }
 

@@ -12,9 +12,13 @@ export async function GET() {
   const list = db
     .prepare(
       `SELECT 
-        u.id, u.nim, u.nama, u.role, u.prodi_id, u.aktif, u.created_at,
-        COALESCE(p.nama, 'Semua Prodi (Super)') as nama_prodi,
-        COALESCE(p.kode, 'GLOBAL') as kode_prodi
+        u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.aktif, u.created_at,
+        CASE
+          WHEN u.prodi_id IS NOT NULL THEN p.nama
+          WHEN u.fakultas IS NOT NULL THEN 'Dekan / Fakultas ' || u.fakultas
+          ELSE 'Semua Prodi (Super)'
+        END as nama_prodi,
+        COALESCE(p.kode, CASE WHEN u.fakultas IS NOT NULL THEN 'FAK' ELSE 'GLOBAL' END) as kode_prodi
       FROM users u
       LEFT JOIN prodi p ON u.prodi_id = p.id
       WHERE u.role IN ('super_admin', 'admin')
@@ -31,7 +35,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Hanya Super Admin yang dapat membuat akun Admin" }, { status: 403 });
   }
 
-  const { nim, nama, password, prodi_id } = await req.json();
+  const { nim, nama, password, prodi_id, fakultas } = await req.json();
 
   if (!nim || !nama || !password) {
     return NextResponse.json({ error: "NIM/NIP, Nama, dan Password wajib diisi" }, { status: 400 });
@@ -49,20 +53,23 @@ export async function POST(req: Request) {
 
   const id = crypto.randomUUID();
   const passwordHash = hashPassword(password);
-  // Role 'admin' for scoped admin prodi, or 'super_admin' if no prodi_id specified
-  const role = prodi_id ? "admin" : "super_admin";
+  // Role 'admin' for scoped admin prodi / fakultas, or 'super_admin' if no prodi_id and no fakultas specified
+  const isScoped = Boolean(prodi_id || fakultas);
+  const role = isScoped ? "admin" : "super_admin";
 
   db.prepare(`
-    INSERT INTO users (id, nim, nama, role, prodi_id, password_hash, must_change_password, aktif)
-    VALUES (?, ?, ?, ?, ?, ?, 0, 1)
-  `).run(id, cleanNim, nama.trim(), role, prodi_id || null, passwordHash);
+    INSERT INTO users (id, nim, nama, role, prodi_id, fakultas, password_hash, must_change_password, aktif)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1)
+  `).run(id, cleanNim, nama.trim(), role, prodi_id || null, fakultas || null, passwordHash);
 
   const prodi = prodi_id ? db.prepare("SELECT nama FROM prodi WHERE id = ?").get(prodi_id) as any : null;
+  const scopeDesc = prodi ? `Prodi: ${prodi.nama}` : fakultas ? `Fakultas: ${fakultas}` : "Global";
+
   logAudit(
     user.id,
     "BUAT_ADMIN",
     id,
-    `Membuat akun Admin: ${nama} (${cleanNim}) - Prodi: ${prodi ? prodi.nama : "Global"}`
+    `Membuat akun Admin: ${nama} (${cleanNim}) - Scope: ${scopeDesc}`
   );
 
   return NextResponse.json({
