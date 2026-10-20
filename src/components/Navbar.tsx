@@ -91,7 +91,7 @@ export default function Navbar() {
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-        { href: "/topup", label: "TOPUP", icon: QrCode },
+        { href: "/topup", label: "Top Up", icon: QrCode },
         { href: "/riwayat", label: "Riwayat", icon: History },
         { href: "/akun", label: "Akun", icon: User },
       ];
@@ -122,7 +122,7 @@ export default function Navbar() {
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-        { href: "/topup", label: "TOPUP", icon: QrCode },
+        { href: "/topup", label: "Top Up", icon: QrCode },
         { href: "/riwayat", label: "Riwayat", icon: History },
       ];
 

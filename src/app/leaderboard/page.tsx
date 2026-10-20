@@ -6,70 +6,190 @@ import { LeaderboardSkeleton } from "@/components/Skeletons";
 import {
   Trophy,
   Crown,
-  Medal,
   Wallet,
   ArrowDownLeft,
-  Flame,
-  QrCode,
-  RefreshCw,
+  Eye,
   EyeOff,
-  UserCheck
+  Clock,
+  Coins,
+  ChevronDown,
 } from "lucide-react";
 
 export default function LeaderboardPage() {
   const [tab, setTab] = useState<"saldo" | "topup">("saldo");
+  const [selectedGrupId, setSelectedGrupId] = useState("");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [allGroups, setAllGroups] = useState<any[]>([]);
+  const [grupInfo, setGrupInfo] = useState<any>(null);
   const [myStanding, setMyStanding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [hideMyValue, setHideMyValue] = useState(false);
 
-  const loadData = async (activeTab = tab, isManual = false) => {
-    if (isManual) setRefreshing(true);
+  const loadData = async (activeTab = tab, grupId = selectedGrupId) => {
     try {
-      const res = await fetch(`/api/leaderboard?tab=${activeTab}`);
+      const q = new URLSearchParams();
+      q.set("tab", activeTab);
+      if (grupId) q.set("grup_id", grupId);
+
+      const res = await fetch(`/api/leaderboard?${q.toString()}`);
       const data = await res.json();
       setLeaderboard(data.leaderboard || []);
+      setAllGroups(data.all_groups || []);
+      setGrupInfo(data.grup_info || null);
       setMyStanding(data.my_standing || null);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
-      if (isManual) setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadData(tab);
-  }, [tab]);
+    loadData(tab, selectedGrupId);
+  }, [tab, selectedGrupId]);
 
-  const rank1 = leaderboard.find((m) => m.rank === 1);
-  const rank2 = leaderboard.find((m) => m.rank === 2);
-  const rank3 = leaderboard.find((m) => m.rank === 3);
-  const restList = leaderboard.filter((m) => m.rank > 3);
+  // Always extract Top 3
+  const rank1 = leaderboard[0] || null;
+  const rank2 = leaderboard[1] || null;
+  const rank3 = leaderboard[2] || null;
+  const restList = leaderboard.slice(3);
+
+  const formatDeadline = (dl: string) => {
+    if (!dl) return "-";
+    const diff = new Date(dl).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days < 0) return "Selesai";
+    if (days === 0) return "Hari ini";
+    return `Sisa ${days} hari`;
+  };
+
+  // Helper renderer untuk kartu podium 3D
+  const renderPodiumBlock = (
+    item: any,
+    rankNum: number,
+    heightPx: number,
+    badgeColor: string,
+    isFirst = false
+  ) => {
+    const isMe = item?.is_me;
+    const progressPct = item ? item.progress_pct : 0;
+
+    return (
+      <div className="w-[31%] flex flex-col items-center">
+        {/* Avatar & Player Info */}
+        <div className="flex flex-col items-center mb-2.5 w-full">
+          {/* Avatar Container dengan Ring Putih 3px */}
+          <div className="relative mb-2">
+            <div
+              className={`rounded-full border-[3px] border-white dark:border-zinc-900 bg-gray-200 dark:bg-zinc-800 shadow-md flex items-center justify-center font-bold text-black dark:text-white overflow-hidden ${
+                isFirst ? "w-16 h-16 sm:w-18 sm:h-18" : "w-14 h-14"
+              }`}
+            >
+              {item?.foto_url ? (
+                <img
+                  src={item.foto_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : null}
+              <span className={item?.foto_url ? "hidden" : "block text-sm sm:text-base"}>
+                {item ? item.nama?.charAt(0) : "-"}
+              </span>
+            </div>
+
+            {/* Mahkota Emas hanya untuk Juara 1 */}
+            {isFirst && (
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[#c9a227] drop-shadow-sm">
+                <Crown className="w-5 h-5 fill-[#c9a227]" />
+              </div>
+            )}
+
+            {/* Badge Peringkat Kecil di Pojok Kanan Atas */}
+            <div
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white border-2 border-white dark:border-zinc-900 shadow-xs"
+              style={{ backgroundColor: badgeColor }}
+            >
+              {rankNum}
+            </div>
+          </div>
+
+          {/* Nama Mahasiswa */}
+          <span className="font-bold text-[11px] sm:text-xs text-black dark:text-white truncate max-w-full text-center px-0.5">
+            {item ? item.nama : "-"}
+          </span>
+
+          {/* Pill Persen Progres (Bukan Nominal) */}
+          {item ? (
+            <div className="mt-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-[10px] font-mono font-bold text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
+              {progressPct}%
+            </div>
+          ) : (
+            <div className="mt-1 px-2 py-0.5 rounded-full bg-gray-50 dark:bg-zinc-900 text-[10px] text-gray-400">
+              -
+            </div>
+          )}
+
+          {/* Nominal Khusus Milik Sendiri dengan Toggle Mata */}
+          {isMe && item?.display_value && (
+            <div className="mt-1 flex items-center gap-1 text-[10px] font-mono font-bold text-black dark:text-white bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-md">
+              <span>{hideMyValue ? "•••••••" : item.display_value}</span>
+              <button
+                type="button"
+                onClick={() => setHideMyValue(!hideMyValue)}
+                className="cursor-pointer text-gray-400 hover:text-black dark:hover:text-white"
+                title={hideMyValue ? "Tampilkan Saldo" : "Samarkan Saldo"}
+              >
+                {hideMyValue ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 3D Podium Block: Sisi Atas Lebih Terang, Sisi Depan Gradasi Memudar ke Bawah */}
+        <div className="w-full flex flex-col items-center">
+          {/* Top Bevel (Sisi Atas) */}
+          <div className="w-full h-2 rounded-t-sm bg-gray-200 dark:bg-[#4a4b54] border-t border-x border-gray-300/80 dark:border-zinc-700" />
+          {/* Front Face (Sisi Depan dengan Angka Transparan) */}
+          <div
+            className="w-full bg-gradient-to-b from-[#d4d4d4] to-[#e5e5e5] dark:from-[#3a3b42] dark:to-[#25262a] border-x border-b border-gray-300/60 dark:border-zinc-750 flex items-center justify-center relative shadow-inner overflow-hidden"
+            style={{ height: `${heightPx}px` }}
+          >
+            <span className="text-3xl sm:text-4xl font-black text-black/20 dark:text-white/20 select-none">
+              {rankNum}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto py-2">
-      {/* Top Header & Centered Segmented Control */}
-      <div className="flex flex-col items-center text-center space-y-4">
+    <div className="space-y-6 max-w-4xl mx-auto py-2">
+      {/* Header & Category Switcher */}
+      <div className="flex flex-col items-center text-center space-y-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black dark:text-white">
             Leaderboard
           </h1>
-          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Peringkat pencapaian mahasiswa. Nilai saldo tunduk pada izin privasi masing-masing.
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+            Peringkat pencapaian tabungan mahasiswa.
           </p>
         </div>
 
-        {/* 2 Recommended Categories Segmented Tab (Pill Style seperti Referensi) */}
+        {/* 2 Tabs: Top Saldo / Top Setoran */}
         <div className="inline-flex items-center p-1 rounded-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xs">
           <button
+            type="button"
             onClick={() => {
               setTab("saldo");
               setLoading(true);
             }}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               tab === "saldo"
-                ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
                 : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
             }`}
           >
@@ -77,13 +197,14 @@ export default function LeaderboardPage() {
             <span>Top Saldo</span>
           </button>
           <button
+            type="button"
             onClick={() => {
               setTab("topup");
               setLoading(true);
             }}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               tab === "topup"
-                ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
                 : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
             }`}
           >
@@ -91,252 +212,177 @@ export default function LeaderboardPage() {
             <span>Top Setoran</span>
           </button>
         </div>
+
+        {/* 3. Pemilih Grup Tabungan & Ringkasan Deadline / Terkumpul */}
+        <div className="w-full max-w-xs space-y-1.5 pt-1">
+          <div className="relative">
+            <select
+              value={selectedGrupId}
+              onChange={(e) => {
+                setSelectedGrupId(e.target.value);
+                setLoading(true);
+              }}
+              className="w-full appearance-none px-3.5 py-2 pr-8 text-xs font-semibold rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-black dark:text-white shadow-xs outline-none focus:ring-1 focus:ring-black dark:focus:ring-white cursor-pointer"
+            >
+              <option value="">Semua Grup Tabungan</option>
+              {allGroups.map((g: any) => (
+                <option key={g.id} value={g.id}>
+                  {g.nama}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
+          {grupInfo && (
+            <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 pt-0.5">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="w-3 h-3 text-gray-400" />
+                <span>{formatDeadline(grupInfo.deadline)}</span>
+              </span>
+              <span>&bull;</span>
+              <span className="inline-flex items-center gap-1">
+                <Coins className="w-3 h-3 text-emerald-500" />
+                <span>
+                  Total:{" "}
+                  <strong className="text-black dark:text-white font-mono">
+                    Rp {grupInfo.total_terkumpul?.toLocaleString("id-ID")}
+                  </strong>
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
         <LeaderboardSkeleton />
-      ) : leaderboard.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-12 text-center text-xs text-gray-400 dark:text-zinc-500">
-          Belum ada data peringkat untuk kategori ini.
-        </div>
       ) : (
         <>
-          {/* Olympic-Style 3D Podium Showcase (Sesuai Referensi Gambar) */}
-          <div className="pt-6 pb-2">
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 items-end max-w-2xl mx-auto">
-              {/* 2nd Place (Left) */}
-              {rank2 ? (
-                <div className="flex flex-col items-center">
-                  {/* Avatar & Player Info */}
-                  <div className="flex flex-col items-center mb-3">
-                    <div className="relative mb-2">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 border-2 border-slate-300 dark:border-zinc-700 flex items-center justify-center font-bold text-lg text-black dark:text-white shadow-md overflow-hidden">
-                        {rank2.foto_url ? (
-                          <img src={rank2.foto_url} alt={rank2.nama} className="w-full h-full object-cover" />
-                        ) : (
-                          rank2.nama?.charAt(0) || "2"
-                        )}
-                      </div>
-                      <div className="absolute -bottom-2 -right-1 bg-slate-200 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 p-1 rounded-full border border-white dark:border-zinc-900">
-                        <Medal className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                    <span className="font-bold text-xs text-black dark:text-white truncate max-w-[90px] sm:max-w-[120px] text-center">
-                      {rank2.nama}
-                    </span>
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500">
-                      {rank2.nama_kelas}
-                    </span>
-                    {/* Value Badge */}
-                    <div className="mt-2 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-[11px] font-mono font-bold text-black dark:text-white border border-gray-200 dark:border-zinc-700 max-w-full truncate">
-                      {rank2.display_value ? (
-                        rank2.display_value
-                      ) : (
-                        <span className="inline-flex items-center gap-1 font-sans font-normal opacity-80">
-                          <EyeOff className="w-3 h-3" />
-                          <span>•••••••</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
+          {/* 1. 3D Podium Showcase (Selalu 3 Kolom: 2, 1, 3) */}
+          <div className="pt-4 pb-2">
+            <div className="flex items-end justify-between max-w-md sm:max-w-lg mx-auto">
+              {/* Kolom 2 (Kiri, Tinggi 95px, Perak #a8adb3) */}
+              {renderPodiumBlock(rank2, 2, 95, "#a8adb3")}
 
-                  {/* 2nd Pedestal Block */}
-                  <div className="w-full h-28 sm:h-36 rounded-t-2xl bg-gradient-to-b from-gray-200 to-gray-100 dark:from-zinc-800 dark:to-zinc-900 border-t-2 border-x-2 border-gray-300 dark:border-zinc-700 flex flex-col items-center justify-center shadow-inner">
-                    <span className="text-4xl sm:text-5xl font-black text-gray-400 dark:text-zinc-600">
-                      2
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div />
-              )}
+              {/* Kolom 1 (Tengah, Tinggi 130px, Emas #c9a227, Mahkota) */}
+              {renderPodiumBlock(rank1, 1, 130, "#c9a227", true)}
 
-              {/* 1st Place (Center - Tallest & Elevated) */}
-              {rank1 ? (
-                <div className="flex flex-col items-center -mt-6">
-                  {/* Avatar & Player Info */}
-                  <div className="flex flex-col items-center mb-3">
-                    <div className="relative mb-2">
-                      <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-black dark:bg-white border-2 border-amber-400 dark:border-amber-300 flex items-center justify-center font-black text-xl text-white dark:text-black shadow-xl overflow-hidden">
-                        {rank1.foto_url ? (
-                          <img src={rank1.foto_url} alt={rank1.nama} className="w-full h-full object-cover" />
-                        ) : (
-                          rank1.nama?.charAt(0) || "1"
-                        )}
-                      </div>
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-black p-1 rounded-full shadow-md">
-                        <Crown className="w-4 h-4" />
-                      </div>
-                    </div>
-                    <span className="font-extrabold text-xs sm:text-sm text-black dark:text-white truncate max-w-[100px] sm:max-w-[140px] text-center">
-                      {rank1.nama}
-                    </span>
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500">
-                      {rank1.nama_kelas}
-                    </span>
-                    {/* Value Badge */}
-                    <div className="mt-2 px-3 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black text-[11px] font-mono font-bold border border-black dark:border-white shadow-sm max-w-full truncate">
-                      {rank1.display_value ? (
-                        rank1.display_value
-                      ) : (
-                        <span className="inline-flex items-center gap-1 font-sans font-normal opacity-90">
-                          <EyeOff className="w-3 h-3" />
-                          <span>•••••••</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 1st Pedestal Block */}
-                  <div className="w-full h-36 sm:h-48 rounded-t-2xl bg-gradient-to-b from-black to-zinc-900 text-white dark:from-zinc-700 dark:to-zinc-800 border-t-2 border-x-2 border-amber-400 dark:border-amber-400 flex flex-col items-center justify-center shadow-lg">
-                    <span className="text-5xl sm:text-6xl font-black text-amber-400 dark:text-amber-300">
-                      1
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div />
-              )}
-
-              {/* 3rd Place (Right) */}
-              {rank3 ? (
-                <div className="flex flex-col items-center">
-                  {/* Avatar & Player Info */}
-                  <div className="flex flex-col items-center mb-3">
-                    <div className="relative mb-2">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 border-2 border-amber-700/50 dark:border-amber-700/50 flex items-center justify-center font-bold text-lg text-black dark:text-white shadow-md overflow-hidden">
-                        {rank3.foto_url ? (
-                          <img src={rank3.foto_url} alt={rank3.nama} className="w-full h-full object-cover" />
-                        ) : (
-                          rank3.nama?.charAt(0) || "3"
-                        )}
-                      </div>
-                      <div className="absolute -bottom-2 -right-1 bg-amber-100 dark:bg-zinc-700 text-amber-800 dark:text-amber-500 p-1 rounded-full border border-white dark:border-zinc-900">
-                        <Medal className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                    <span className="font-bold text-xs text-black dark:text-white truncate max-w-[90px] sm:max-w-[120px] text-center">
-                      {rank3.nama}
-                    </span>
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500">
-                      {rank3.nama_kelas}
-                    </span>
-                    {/* Value Badge */}
-                    <div className="mt-2 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-[11px] font-mono font-bold text-black dark:text-white border border-gray-200 dark:border-zinc-700 max-w-full truncate">
-                      {rank3.display_value ? (
-                        rank3.display_value
-                      ) : (
-                        <span className="inline-flex items-center gap-1 font-sans font-normal opacity-80">
-                          <EyeOff className="w-3 h-3" />
-                          <span>•••••••</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 3rd Pedestal Block */}
-                  <div className="w-full h-20 sm:h-28 rounded-t-2xl bg-gradient-to-b from-gray-200 to-gray-100 dark:from-zinc-800 dark:to-zinc-900 border-t-2 border-x-2 border-gray-300 dark:border-zinc-700 flex flex-col items-center justify-center shadow-inner">
-                    <span className="text-4xl sm:text-5xl font-black text-gray-400 dark:text-zinc-600">
-                      3
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div />
-              )}
+              {/* Kolom 3 (Kanan, Tinggi 70px, Perunggu #c0623b) */}
+              {renderPodiumBlock(rank3, 3, 70, "#c0623b")}
             </div>
           </div>
 
-          {/* User's Personal Status Banner Pill (Identik seperti di Gambar Referensi) */}
-          {myStanding && (
-            <div className="flex justify-center">
-              <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xs text-xs font-medium text-gray-700 dark:text-zinc-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>
-                  Posisi Anda:{" "}
+          {/* 2. Panel Daftar Peringkat 4 Ke Bawah (Rounded-t-3xl Menimpa Dasar Podium) */}
+          <div className="relative z-20 -mt-3 max-w-xl mx-auto rounded-t-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-md p-4 sm:p-5">
+            {/* Header Mini Panel */}
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800 text-xs">
+              <span className="font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 text-[10px]">
+                Daftar Peringkat
+              </span>
+              {myStanding && (
+                <span className="text-[11px] text-gray-400 dark:text-zinc-500">
+                  Posisi Kamu:{" "}
                   <strong className="text-black dark:text-white font-bold">
-                    Peringkat #{myStanding.rank}
+                    #{myStanding.rank}
                   </strong>{" "}
-                  dari {myStanding.total_students} mahasiswa
+                  / {myStanding.total_students}
                 </span>
-                <Link
-                  href="/akun"
-                  className="text-[11px] text-gray-400 hover:text-black dark:hover:text-white underline underline-offset-2 ml-1"
-                >
-                  Ubah Privasi
-                </Link>
-              </div>
+              )}
             </div>
-          )}
 
-          {/* Ranking Cards List (Ranks 4 - 10) Strip Card Format */}
-          {restList.length > 0 && (
-            <div className="space-y-2.5 pt-2">
-              <div className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 px-1">
-                Peringkat Berikutnya (Top 4 - 10)
-              </div>
+            {/* List Rows */}
+            <div className="divide-y divide-gray-100 dark:divide-zinc-800/60 max-h-[420px] overflow-y-auto">
+              {restList.length === 0 ? (
+                <div className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
+                  Belum ada data peringkat 4 ke bawah.
+                </div>
+              ) : (
+                restList.map((m) => {
+                  const isMe = m.is_me;
 
-              {restList.map((m) => (
-                <div
-                  key={m.user_id}
-                  className={`p-3.5 sm:p-4 rounded-xl border transition-all flex items-center justify-between gap-3 ${
-                    m.is_me
-                      ? "bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-xs font-semibold"
-                      : "bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700"
-                  }`}
-                >
-                  {/* Rank & User Info */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="font-mono font-bold text-xs sm:text-sm w-7 text-center shrink-0">
-                      #{m.rank}
-                    </span>
-
-                    <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-black dark:text-white shrink-0 overflow-hidden">
-                      {m.foto_url ? (
-                        <img src={m.foto_url} alt={m.nama} className="w-full h-full object-cover" />
-                      ) : (
-                        m.nama?.charAt(0) || "U"
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm font-bold truncate">
-                          {m.nama}
+                  return (
+                    <div
+                      key={m.user_id}
+                      className={`py-3 px-2 flex items-center justify-between gap-3 transition-colors rounded-xl my-1 ${
+                        isMe
+                          ? "bg-gray-100 dark:bg-zinc-800/80 font-semibold"
+                          : "hover:bg-gray-50/80 dark:hover:bg-zinc-850"
+                      }`}
+                    >
+                      {/* Left: Rank # + Avatar + Nama */}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="font-mono font-bold text-xs sm:text-sm w-6 text-center text-gray-500 dark:text-zinc-400 shrink-0">
+                          {m.rank}
                         </span>
-                        {m.is_me && (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                            m.is_me && "bg-white/20 dark:bg-black/20"
-                          }`}>
-                            Anda
+
+                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-black dark:text-white shrink-0 overflow-hidden border border-gray-200/60 dark:border-zinc-700/60">
+                          {m.foto_url ? (
+                            <img
+                              src={m.foto_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            m.nama?.charAt(0) || "U"
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs sm:text-sm font-bold truncate text-black dark:text-white">
+                              {m.nama}
+                            </span>
+                            {isMe && (
+                              <span className="px-1.5 py-0.2 rounded-full bg-black text-white dark:bg-white dark:text-black text-[9px] font-bold shrink-0">
+                                Kamu
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate">
+                            {m.nim} &bull; {m.nama_kelas}
                           </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Progress bar tipis 4px + persen */}
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        {/* Progress Bar 4px */}
+                        <div className="w-20 sm:w-28 h-1 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-black dark:bg-white rounded-full transition-all duration-500"
+                            style={{ width: `${m.progress_pct}%` }}
+                          />
+                        </div>
+
+                        <span className="font-mono text-[11px] font-bold text-gray-600 dark:text-zinc-300 w-8 text-right">
+                          {m.progress_pct}%
+                        </span>
+
+                        {/* Nominal jika milik sendiri */}
+                        {isMe && m.display_value && (
+                          <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono font-bold text-black dark:text-white ml-1">
+                            <span>{hideMyValue ? "•••••••" : m.display_value}</span>
+                            <button
+                              type="button"
+                              onClick={() => setHideMyValue(!hideMyValue)}
+                              className="cursor-pointer text-gray-400 hover:text-black dark:hover:text-white"
+                              title={hideMyValue ? "Tampilkan Saldo" : "Samarkan Saldo"}
+                            >
+                              {hideMyValue ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                            </button>
+                          </div>
                         )}
                       </div>
-                      <span className={`text-[11px] block truncate ${m.is_me ? "opacity-80" : "text-gray-400 dark:text-zinc-500"}`}>
-                        {m.nim} &bull; {m.nama_kelas}
-                      </span>
                     </div>
-                  </div>
-
-                  {/* Value Badge */}
-                  <div className="text-right shrink-0">
-                    {m.display_value !== null ? (
-                      <span className="font-mono font-bold text-xs sm:text-sm">
-                        {m.display_value}
-                      </span>
-                    ) : (
-                      <span className={`text-[11px] inline-flex items-center gap-1 font-sans ${
-                        m.is_me ? "opacity-80" : "text-gray-400 dark:text-zinc-500"
-                      }`}>
-                        <EyeOff className="w-3.5 h-3.5" />
-                        <span>•••••••</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                  );
+                })
+              )}
             </div>
-          )}
+          </div>
         </>
       )}
     </div>
