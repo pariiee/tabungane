@@ -106,16 +106,10 @@ export default function LeaderboardPage() {
             {item ? item.nama : "-"}
           </span>
 
-          {/* Pill Persen Progres */}
-          {item ? (
-            <div className="mt-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-[10px] font-mono font-bold text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
-              {progressPct}%
-            </div>
-          ) : (
-            <div className="mt-1 px-2 py-0.5 rounded-full bg-gray-50 dark:bg-zinc-900 text-[10px] text-gray-400">
-              -
-            </div>
-          )}
+          {/* Pill Nama Kelas */}
+          <div className="mt-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-[10px] font-medium text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60 truncate max-w-[90px]">
+            {item ? item.nama_kelas : "-"}
+          </div>
 
           {/* Nominal Saldo: Tampil jika user mengizinkan (tampilkan_saldo == 1), sensor jika privat */}
           {item && (
@@ -286,23 +280,16 @@ export default function LeaderboardPage() {
                             )}
                           </div>
                           <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate">
-                            {m.nim} &bull; {m.nama_kelas}
+                            {m.nim}
                           </span>
                         </div>
                       </div>
 
-                      {/* Right: Progress bar tipis 4px + persen + Nominal */}
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        {/* Progress Bar 4px */}
-                        <div className="hidden sm:block w-20 sm:w-24 h-1 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-black dark:bg-white rounded-full transition-all duration-500"
-                            style={{ width: `${m.progress_pct}%` }}
-                          />
-                        </div>
-
-                        <span className="font-mono text-[11px] font-bold text-gray-600 dark:text-zinc-300 w-8 text-right">
-                          {m.progress_pct}%
+                      {/* Right: Nama Kelas Pill + Nominal */}
+                      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                        {/* Pill Kelas */}
+                        <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-[10px] font-medium text-gray-600 dark:text-zinc-400 border border-gray-200/50 dark:border-zinc-700/50">
+                          {m.nama_kelas}
                         </span>
 
                         {/* Nominal Saldo: Tampil jika user mengizinkan (tampilkan_saldo == 1), sensor jika privat */}
