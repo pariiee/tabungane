@@ -135,6 +135,10 @@ try {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_webhook_events_event_id ON webhook_events(event_id);
+
+    -- Fast aggregation indexes for Leaderboard & Wallet
+    CREATE INDEX IF NOT EXISTS idx_transaksi_user_status_tipe ON transaksi(user_id, status, tipe);
+    CREATE INDEX IF NOT EXISTS idx_transaksi_keanggotaan_status ON transaksi(keanggotaan_id, status);
   `);
 
   // Auto-migration for users leaderboard privacy & profile photo
