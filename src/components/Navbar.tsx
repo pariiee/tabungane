@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Building2,
   ShieldCheck,
+  Landmark,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -70,7 +71,10 @@ export default function Navbar() {
 
   const kampusChildren = [
     ...(isSuperAdmin
-      ? [{ href: "/admin/prodi", label: "Program Studi", icon: Building2 }]
+      ? [
+          { href: "/admin/fakultas", label: "Fakultas", icon: Landmark },
+          { href: "/admin/prodi", label: "Program Studi", icon: Building2 },
+        ]
       : []),
     { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
     { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },

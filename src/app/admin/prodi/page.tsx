@@ -16,8 +16,10 @@ import {
 
 export default function AdminProdiPage() {
   const [prodiList, setProdiList] = useState<any[]>([]);
+  const [fakultasList, setFakultasList] = useState<any[]>([]);
   const [nama, setNama] = useState("");
   const [kode, setKode] = useState("");
+  const [fakultas, setFakultas] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -26,16 +28,24 @@ export default function AdminProdiPage() {
 
   const loadData = async () => {
     try {
-      const [uRes, pRes] = await Promise.all([
+      const [uRes, pRes, fRes] = await Promise.all([
         fetch("/api/auth/me"),
         fetch("/api/admin/prodi"),
+        fetch("/api/admin/fakultas"),
       ]);
       const uData = await uRes.json();
       const pData = await pRes.json();
+      const fData = await fRes.json();
 
       setCurrentUser(uData.user);
       setProdiList(pData.data || []);
-    } catch (err: any) {
+      const fList = fData.data || [];
+      setFakultasList(fList);
+
+      if (fList.length > 0 && !fakultas) {
+        setFakultas(fList[0].nama);
+      }
+    } catch {
       setError("Gagal memuat data Program Studi");
     } finally {
       setLoading(false);
@@ -58,7 +68,7 @@ export default function AdminProdiPage() {
       const res = await fetch("/api/admin/prodi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, kode }),
+        body: JSON.stringify({ nama, kode, fakultas }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menambah Program Studi");
@@ -152,6 +162,37 @@ export default function AdminProdiPage() {
               <form onSubmit={handleAddProdi} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
+                    Fakultas
+                  </label>
+                  {fakultasList.length > 0 ? (
+                    <select
+                      value={fakultas}
+                      onChange={(e) => setFakultas(e.target.value)}
+                      className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                    >
+                      {fakultasList.map((f) => (
+                        <option key={f.id} value={f.nama}>
+                          {f.nama} ({f.kode})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={fakultas}
+                      onChange={(e) => setFakultas(e.target.value)}
+                      placeholder="Contoh: Fakultas Teknik"
+                      className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                    />
+                  )}
+                  <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 block">
+                    Pilih fakultas tempat jurusan ini bernaung.
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
                     Nama Program Studi
                   </label>
                   <input
@@ -236,7 +277,8 @@ export default function AdminProdiPage() {
                   <thead className="bg-gray-50 dark:bg-zinc-900/50 text-[11px] uppercase tracking-wider text-gray-500 dark:text-zinc-400 border-b border-gray-200 dark:border-zinc-800">
                     <tr>
                       <th className="px-6 py-3 font-semibold">Kode</th>
-                      <th className="px-6 py-3 font-semibold">Nama Program Studi</th>
+                      <th className="px-6 py-3 font-semibold">Program Studi</th>
+                      <th className="px-6 py-3 font-semibold">Fakultas</th>
                       <th className="px-6 py-3 font-semibold text-center">Kelas</th>
                       <th className="px-6 py-3 font-semibold text-center">Mahasiswa</th>
                       {isSuperAdmin && (
@@ -254,6 +296,11 @@ export default function AdminProdiPage() {
                         </td>
                         <td className="px-6 py-4 font-medium text-black dark:text-white">
                           {p.nama}
+                        </td>
+                        <td className="px-6 py-4 text-xs">
+                          <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/60 dark:border-zinc-700/60">
+                            {p.fakultas || "Umum"}
+                          </span>
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">

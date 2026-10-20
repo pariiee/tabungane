@@ -20,7 +20,8 @@ export default function PenggunaAdminPage() {
   const [nama, setNama] = useState("");
   const [nim, setNim] = useState("");
   const [password, setPassword] = useState("");
-  const [prodiId, setProdiId] = useState("");
+  const [scopeTarget, setScopeTarget] = useState("");
+  const [fakultasList, setFakultasList] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -29,24 +30,23 @@ export default function PenggunaAdminPage() {
 
   const loadData = async () => {
     try {
-      const [uRes, aRes, pRes] = await Promise.all([
+      const [uRes, aRes, pRes, fRes] = await Promise.all([
         fetch("/api/auth/me"),
         fetch("/api/admin/pengguna-admin"),
         fetch("/api/admin/prodi"),
+        fetch("/api/admin/fakultas"),
       ]);
 
       const uData = await uRes.json();
       const aData = await aRes.json();
       const pData = await pRes.json();
+      const fData = await fRes.json();
 
       setCurrentUser(uData.user);
       setAdminList(aData.data || []);
       setProdiList(pData.data || []);
-
-      if (pData.data && pData.data.length > 0 && !prodiId) {
-        setProdiId(pData.data[0].id);
-      }
-    } catch (err: any) {
+      setFakultasList(fData.data || []);
+    } catch {
       setError("Gagal memuat data Admin");
     } finally {
       setLoading(false);
@@ -63,6 +63,14 @@ export default function PenggunaAdminPage() {
     setSuccess("");
     setSubmitting(true);
 
+    let prodi_id = null;
+    let fakultas = null;
+    if (scopeTarget.startsWith("prodi:")) {
+      prodi_id = scopeTarget.replace("prodi:", "");
+    } else if (scopeTarget.startsWith("fakultas:")) {
+      fakultas = scopeTarget.replace("fakultas:", "");
+    }
+
     try {
       const res = await fetch("/api/admin/pengguna-admin", {
         method: "POST",
@@ -71,7 +79,8 @@ export default function PenggunaAdminPage() {
           nama,
           nim,
           password,
-          prodi_id: prodiId || null,
+          prodi_id,
+          fakultas,
         }),
       });
 
@@ -230,25 +239,40 @@ export default function PenggunaAdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
-                  Program Studi Yang Diawasi
+                  Wilayah Pengawasan Admin
                 </label>
                 <div className="relative">
                   <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <select
-                    value={prodiId}
-                    onChange={(e) => setProdiId(e.target.value)}
+                    value={scopeTarget}
+                    onChange={(e) => setScopeTarget(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                   >
-                    {prodiList.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nama} ({p.kode})
-                      </option>
-                    ))}
-                    <option value="">Akses Global (Super Admin)</option>
+                    <option value="">Akses Global Seluruh Kampus (Super Admin)</option>
+
+                    {fakultasList.length > 0 && (
+                      <optgroup label="Tingkat Fakultas (Dekan / Pengawas Fakultas)">
+                        {fakultasList.map((f) => (
+                          <option key={f.id} value={`fakultas:${f.nama}`}>
+                            Dekan - {f.nama} ({f.kode})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+
+                    {prodiList.length > 0 && (
+                      <optgroup label="Tingkat Program Studi (Kaprodi / Admin Jurusan)">
+                        {prodiList.map((p) => (
+                          <option key={p.id} value={`prodi:${p.id}`}>
+                            Kaprodi - {p.nama} ({p.kode})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
                 <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 block">
-                  Jika dipilih prodi, admin ini terisolasi hanya di jurusan tersebut.
+                  Pilih wilayah akses: seluruh kampus, satu fakultas (semua prodinya), atau satu jurusan saja.
                 </span>
               </div>
 

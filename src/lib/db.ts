@@ -42,12 +42,21 @@ export function runTransaction<T>(fn: () => T): T {
 // Initialize tables once
 try {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS prodi (
+    CREATE TABLE IF NOT EXISTS fakultas (
       id TEXT PRIMARY KEY,
       nama TEXT NOT NULL,
       kode TEXT UNIQUE NOT NULL,
-      fakultas TEXT DEFAULT 'Ilmu Komputer',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS prodi (
+      id TEXT PRIMARY KEY,
+      fakultas_id TEXT,
+      nama TEXT NOT NULL,
+      kode TEXT UNIQUE NOT NULL,
+      fakultas TEXT DEFAULT 'Ilmu Komputer',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (fakultas_id) REFERENCES fakultas(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS kelas (
@@ -153,9 +162,19 @@ try {
 
   // Auto-migration for prodi & multi-jurusan scoping
   try {
+    const fakCols = db.prepare("PRAGMA table_info(fakultas)").all() as any[];
+    // Ensure default Fakultas exists
+    const existingFak = db.prepare("SELECT id FROM fakultas WHERE kode = 'FILKOM'").get();
+    if (!existingFak) {
+      db.prepare("INSERT INTO fakultas (id, nama, kode) VALUES ('fak-ilkom', 'Fakultas Ilmu Komputer', 'FILKOM')").run();
+    }
+
     const pCols = db.prepare("PRAGMA table_info(prodi)").all() as any[];
+    if (!pCols.some((c) => c.name === "fakultas_id")) {
+      db.exec("ALTER TABLE prodi ADD COLUMN fakultas_id TEXT REFERENCES fakultas(id);");
+    }
     if (!pCols.some((c) => c.name === "fakultas")) {
-      db.exec("ALTER TABLE prodi ADD COLUMN fakultas TEXT DEFAULT 'Ilmu Komputer';");
+      db.exec("ALTER TABLE prodi ADD COLUMN fakultas TEXT DEFAULT 'Fakultas Ilmu Komputer';");
     }
 
     const kCols = db.prepare("PRAGMA table_info(kelas)").all() as any[];
@@ -174,8 +193,11 @@ try {
     // Ensure default Prodi SI exists
     const existingProdi = db.prepare("SELECT id FROM prodi WHERE kode = 'SI'").get();
     if (!existingProdi) {
-      db.prepare("INSERT INTO prodi (id, nama, kode, fakultas) VALUES ('prodi-si', 'Sistem Informasi', 'SI', 'Ilmu Komputer')").run();
+      db.prepare("INSERT INTO prodi (id, fakultas_id, nama, kode, fakultas) VALUES ('prodi-si', 'fak-ilkom', 'Sistem Informasi', 'SI', 'Fakultas Ilmu Komputer')").run();
     }
+
+    // Attach existing prodi without fakultas_id to default fakultas
+    db.exec("UPDATE prodi SET fakultas_id = 'fak-ilkom' WHERE fakultas_id IS NULL;");
 
     // Attach existing classes without prodi to default prodi
     db.exec("UPDATE kelas SET prodi_id = 'prodi-si' WHERE prodi_id IS NULL;");
