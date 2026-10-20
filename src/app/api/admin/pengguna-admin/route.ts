@@ -14,7 +14,7 @@ export async function GET() {
       `SELECT 
         u.id, u.nim, u.nama, u.role, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.aktif, u.created_at,
         CASE
-          WHEN u.role = 'admin_kelas' THEN 'ADMINYA KELAS'
+          WHEN u.role = 'admin_kelas' THEN 'Adminya Kelas'
           WHEN u.prodi_id IS NOT NULL THEN 'Kaprodi ' || p.nama
           WHEN u.fakultas IS NOT NULL THEN 'Dekan / ' || u.fakultas
           ELSE 'Seluruh Kampus (Super Admin)'

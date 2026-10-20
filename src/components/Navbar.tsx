@@ -164,7 +164,7 @@ export default function Navbar() {
                   {isSuperAdmin
                     ? "SUPER ADMIN"
                     : isAdminKelas
-                    ? "ADMINYA KELAS"
+                    ? "Adminya Kelas"
                     : user?.role === "admin"
                     ? user?.fakultas
                       ? "DEKAN"

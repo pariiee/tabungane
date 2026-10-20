@@ -75,7 +75,7 @@ export default function PenggunaAdminPage() {
 
     if (role === "admin_kelas") {
       if (selectedKelasIds.length === 0) {
-        setError("Pilih minimal 1 kelas yang diawasi oleh ADMINYA KELAS");
+        setError("Pilih minimal 1 kelas yang diawasi oleh Adminya Kelas");
         setSubmitting(false);
         return;
       }
@@ -267,7 +267,7 @@ export default function PenggunaAdminPage() {
                   className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 >
                   <option value="admin">Admin Prodi / Dekan</option>
-                  <option value="admin_kelas">ADMINYA KELAS (Komting / Bendahara)</option>
+                  <option value="admin_kelas">Adminya Kelas (Komting / Bendahara)</option>
                   <option value="super_admin">Super Admin (Akses Penuh Seluruh Kampus)</option>
                 </select>
               </div>
@@ -432,10 +432,8 @@ export default function PenggunaAdminPage() {
                             >
                               {isSuper
                                 ? "Super Admin"
-                                : a.role === "komting"
-                                ? "Komting"
-                                : a.role === "bendahara"
-                                ? "Bendahara"
+                                : a.role === "admin_kelas"
+                                ? "Adminya Kelas"
                                 : a.fakultas
                                 ? "Dekan"
                                 : "Admin Prodi"}

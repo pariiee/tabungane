@@ -228,7 +228,7 @@ export default async function Home() {
                   Hierarki Multi-Kampus: Fakultas &rarr; Prodi &rarr; Kelas
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-zinc-400 mt-2 leading-relaxed">
-                  Super Admin memegang kendali global seluruh kampus. Dekan mengawasi fakultas, Kaprodi mengawasi program studi, dan Komting/Bendahara bertindak sebagai <strong>ADMINYA KELAS</strong> untuk kelasnya sendiri.
+                  Super Admin memegang kendali global seluruh kampus. Dekan mengawasi fakultas, Kaprodi mengawasi program studi, dan Komting/Bendahara bertindak sebagai <strong>Adminya Kelas</strong> untuk kelasnya sendiri.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800/60 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] font-mono text-center">
@@ -306,7 +306,7 @@ export default async function Home() {
                 Top Up QRIS atau Titip Kas
               </h4>
               <p className="text-xs text-gray-500 dark:text-zinc-400 mt-2">
-                Isi dompet saku langsung via scan QRIS atau bayar tunai ke ADMINYA KELAS untuk dicatat di sistem.
+                Isi dompet saku langsung via scan QRIS atau bayar tunai ke Adminya Kelas untuk dicatat di sistem.
               </p>
             </div>
 
@@ -344,7 +344,7 @@ export default async function Home() {
                 <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
               </summary>
               <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
-                Sama sekali tidak. Sistem kami menerapkan <strong>strict data isolation</strong>. Kaprodi, Dekan, maupun ADMINYA KELAS hanya dapat melihat data mahasiswa dan kelas yang berada di bawah wewenangnya. Di leaderboard kampus pun, mahasiswa berhak menyensor nominal saldonya menjadi simbol titik-titik (•••••••).
+                Sama sekali tidak. Sistem kami menerapkan <strong>strict data isolation</strong>. Kaprodi, Dekan, maupun Adminya Kelas hanya dapat melihat data mahasiswa dan kelas yang berada di bawah wewenangnya. Di leaderboard kampus pun, mahasiswa berhak menyensor nominal saldonya menjadi simbol titik-titik (•••••••).
               </p>
             </details>
 
@@ -354,7 +354,7 @@ export default async function Home() {
                 <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
               </summary>
               <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
-                Mahasiswa tetap bisa menitipkan uang kas secara tunai (cash) kepada <strong>ADMINYA KELAS</strong> (Komting atau Bendahara Kelas). Pengurus kelas memiliki akses untuk mencatat setoran manual di sistem agar masuk ke pencatatan ledger resmi kelas secara realtime.
+                Mahasiswa tetap bisa menitipkan uang kas secara tunai (cash) kepada <strong>Adminya Kelas</strong> (Komting atau Bendahara Kelas). Pengurus kelas memiliki akses untuk mencatat setoran manual di sistem agar masuk ke pencatatan ledger resmi kelas secara realtime.
               </p>
             </details>
 
@@ -374,7 +374,7 @@ export default async function Home() {
                 <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-2" />
               </summary>
               <p className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
-                Super Admin dapat membuka event skala kampus, Kaprodi dapat membuka event jurusan, dan ADMINYA KELAS dapat membuka event khusus untuk kelas yang mereka bina (seperti Kas Semester, Buka Puasa Bersama, atau Kunjungan Industri).
+                Super Admin dapat membuka event skala kampus, Kaprodi dapat membuka event jurusan, dan Adminya Kelas dapat membuka event khusus untuk kelas yang mereka bina (seperti Kas Semester, Buka Puasa Bersama, atau Kunjungan Industri).
               </p>
             </details>
           </div>
