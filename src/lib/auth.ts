@@ -17,7 +17,7 @@ export interface SessionUser {
   foto_url?: string | null;
 }
 
-export function isAdminUser(user: SessionUser | null): boolean {
+export function isAdminUser(user: SessionUser | null): user is SessionUser {
   return Boolean(user && (user.role === "admin" || user.role === "super_admin"));
 }
 
