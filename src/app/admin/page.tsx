@@ -60,7 +60,8 @@ export default function AdminDashboardPage() {
   // SVG Chart dimensions
   const chartWidth = 520;
   const chartHeight = 160;
-  const padX = 20;
+  const padX = 36;
+  const padRight = 20;
   const padY = 25;
 
   const maxVal = Math.max(
@@ -68,9 +69,21 @@ export default function AdminDashboardPage() {
     1000
   );
 
+  const formatShortVal = (val: number) => {
+    if (val >= 1_000_000) {
+      const v = val / 1_000_000;
+      return (Number.isInteger(v) ? v : v.toFixed(1).replace(".", ",")) + "jt";
+    }
+    if (val >= 1_000) {
+      const v = val / 1_000;
+      return (Number.isInteger(v) ? v : v.toFixed(1).replace(".", ",")) + "rb";
+    }
+    return val.toString();
+  };
+
   const getPoints = (key: string) => {
     if (chart.length === 0) return { polyline: "", dots: [] as { x: number; y: number }[] };
-    const stepX = (chartWidth - padX * 2) / (chart.length - 1);
+    const stepX = (chartWidth - padRight - padX) / (chart.length - 1);
     const dots: { x: number; y: number }[] = [];
     const polyline = chart
       .map((item: any, i: number) => {
@@ -185,98 +198,131 @@ export default function AdminDashboardPage() {
       {/* Dua Kolom Berdampingan: Kiri Grafik, Kanan Tabel (Identik Referensi) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Kolom Kiri: Last 14 days */}
-        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs p-5 flex flex-col justify-between space-y-4">
+        <div className="bg-white dark:bg-zinc-900 border border-[#e5e5e5] dark:border-zinc-800 p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-black dark:text-white" />
-              <h2 className="text-sm font-bold text-black dark:text-white">
+              <TrendingUp className="w-5 h-5 text-black dark:text-white" />
+              <h2 className="text-[18px] font-semibold text-black dark:text-white">
                 Last 14 days
               </h2>
             </div>
-            <div className="text-sm font-bold text-black dark:text-white">
+            <div className="text-[16px] font-mono font-bold text-black dark:text-white">
               Rp {kpi.total_14_days?.toLocaleString("id-ID")}
             </div>
           </div>
 
-          {/* SVG Dual-Series Chart with Dots */}
-          <div className="w-full">
+          {/* SVG Dual-Series Chart with Gradient Area & Y-Axis */}
+          <div className="w-full mt-4">
             <svg
               viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-              className="w-full h-40 overflow-visible"
+              className="w-full h-40 overflow-visible text-[#0a0a0a] dark:text-white"
             >
-              {/* Subtle Dashed Horizontal Grid Lines */}
+              <defs>
+                <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="currentColor" stopOpacity="0.22" />
+                  <stop offset="1" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+
+              {/* 1. Gridlines & Sumbu Y (di kiri, 11px, warna #777, rata kiri) */}
+              <text x="0" y="29" fill="#777" className="text-[11px] font-sans" textAnchor="start">
+                {formatShortVal(maxVal)}
+              </text>
               <line
-                x1={padX}
-                y1={padY}
-                x2={chartWidth - padX}
-                y2={padY}
-                className="stroke-gray-100 dark:stroke-zinc-800"
-                strokeDasharray="3 3"
-                strokeWidth="1"
-              />
-              <line
-                x1={padX}
-                y1={chartHeight / 2}
-                x2={chartWidth - padX}
-                y2={chartHeight / 2}
-                className="stroke-gray-100 dark:stroke-zinc-800"
-                strokeDasharray="3 3"
-                strokeWidth="1"
-              />
-              <line
-                x1={padX}
-                y1={chartHeight - padY}
-                x2={chartWidth - padX}
-                y2={chartHeight - padY}
-                className="stroke-gray-200 dark:stroke-zinc-800"
+                x1="36"
+                y1="25"
+                x2="500"
+                y2="25"
+                stroke="#e3e3e3"
+                className="dark:stroke-zinc-800"
+                strokeDasharray="3 4"
                 strokeWidth="1"
               />
 
-              {/* Solid Black Line (Total transactions) */}
-              <polyline
-                fill="none"
-                stroke="currentColor"
-                className="text-black dark:text-white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={lineMasuk.polyline}
+              <text x="0" y="84" fill="#777" className="text-[11px] font-sans" textAnchor="start">
+                {formatShortVal(Math.round(maxVal / 2))}
+              </text>
+              <line
+                x1="36"
+                y1="80"
+                x2="500"
+                y2="80"
+                stroke="#e3e3e3"
+                className="dark:stroke-zinc-800"
+                strokeDasharray="3 4"
+                strokeWidth="1"
               />
 
-              {/* Dots on solid line */}
-              {lineMasuk.dots.map((pt, i) => (
-                <circle
-                  key={`masuk-dot-${i}`}
-                  cx={pt.x}
-                  cy={pt.y}
-                  r="2.5"
-                  className="fill-black dark:fill-white"
+              <text x="0" y="139" fill="#777" className="text-[11px] font-sans" textAnchor="start">
+                0
+              </text>
+              <line
+                x1="36"
+                y1="135"
+                x2="500"
+                y2="135"
+                stroke="#e3e3e3"
+                className="dark:stroke-zinc-800"
+                strokeDasharray="3 4"
+                strokeWidth="1"
+              />
+
+              {/* 2. Area Gradasi */}
+              {lineMasuk.polyline && (
+                <polygon
+                  fill="url(#areaFill)"
+                  points={`${lineMasuk.polyline} 500,135 36,135`}
                 />
-              ))}
+              )}
 
-              {/* Dashed Line (Paid transactions) */}
+              {/* 3. Garis Putus-putus (linePaid) */}
               <polyline
                 fill="none"
-                stroke="currentColor"
-                className="text-gray-400 dark:text-zinc-500"
+                stroke="#9ca3af"
                 strokeWidth="1.5"
                 strokeDasharray="4 4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 points={linePaid.polyline}
               />
+
+              {/* 4. Garis Solid (lineMasuk) di atasnya */}
+              <polyline
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={lineMasuk.polyline}
+              />
+
+              {/* 5. Titik-titik per data point tanpa ring */}
+              {lineMasuk.polyline
+                ? lineMasuk.polyline.split(" ").map((pt, i) => {
+                    const [cx, cy] = pt.split(",");
+                    return (
+                      <circle
+                        key={i}
+                        cx={cx}
+                        cy={cy}
+                        r="2.5"
+                        fill="currentColor"
+                      />
+                    );
+                  })
+                : null}
             </svg>
 
-            {/* Sumbu X: Hanya 3 Tanggal */}
-            <div className="flex justify-between text-[11px] text-gray-400 dark:text-zinc-500 pt-1 px-4">
+            {/* Sumbu X: 3 Tanggal, rapat ke grafik mt-1 */}
+            <div className="flex justify-between text-[11px] text-[#777] mt-1 pl-[36px] pr-[20px]">
               <span>{dateStart}</span>
               <span>{dateMid}</span>
               <span>{dateEnd}</span>
             </div>
           </div>
 
-          {/* Footer Keterangan Seri */}
-          <div className="pt-2 border-t border-gray-100 dark:border-zinc-800 text-[11px] text-gray-400 dark:text-zinc-500">
+          {/* Keterangan Bawah: Teks 14px #555, margin atas 20px, tanpa garis border-t */}
+          <div className="mt-5 text-[14px] text-[#555] dark:text-zinc-400">
             Total setoran masuk (solid) vs setoran berhasil (putus-putus)
           </div>
         </div>
