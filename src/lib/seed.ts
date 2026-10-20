@@ -3,7 +3,9 @@ import { hashPassword } from "./auth";
 import crypto from "node:crypto";
 
 export function ensureSeedData() {
-  const adminCheck = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get() as any;
+  const adminCheck = db
+    .prepare("SELECT COUNT(*) as count FROM users WHERE nim = 'admin' OR role IN ('admin', 'super_admin')")
+    .get() as any;
   if (adminCheck && adminCheck.count > 0) {
     return;
   }
