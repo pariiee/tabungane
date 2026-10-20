@@ -29,6 +29,8 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
     item.children ? item.children.some((c) => pathname === c.href) : pathname === item.href
   );
   const safeActiveIndex = activeIndex >= 0 ? activeIndex : 0;
+  const count = items.length || 4;
+  const pct = 100 / count;
 
   // Touch gesture to slide between tabs ala iPhone
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -114,13 +116,19 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
           className="pointer-events-auto w-full max-w-md p-2 rounded-full bg-white dark:bg-zinc-900 shadow-[0_12px_32px_rgba(0,0,0,0.14)] border border-gray-100 dark:border-zinc-800 select-none"
         >
           {/* Inner Track dengan Sliding Pill Indicator */}
-          <div className="relative flex items-center p-1.5 rounded-full bg-[#ececee] dark:bg-zinc-800 shadow-[inset_0_2px_6px_rgba(0,0,0,0.08)]">
+          <div
+            className="relative flex items-center p-1.5 rounded-full bg-[#ececee] dark:bg-zinc-800 shadow-[inset_0_2px_6px_rgba(0,0,0,0.08)]"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
+            }}
+          >
             {/* Sliding Pill Indicator (Meluncur Halus Saat Digeser/Disentuh) */}
             <div
               className="absolute top-1.5 bottom-1.5 rounded-full bg-[#1c1c1e] text-white shadow-[0_6px_14px_rgba(0,0,0,0.25)] transition-[left] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
               style={{
-                width: `calc(25% - 6px)`,
-                left: `calc(${safeActiveIndex * 25}% + 3px)`,
+                width: `calc(${pct}% - 6px)`,
+                left: `calc(${safeActiveIndex * pct}% + 3px)`,
               }}
             />
 
