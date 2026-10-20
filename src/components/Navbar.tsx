@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import BottomNav, { BottomNavItem } from "./BottomNav";
 import {
   Wallet,
   LayoutDashboard,
@@ -90,13 +91,44 @@ export default function Navbar() {
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-        { href: "/topup", label: "Top Up QRIS", icon: QrCode },
+        { href: "/topup", label: "TOPUP", icon: QrCode },
+        { href: "/riwayat", label: "Riwayat", icon: History },
+        { href: "/akun", label: "Akun", icon: User },
+      ];
+
+  const mobileNavItems: BottomNavItem[] = isAdmin
+    ? [
+        { href: "/admin", label: "Overview", icon: LayoutDashboard },
+        { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+        {
+          label: "Kampus",
+          icon: Users,
+          children: [
+            { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
+            { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
+            { href: "/admin/grup", label: "Event Sakune", icon: Layers },
+          ],
+        },
+        {
+          label: "Keuangan",
+          icon: ArrowRightLeft,
+          children: [
+            { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
+            { href: "/admin/laporan", label: "Laporan Rekap", icon: FileText },
+            { href: "/admin/log", label: "Audit Log", icon: ShieldAlert },
+          ],
+        },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/topup", label: "TOPUP", icon: QrCode },
         { href: "/riwayat", label: "Riwayat", icon: History },
         { href: "/akun", label: "Akun", icon: User },
       ];
 
   return (
-    <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-zinc-950 border-b border-[#e5e5e5] dark:border-zinc-800 shadow-none">
+    <>
+      <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-zinc-950 border-b border-[#e5e5e5] dark:border-zinc-800 shadow-none">
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Brand Logo */}
@@ -251,83 +283,13 @@ export default function Navbar() {
                 </button>
               </div>
             )}
-
-            {/* Tombol Hamburger untuk Layar di Bawah lg */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-[#555] dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer border-none bg-transparent"
-              aria-label="Buka menu navigasi"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5 stroke-[1.8]" />
-              ) : (
-                <Menu className="w-5 h-5 stroke-[1.8]" />
-              )}
-            </button>
           </div>
         </div>
       </div>
-
-      {/* Mobile Navigation Panel (Layar di bawah lg) */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#e5e5e5] dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 pt-3 pb-5 space-y-2 shadow-none">
-          <div className="grid grid-cols-1 gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-
-              if (item.children) {
-                return (
-                  <div key={item.label} className="pt-2">
-                    <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#777] dark:text-zinc-500">
-                      {item.label}
-                    </div>
-                    <div className="grid grid-cols-1 gap-1 mt-1">
-                      {item.children.map((child) => {
-                        const ChildIcon = child.icon;
-                        const isSubActive = pathname === child.href;
-
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium transition-colors rounded-sm ${
-                              isSubActive
-                                ? "bg-black text-white dark:bg-white dark:text-black"
-                                : "text-[#555] dark:text-zinc-400 hover:bg-[#f7f7f7] dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white"
-                            }`}
-                          >
-                            <ChildIcon className="w-4 h-4 stroke-[1.8] shrink-0" />
-                            <span>{child.label}</span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-
-              const isActive = pathname === item.href;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href!}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium transition-colors rounded-sm ${
-                    isActive
-                      ? "bg-black text-white dark:bg-white dark:text-black"
-                      : "text-[#555] dark:text-zinc-400 hover:bg-[#f7f7f7] dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 stroke-[1.8] shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </header>
-  );
+
+    {/* Floating Bottom Tab Bar Melayang berbentuk Pil (Hanya di bawah lg) */}
+    <BottomNav items={mobileNavItems} />
+  </>
+);
 }
