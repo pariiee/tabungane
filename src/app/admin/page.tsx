@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
 
               {/* 5. Titik-titik per data point tanpa ring */}
               {lineMasuk.polyline
-                ? lineMasuk.polyline.split(" ").map((pt, i) => {
+                ? lineMasuk.polyline.split(" ").map((pt: string, i: number) => {
                     const [cx, cy] = pt.split(",");
                     return (
                       <circle
