@@ -294,7 +294,11 @@ export default function AkunPage() {
                     {user.nama}
                   </h2>
                   <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 flex items-center gap-2">
-                    <span className="font-mono">@{user.username || "belum_ada_username"}</span>
+                    {user.username ? (
+                      <span className="font-mono text-gray-700 dark:text-zinc-300">@{user.username}</span>
+                    ) : (
+                      <span className="italic text-gray-400 dark:text-zinc-500">username belum di set</span>
+                    )}
                     <span>&bull;</span>
                     <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-semibold text-[10px]">
                       {user.custom_title || (user.role === "super_admin" ? "Tim Developer" : user.role === "admin_kelas" ? "Adminya Kelas" : user.role)}
@@ -431,9 +435,15 @@ export default function AkunPage() {
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
                   Username
                 </span>
-                <span className="text-xs font-mono font-bold text-black dark:text-white mt-1 block truncate">
-                  @{user.username || "belum_diatur"}
-                </span>
+                {user.username ? (
+                  <span className="text-xs font-mono font-bold text-black dark:text-white mt-1 block truncate">
+                    @{user.username}
+                  </span>
+                ) : (
+                  <span className="text-xs italic text-gray-400 dark:text-zinc-500 mt-1 block truncate">
+                    username belum di set
+                  </span>
+                )}
               </div>
 
               <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
