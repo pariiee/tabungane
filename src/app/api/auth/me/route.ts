@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, createSession } from "@/lib/auth";
 
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ user: null });
   }
+
+  // Auto-refresh legacy session cookie to canonical format
+  try {
+    await createSession(user);
+  } catch {}
+
   return NextResponse.json({ user });
 }
 

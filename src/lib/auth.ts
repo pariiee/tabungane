@@ -80,7 +80,8 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
   try {
     const data = JSON.parse(payload);
-    if (!data.id || data.exp < Date.now()) return null;
+    const lookupId = data.id || (data.nim ? (db.prepare("SELECT id FROM users WHERE nim = ? OR nomor_id = ?").get(data.nim, data.nim) as any)?.id : null);
+    if (!lookupId || data.exp < Date.now()) return null;
 
     const row = db.prepare(`
       SELECT 
@@ -96,7 +97,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       LEFT JOIN prodi p2 ON u.prodi_id = p2.id
       LEFT JOIN fakultas f ON (p.fakultas_id = f.id OR p2.fakultas_id = f.id)
       WHERE u.id = ?
-    `).get(data.id) as any;
+    `).get(lookupId) as any;
     if (!row || !row.aktif) return null;
 
     // Normalisasi role: jika role admin tanpa prodi_id dan tanpa fakultas dan tanpa kelas, jadikan super_admin
