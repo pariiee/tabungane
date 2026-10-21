@@ -364,61 +364,19 @@ export default function AkunPage() {
                 <GraduationCap className="w-4 h-4" />
                 Data & Informasi Mahasiswa
               </span>
-              {!isEditingUsername ? (
-                <button
-                  type="button"
-                  onClick={() => setIsEditingUsername(true)}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span>Ubah Username</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditingUsername(false);
-                    setUsernameInput(user.username || "");
-                  }}
-                  className="inline-flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                  <span>Batal</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setUsernameInput(user.username || "");
+                  setUsernameError("");
+                  setIsEditingUsername(true);
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <Pencil className="w-3 h-3" />
+                <span>Ubah Username</span>
+              </button>
             </div>
-
-            {/* Username Edit Form */}
-            {isEditingUsername && (
-              <form onSubmit={handleSaveUsername} className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/60 dark:border-zinc-800 space-y-2">
-                <label className="block text-[11px] font-semibold text-gray-700 dark:text-zinc-300">
-                  Username Akun (Hanya huruf kecil, angka, underscore)
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <AtSign className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" />
-                    <input
-                      type="text"
-                      required
-                      value={usernameInput}
-                      onChange={(e) => setUsernameInput(e.target.value.toLowerCase())}
-                      placeholder="contoh: budi_santoso"
-                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={savingUsername}
-                    className="px-4 py-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1 cursor-pointer"
-                  >
-                    {savingUsername ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                    <span>Simpan</span>
-                  </button>
-                </div>
-                {usernameError && <p className="text-[11px] text-red-600 dark:text-red-400">{usernameError}</p>}
-                {usernameSuccess && <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{usernameSuccess}</p>}
-              </form>
-            )}
 
             {/* Grid 6 Detail */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -431,10 +389,21 @@ export default function AkunPage() {
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                  Username
-                </span>
+              <div
+                onClick={() => {
+                  setUsernameInput(user.username || "");
+                  setUsernameError("");
+                  setIsEditingUsername(true);
+                }}
+                className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group"
+                title="Klik untuk ubah username"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                    Username
+                  </span>
+                  <Pencil className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
                 {user.username ? (
                   <span className="text-xs font-mono font-bold text-black dark:text-white mt-1 block truncate">
                     @{user.username}
@@ -695,6 +664,94 @@ export default function AkunPage() {
                 Ya, Hapus
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Popup Ubah Username */}
+      {isEditingUsername && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-150">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <AtSign className="w-4 h-4 text-black dark:text-white" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                  Ubah Username
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditingUsername(false);
+                  setUsernameInput(user.username || "");
+                  setUsernameError("");
+                }}
+                className="p-1 rounded-lg text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUsername} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Username Baru
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-2.5 text-xs font-bold text-gray-400 dark:text-zinc-500 font-mono">
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                    placeholder="contoh: budi_santoso"
+                    className="w-full h-10 pl-8 pr-3 text-xs rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 font-mono text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1.5 leading-relaxed">
+                  Gunakan huruf kecil, angka, atau underscore (_). Minimal 3 karakter.
+                </p>
+              </div>
+
+              {usernameError && (
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{usernameError}</span>
+                </div>
+              )}
+
+              {usernameSuccess && (
+                <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{usernameSuccess}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingUsername(false);
+                    setUsernameInput(user.username || "");
+                    setUsernameError("");
+                  }}
+                  className="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingUsername || !usernameInput.trim()}
+                  className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  {savingUsername ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>Simpan</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
