@@ -12,6 +12,15 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  X,
+  Copy,
+  Check,
+  Receipt,
+  QrCode,
+  Send,
+  Layers,
+  Wallet,
+  RotateCcw,
 } from "lucide-react";
 
 export default function RiwayatPage() {
@@ -19,6 +28,8 @@ export default function RiwayatPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filterCategory, setFilterCategory] = useState("all");
+  const [selectedTrx, setSelectedTrx] = useState<any | null>(null);
+  const [copiedId, setCopiedId] = useState(false);
 
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -203,7 +214,8 @@ export default function RiwayatPage() {
                   return (
                     <tr
                       key={t.id}
-                      className="hover:bg-gray-50/60 dark:hover:bg-zinc-900/40 transition-colors"
+                      onClick={() => setSelectedTrx(t)}
+                      className="hover:bg-gray-50/60 dark:hover:bg-zinc-900/40 transition-colors cursor-pointer group"
                     >
                       {/* Tanggal */}
                       <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap text-gray-500 dark:text-zinc-400 font-mono text-[11px]">
@@ -231,7 +243,7 @@ export default function RiwayatPage() {
 
                       {/* Category */}
                       <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
-                        <span className="font-semibold text-gray-900 dark:text-zinc-100">
+                        <span className="font-semibold text-gray-900 dark:text-zinc-100 group-hover:underline">
                           {label}
                         </span>
                       </td>
@@ -284,6 +296,134 @@ export default function RiwayatPage() {
           </table>
         </div>
       </div>
+
+      {/* Modal Detail Transaksi */}
+      {selectedTrx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-150">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 p-6 shadow-2xl space-y-5">
+            {/* Header Modal */}
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/80">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-black dark:text-white" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                  Rincian Transaksi
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedTrx(null)}
+                className="p-1 rounded-lg text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Nominal & Status Highlight */}
+            <div className="p-4 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/60 dark:border-zinc-800 text-center space-y-1.5">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-zinc-500">
+                {getCategoryInfo(selectedTrx).label}
+              </span>
+              <div
+                className={`text-2xl font-bold font-mono tracking-tight ${
+                  getCategoryInfo(selectedTrx).isPositive
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-gray-900 dark:text-zinc-100"
+                }`}
+              >
+                {getCategoryInfo(selectedTrx).isPositive ? "+" : "-"}Rp {Math.abs(selectedTrx.jumlah).toLocaleString("id-ID")}
+              </div>
+              <div>
+                <span
+                  className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                    selectedTrx.status === "berhasil"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-800/30"
+                      : selectedTrx.status === "pending"
+                      ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-800/30"
+                      : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200/50 dark:border-rose-800/30"
+                  }`}
+                >
+                  {selectedTrx.status === "berhasil" ? (
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                  ) : selectedTrx.status === "pending" ? (
+                    <Clock className="w-2.5 h-2.5" />
+                  ) : (
+                    <AlertCircle className="w-2.5 h-2.5" />
+                  )}
+                  <span>{formatTrxStatus(selectedTrx.status)}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Grid Detail Item */}
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-zinc-800/50">
+                <span className="text-gray-500 dark:text-zinc-400">Waktu Transaksi</span>
+                <span className="font-mono text-gray-900 dark:text-zinc-200 font-medium">
+                  {new Date(selectedTrx.created_at).toLocaleString("id-ID", {
+                    dateStyle: "full",
+                    timeStyle: "medium",
+                  })}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-zinc-800/50">
+                <span className="text-gray-500 dark:text-zinc-400">Tujuan / Event</span>
+                <span className="font-medium text-gray-900 dark:text-zinc-200">
+                  {selectedTrx.nama_grup || "Dompet Utama"}
+                </span>
+              </div>
+
+              {selectedTrx.catatan && (
+                <div className="flex items-start justify-between py-1 border-b border-gray-100 dark:border-zinc-800/50 gap-4">
+                  <span className="text-gray-500 dark:text-zinc-400 shrink-0">Catatan</span>
+                  <span className="text-right text-gray-900 dark:text-zinc-200 italic">
+                    {selectedTrx.catatan}
+                  </span>
+                </div>
+              )}
+
+              {selectedTrx.qris_trx_id && (
+                <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-zinc-800/50">
+                  <span className="text-gray-500 dark:text-zinc-400">ID QRIS Gateway</span>
+                  <span className="font-mono text-[11px] text-gray-900 dark:text-zinc-200">
+                    {selectedTrx.qris_trx_id}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-zinc-800/50">
+                <span className="text-gray-500 dark:text-zinc-400">ID Transaksi</span>
+                <div className="flex items-center gap-1.5 font-mono text-[11px] text-gray-700 dark:text-zinc-300">
+                  <span>{selectedTrx.id}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedTrx.id);
+                      setCopiedId(true);
+                      setTimeout(() => setCopiedId(false), 2000);
+                    }}
+                    className="p-1 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                    title="Salin ID"
+                  >
+                    {copiedId ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedTrx(null)}
+                className="w-full h-10 rounded-xl bg-black hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-black text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                Tutup Rincian
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
