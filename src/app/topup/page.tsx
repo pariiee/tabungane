@@ -14,7 +14,10 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  Sparkles
+  Sparkles,
+  Check,
+  Layers,
+  Info,
 } from "lucide-react";
 
 export default function TopUpPage() {
@@ -159,7 +162,7 @@ export default function TopUpPage() {
   const nominalPresets = [10000, 25000, 50000, 100000];
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="max-w-5xl mx-auto space-y-6 pb-32">
       {/* Page Header */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
@@ -178,25 +181,98 @@ export default function TopUpPage() {
         </div>
       )}
 
+      {/* Grid 2 Kolom di Desktop (Formulir di Kiri, Riwayat di Kanan) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Kolom Kiri: Form Topup / Layar Pembayaran QRIS */}
+        <div className="lg:col-span-7 space-y-6">
+
       {!activePayment ? (
         <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-6 shadow-xs space-y-6">
           <form onSubmit={handleCreateQR} className="space-y-5">
-            {/* Tujuan Saldo */}
+            {/* Pilihan Tujuan Top Up: Segmented Visual Cards (Bukan Dropdown) */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
+              <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
                 Tujuan Top Up
               </label>
-              <CustomSelect
-                value={selectedDestination}
-                onChange={setSelectedDestination}
-                options={[
-                  { value: "wallet", label: "Dompet Utama (Saku Pribadi — Bebas Kirim / Alokasi)" },
-                  ...groups.map((g) => ({
-                    value: g.grup_id,
-                    label: `Event: ${g.nama_grup} (${g.nama_kelas} • Target: Rp ${g.target_per_mahasiswa.toLocaleString("id-ID")})`,
-                  })),
-                ]}
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* Opsi 1: Dompet Utama */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDestination("wallet")}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 relative ${
+                    selectedDestination === "wallet"
+                      ? "border-black dark:border-white bg-gray-50 dark:bg-zinc-800/80 ring-1 ring-black dark:ring-white shadow-xs"
+                      : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900"
+                  }`}
+                >
+                  <div
+                    className={`p-2 rounded-lg shrink-0 ${
+                      selectedDestination === "wallet"
+                        ? "bg-black text-white dark:bg-white dark:text-black"
+                        : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
+                    }`}
+                  >
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-bold text-gray-900 dark:text-zinc-100">
+                        Dompet Utama
+                      </span>
+                      {selectedDestination === "wallet" && (
+                        <span className="w-4 h-4 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0">
+                          <Check className="w-2.5 h-2.5" />
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 leading-snug">
+                      Saku pribadi &bull; Bebas transfer / alokasi
+                    </p>
+                  </div>
+                </button>
+
+                {/* Opsi 2+: Event Sakune */}
+                {groups.map((g) => {
+                  const isSelected = selectedDestination === g.grup_id;
+                  return (
+                    <button
+                      key={g.grup_id}
+                      type="button"
+                      onClick={() => setSelectedDestination(g.grup_id)}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 relative ${
+                        isSelected
+                          ? "border-black dark:border-white bg-gray-50 dark:bg-zinc-800/80 ring-1 ring-black dark:ring-white shadow-xs"
+                          : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-lg shrink-0 ${
+                          isSelected
+                            ? "bg-black text-white dark:bg-white dark:text-black"
+                            : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
+                        }`}
+                      >
+                        <Layers className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-xs font-bold text-gray-900 dark:text-zinc-100 truncate">
+                            {g.nama_grup}
+                          </span>
+                          {isSelected && (
+                            <span className="w-4 h-4 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0">
+                              <Check className="w-2.5 h-2.5" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 leading-snug truncate">
+                          {g.nama_kelas} &bull; Target Rp {g.target_per_mahasiswa.toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Nominal Presets */}
@@ -390,72 +466,90 @@ export default function TopUpPage() {
             </div>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Card Riwayat Top Up Terakhir */}
-      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/60">
-          <div className="flex items-center gap-2">
-            <QrCode className="w-4 h-4 text-black dark:text-white" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">
-              Riwayat Top Up QRIS
-            </h3>
+      {/* Kolom Kanan: Card Riwayat Top Up Terakhir & Panduan (Side-by-Side di Desktop) */}
+      <div className="lg:col-span-5 space-y-4">
+        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/60">
+            <div className="flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-black dark:text-white" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">
+                Riwayat Top Up QRIS
+              </h3>
+            </div>
+            {topupHistory.length > 0 && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
+                {topupHistory.length} Terakhir
+              </span>
+            )}
           </div>
-          <span className="text-[11px] text-gray-400 dark:text-zinc-500">
-            5 Terakhir
-          </span>
-        </div>
 
-        {topupHistory.length === 0 ? (
-          <div className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
-            Belum ada riwayat top up QRIS.
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100 dark:divide-zinc-800/60">
-            {topupHistory.map((trx) => {
-              const isBerhasil = trx.status === "berhasil";
-              const isPending = trx.status === "pending";
-              const cleanDate = new Date(trx.created_at).toLocaleString("id-ID", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              });
+          {topupHistory.length === 0 ? (
+            <div className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
+              Belum ada riwayat top up QRIS.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-zinc-800/60">
+              {topupHistory.map((trx) => {
+                const isBerhasil = trx.status === "berhasil";
+                const isPending = trx.status === "pending";
+                const cleanDate = new Date(trx.created_at).toLocaleString("id-ID", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                });
 
-              return (
-                <div key={trx.id} className="py-3 flex items-center justify-between gap-3 text-xs">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-black dark:text-white">
-                        +Rp {trx.jumlah.toLocaleString("id-ID")}
-                      </span>
-                      <span
-                        className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                          isBerhasil
-                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                            : isPending
-                            ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
-                            : "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400"
-                        }`}
-                      >
-                        {trx.status}
+                return (
+                  <div key={trx.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-black dark:text-white font-mono">
+                          +Rp {trx.jumlah.toLocaleString("id-ID")}
+                        </span>
+                        <span
+                          className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                            isBerhasil
+                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                              : isPending
+                              ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+                              : "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400"
+                          }`}
+                        >
+                          {trx.status}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate mt-0.5">
+                        {cleanDate} &bull; {trx.qris_trx_id || trx.id.slice(0, 8)}
                       </span>
                     </div>
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate mt-0.5">
-                      {cleanDate} &bull; {trx.qris_trx_id || trx.id.slice(0, 8)}
-                    </span>
-                  </div>
 
-                  <div className="text-right shrink-0">
-                    <span className="text-[11px] font-mono text-gray-500 dark:text-zinc-400">
-                      {trx.nama_grup}
-                    </span>
+                    <div className="text-right shrink-0">
+                      <span className="text-[11px] font-medium text-gray-500 dark:text-zinc-400">
+                        {trx.nama_grup || "Dompet"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Tips / Info QRIS Box */}
+        <div className="bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 rounded-2xl p-4 text-xs text-gray-500 dark:text-zinc-400 space-y-2">
+          <div className="flex items-center gap-1.5 font-bold text-gray-900 dark:text-zinc-100 text-[11px] uppercase tracking-wider">
+            <Info className="w-3.5 h-3.5" />
+            <span>Petunjuk Pembayaran QRIS</span>
           </div>
-        )}
+          <ul className="text-[11px] text-gray-400 dark:text-zinc-500 space-y-1 list-disc list-inside leading-relaxed">
+            <li>QR dinamis berlaku selama 15 menit sejak diterbitkan.</li>
+            <li>Saldo otomatis bertambah saat itu juga setelah transfer sukses.</li>
+            <li>Mendukung semua e-wallet (GoPay, OVO, ShopeePay) & M-Banking.</li>
+          </ul>
+        </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
