@@ -32,7 +32,14 @@ import {
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return JSON.parse(localStorage.getItem("sakune_user") || "null");
+    } catch {
+      return null;
+    }
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -46,6 +53,11 @@ export default function Navbar() {
       .then((res) => res.json())
       .then((data) => {
         setUser(data.user);
+        if (data.user) {
+          try {
+            localStorage.setItem("sakune_user", JSON.stringify(data.user));
+          } catch {}
+        }
       })
       .catch(() => {});
   }, [pathname]);
@@ -60,15 +72,19 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    try {
+      localStorage.removeItem("sakune_user");
+    } catch {}
     setUser(null);
     router.push("/login");
   };
 
   if (pathname === "/login") return null;
 
+  const isOnAdminRoute = pathname.startsWith("/admin");
   const isSuperAdmin = user?.role === "super_admin";
   const isAdminKelas = user?.role === "admin_kelas";
-  const isAdmin = isSuperAdmin || user?.role === "admin" || isAdminKelas;
+  const isAdmin = isOnAdminRoute || isSuperAdmin || user?.role === "admin" || isAdminKelas;
 
   const kampusChildren = [
     ...(isSuperAdmin
