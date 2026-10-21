@@ -7,7 +7,7 @@ const COOKIE_NAME = "tabungane_session";
 
 export interface SessionUser {
   id: string;
-  nomor_id: string;
+  nomor_id?: string;
   nim: string; // alias legacy
   nama: string;
   username?: string | null;

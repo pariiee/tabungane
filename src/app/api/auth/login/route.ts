@@ -68,7 +68,8 @@ export async function POST(req: Request) {
 
     const sessionUser = {
       id: user.id,
-      nim: user.nim,
+      nomor_id: user.nomor_id || user.nim,
+      nim: user.nomor_id || user.nim,
       nama: user.nama,
       role: user.role,
       must_change_password: Boolean(user.must_change_password),
