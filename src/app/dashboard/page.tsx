@@ -125,6 +125,26 @@ export default function StudentDashboardPage() {
   const [modalLoading, setModalLoading] = useState(false);
   const [modalMsg, setModalMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Unified Fund Movement Modal (Isi / Pindah / Tarik ke Dompet)
+  const [showFundMoveModal, setShowFundMoveModal] = useState(false);
+  const [fundMoveMode, setFundMoveMode] = useState<"isi_kantong" | "pindah_saldo" | "tarik_ke_dompet">("pindah_saldo");
+  const [fundMoveSource, setFundMoveSource] = useState("dompet_utama");
+  const [fundMoveTarget, setFundMoveTarget] = useState("");
+  const [fundMoveAmount, setFundMoveAmount] = useState("");
+  const [fundMoveNote, setFundMoveNote] = useState("");
+  const [fundMoveLoading, setFundMoveLoading] = useState(false);
+  const [fundMoveError, setFundMoveError] = useState("");
+
+  // Withdrawal to Bank / E-Wallet Modal (Dari Dompet Utama)
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawMetode, setWithdrawMetode] = useState("bca");
+  const [withdrawNomor, setWithdrawNomor] = useState("");
+  const [withdrawNama, setWithdrawNama] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawNote, setWithdrawNote] = useState("");
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawError, setWithdrawError] = useState("");
+
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
     try {
@@ -248,6 +268,78 @@ export default function StudentDashboardPage() {
       setModalMsg({ type: "error", text: err.message });
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  const handleFundMove = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFundMoveLoading(true);
+    setFundMoveError("");
+    try {
+      const amount = parseInt(fundMoveAmount.replace(/\D/g, ""), 10);
+      if (isNaN(amount) || amount <= 0) throw new Error("Nominal harus lebih dari 0");
+
+      const isEventTarget = groups.some((g: any) => g.grup_id === fundMoveTarget);
+
+      const res = await fetch("/api/student/kantong/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sumber_id: fundMoveSource,
+          tujuan_id: fundMoveTarget,
+          nominal: amount,
+          catatan: fundMoveNote,
+          tipe_tujuan: isEventTarget ? "event" : "kantong",
+          is_event: isEventTarget,
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal memproses perpindahan dana");
+
+      setFundMoveAmount("");
+      setFundMoveNote("");
+      setShowFundMoveModal(false);
+      loadData();
+    } catch (err: any) {
+      setFundMoveError(err.message);
+    } finally {
+      setFundMoveLoading(false);
+    }
+  };
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setWithdrawLoading(true);
+    setWithdrawError("");
+    try {
+      const amount = parseInt(withdrawAmount.replace(/\D/g, ""), 10);
+      if (isNaN(amount) || amount < 10000) throw new Error("Minimal penarikan adalah Rp 10.000");
+
+      const res = await fetch("/api/student/penarikan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jumlah: amount,
+          metode: withdrawMetode,
+          nomor_tujuan: withdrawNomor,
+          nama_penerima: withdrawNama,
+          catatan: withdrawNote,
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal membuat pengajuan penarikan");
+
+      setWithdrawAmount("");
+      setWithdrawNomor("");
+      setWithdrawNama("");
+      setWithdrawNote("");
+      setShowWithdrawModal(false);
+      loadData();
+      alert("Pengajuan penarikan dana berhasil dibuat dan menunggu konfirmasi admin!");
+    } catch (err: any) {
+      setWithdrawError(err.message);
+    } finally {
+      setWithdrawLoading(false);
     }
   };
 
@@ -596,21 +688,44 @@ export default function StudentDashboardPage() {
               </p>
             </div>
 
-            <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+            <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-800/80 grid grid-cols-3 gap-1.5">
               <Link
                 href="/topup"
-                className="flex-1 h-7.5 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+                className="h-7.5 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1 cursor-pointer shadow-xs"
               >
                 <QrCode className="w-3 h-3" />
                 <span>Top Up</span>
               </Link>
               <button
                 type="button"
-                onClick={() => setShowAllocModal(true)}
-                className="flex-1 h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                onClick={() => {
+                  setFundMoveMode("pindah_saldo");
+                  setFundMoveSource("dompet_utama");
+                  setFundMoveTarget(pockets.length > 0 ? pockets[0].id : (groups.length > 0 ? groups[0].grup_id : ""));
+                  setFundMoveAmount("");
+                  setFundMoveNote("");
+                  setFundMoveError("");
+                  setShowFundMoveModal(true);
+                }}
+                className="h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
               >
                 <Layers className="w-3 h-3 text-teal-600 dark:text-teal-400" />
                 <span>Pindah Saldo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setWithdrawAmount("");
+                  setWithdrawNote("");
+                  setWithdrawError("");
+                  setShowWithdrawModal(true);
+                }}
+                disabled={saldoDompet < 10000}
+                className="h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                title="Tarik Dana ke Rekening / E-Wallet"
+              >
+                <ArrowDownLeft className="w-3 h-3 text-rose-500" />
+                <span>Tarik</span>
               </button>
             </div>
           </div>
@@ -666,34 +781,59 @@ export default function StudentDashboardPage() {
                   )}
                 </div>
 
-                <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+                <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-800/80 grid grid-cols-3 gap-1.5">
                   <button
                     type="button"
                     onClick={() => {
                       setActivePocket(p);
-                      setPocketTransferMode("ke_kantong");
-                      setPocketTransferAmount("");
-                      setPocketError("");
-                      setShowPocketTransferModal(true);
+                      setFundMoveMode("isi_kantong");
+                      setFundMoveTarget(p.id);
+                      setFundMoveSource("dompet_utama");
+                      setFundMoveAmount("");
+                      setFundMoveNote("");
+                      setFundMoveError("");
+                      setShowFundMoveModal(true);
                     }}
-                    className="flex-1 h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                    className="h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                    <span>Isi</span>
+                    <span>Isi Saldo</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setActivePocket(p);
-                      setPocketTransferMode("ke_dompet");
-                      setPocketTransferAmount("");
-                      setPocketError("");
-                      setShowPocketTransferModal(true);
+                      setFundMoveMode("pindah_saldo");
+                      setFundMoveSource(p.id);
+                      setFundMoveTarget("dompet_utama");
+                      setFundMoveAmount("");
+                      setFundMoveNote("");
+                      setFundMoveError("");
+                      setShowFundMoveModal(true);
                     }}
                     disabled={p.saldo <= 0}
-                    className="flex-1 h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                    className="h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <ArrowLeftRight className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                    <Layers className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                    <span>Pindah Saldo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePocket(p);
+                      setFundMoveMode("tarik_ke_dompet");
+                      setFundMoveSource(p.id);
+                      setFundMoveTarget("dompet_utama");
+                      setFundMoveAmount(p.saldo > 0 ? String(p.saldo) : "");
+                      setFundMoveNote("");
+                      setFundMoveError("");
+                      setShowFundMoveModal(true);
+                    }}
+                    disabled={p.saldo <= 0}
+                    className="h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                    title="Tarik Saldo ke Dompet Utama"
+                  >
+                    <ArrowDownLeft className="w-3 h-3 text-amber-500" />
                     <span>Tarik</span>
                   </button>
                 </div>
@@ -1579,100 +1719,288 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* Modal 5: Kelola Dana Kantong (Tambah / Tarik) */}
-      {showPocketTransferModal && activePocket && (
+      {/* Modal 5: Perpindahan Dana Fleksibel (Isi / Pindah / Tarik ke Dompet) */}
+      {showFundMoveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-                  Kelola Dana Kantong: {activePocket.nama}
+                <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                  <span>
+                    {fundMoveMode === "isi_kantong"
+                      ? `Isi Saldo: ${activePocket?.nama}`
+                      : fundMoveMode === "tarik_ke_dompet"
+                      ? `Tarik Saldo: ${activePocket?.nama} ke Dompet`
+                      : "Pindah Saldo"}
+                  </span>
                 </h3>
                 <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-                  Saldo Kantong: Rp {activePocket.saldo.toLocaleString("id-ID")} &bull; Dompet: Rp {saldoDompet.toLocaleString("id-ID")}
+                  Atur alokasi pos keuangan Anda secara langsung.
                 </p>
               </div>
               <button
-                onClick={() => setShowPocketTransferModal(false)}
+                onClick={() => setShowFundMoveModal(false)}
                 className="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-zinc-100 inline-flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Tab Mode: Tambah Dana vs Tarik Saldo */}
-            <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-zinc-800/60 rounded-xl gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setPocketTransferMode("ke_kantong");
-                  setPocketError("");
-                }}
-                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-                  pocketTransferMode === "ke_kantong"
-                    ? "bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 shadow-xs"
-                    : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>+ Isi Kantong</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPocketTransferMode("ke_dompet");
-                  setPocketError("");
-                }}
-                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-                  pocketTransferMode === "ke_dompet"
-                    ? "bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 shadow-xs"
-                    : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <ArrowLeftRight className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-                <span>- Tarik ke Dompet</span>
-              </button>
-            </div>
-
-            {pocketError && (
+            {fundMoveError && (
               <div className="p-3 rounded-lg text-xs flex items-center gap-2 border bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{pocketError}</span>
+                <span>{fundMoveError}</span>
               </div>
             )}
 
-            <form onSubmit={handlePocketTransfer} className="space-y-3">
+            <form onSubmit={handleFundMove} className="space-y-3">
+              {/* 1. NOMINAL */}
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
-                  {pocketTransferMode === "ke_kantong"
-                    ? `Nominal yang dimasukkan (Maks: Rp ${saldoDompet.toLocaleString("id-ID")})`
-                    : `Nominal yang ditarik (Maks: Rp ${activePocket.saldo.toLocaleString("id-ID")})`}
+                  Nominal (Rp) <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   placeholder="0"
-                  value={pocketTransferAmount ? parseInt(pocketTransferAmount.replace(/\D/g, "") || "0").toLocaleString("id-ID") : ""}
-                  onChange={(e) => setPocketTransferAmount(e.target.value.replace(/\D/g, ""))}
+                  value={fundMoveAmount ? parseInt(fundMoveAmount.replace(/\D/g, "") || "0").toLocaleString("id-ID") : ""}
+                  onChange={(e) => setFundMoveAmount(e.target.value.replace(/\D/g, ""))}
                   className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white font-mono font-bold"
+                />
+              </div>
+
+              {/* 2. SUMBER SALDO */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Sumber Saldo
+                </label>
+                {fundMoveMode === "isi_kantong" ? (
+                  <CustomSelect
+                    value={fundMoveSource}
+                    onChange={setFundMoveSource}
+                    options={[
+                      { value: "dompet_utama", label: `Dompet Utama (Rp ${saldoDompet.toLocaleString("id-ID")})` },
+                      ...pockets
+                        .filter((p: any) => p.id !== activePocket?.id && p.saldo > 0)
+                        .map((p: any) => ({
+                          value: p.id,
+                          label: `Kantong "${p.nama}" (Rp ${p.saldo.toLocaleString("id-ID")})`,
+                        })),
+                    ]}
+                  />
+                ) : (
+                  <div className="p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-xs text-gray-700 dark:text-zinc-300 font-medium">
+                    {fundMoveSource === "dompet_utama"
+                      ? `Dompet Utama (Rp ${saldoDompet.toLocaleString("id-ID")})`
+                      : `Kantong "${activePocket?.nama}" (Rp ${(activePocket?.saldo || 0).toLocaleString("id-ID")})`}
+                  </div>
+                )}
+              </div>
+
+              {/* 3. TUJUAN SALDO */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Tujuan Saldo
+                </label>
+                {fundMoveMode === "isi_kantong" ? (
+                  <div className="p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-xs text-gray-700 dark:text-zinc-300 font-medium">
+                    Kantong "{activePocket?.nama}"
+                  </div>
+                ) : fundMoveMode === "tarik_ke_dompet" ? (
+                  <div className="p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-xs text-gray-700 dark:text-zinc-300 font-medium">
+                    Dompet Utama
+                  </div>
+                ) : (
+                  <CustomSelect
+                    value={fundMoveTarget}
+                    onChange={setFundMoveTarget}
+                    options={[
+                      ...(fundMoveSource !== "dompet_utama"
+                        ? [{ value: "dompet_utama", label: "Dompet Utama (Pribadi)" }]
+                        : []),
+                      ...pockets
+                        .filter((p: any) => p.id !== fundMoveSource)
+                        .map((p: any) => ({
+                          value: p.id,
+                          label: `Kantong "${p.nama}"`,
+                        })),
+                      ...groups.map((g: any) => ({
+                        value: g.grup_id,
+                        label: `Event Sakune: ${g.nama_grup}`,
+                      })),
+                    ]}
+                  />
+                )}
+              </div>
+
+              {/* 4. CATATAN OPSIONAL */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Catatan (Opsional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Misal: Iuran / Tabungan"
+                  value={fundMoveNote}
+                  onChange={(e) => setFundMoveNote(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
 
               <div className="flex items-center gap-2 pt-3">
                 <button
                   type="button"
-                  onClick={() => setShowPocketTransferModal(false)}
+                  onClick={() => setShowFundMoveModal(false)}
                   className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  disabled={pocketLoading || !pocketTransferAmount || parseInt(pocketTransferAmount) <= 0}
+                  disabled={fundMoveLoading || !fundMoveAmount || parseInt(fundMoveAmount) <= 0}
                   className="flex-1 h-9 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors shadow-xs disabled:opacity-50 inline-flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {pocketLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{pocketTransferMode === "ke_kantong" ? "Masukkan Dana" : "Tarik Dana"}</span>
+                  {fundMoveLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>
+                    {fundMoveMode === "isi_kantong"
+                      ? "Isi Kantong"
+                      : fundMoveMode === "tarik_ke_dompet"
+                      ? "Tarik ke Dompet"
+                      : "Pindahkan Saldo"}
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 6: Tarik Saldo Dompet Utama ke Rekening / E-Wallet */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+                  <ArrowDownLeft className="w-4 h-4 text-rose-500" />
+                  <span>Tarik Dana ke Rekening / E-Wallet</span>
+                </h3>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                  Saldo Dompet Utama Anda: Rp {saldoDompet.toLocaleString("id-ID")}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                className="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-zinc-100 inline-flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {withdrawError && (
+              <div className="p-3 rounded-lg text-xs flex items-center gap-2 border bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{withdrawError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleWithdraw} className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Metode Pencairan <span className="text-rose-500">*</span>
+                </label>
+                <CustomSelect
+                  value={withdrawMetode}
+                  onChange={setWithdrawMetode}
+                  options={[
+                    { value: "bca", label: "Bank BCA" },
+                    { value: "bri", label: "Bank BRI" },
+                    { value: "mandiri", label: "Bank Mandiri" },
+                    { value: "bni", label: "Bank BNI" },
+                    { value: "dana", label: "DANA" },
+                    { value: "gopay", label: "GoPay" },
+                    { value: "ovo", label: "OVO" },
+                    { value: "shopeepay", label: "ShopeePay" },
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Nomor Rekening / HP E-Wallet <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: 1234567890 / 08123456789"
+                  value={withdrawNomor}
+                  onChange={(e) => setWithdrawNomor(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Nama Pemilik Rekening <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Nama sesuai buku tabungan / e-wallet"
+                  value={withdrawNama}
+                  onChange={(e) => setWithdrawNama(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-medium text-gray-700 dark:text-zinc-300">
+                    Nominal Penarikan (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-mono">
+                    Min Rp 10.000 &bull; Maks Rp {saldoDompet.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="Minimal Rp 10.000"
+                  value={withdrawAmount ? parseInt(withdrawAmount.replace(/\D/g, "") || "0").toLocaleString("id-ID") : ""}
+                  onChange={(e) => setWithdrawAmount(e.target.value.replace(/\D/g, ""))}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white font-mono font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Catatan (Opsional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Keterangan keperluan penarikan"
+                  value={withdrawNote}
+                  onChange={(e) => setWithdrawNote(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={withdrawLoading || !withdrawAmount || parseInt(withdrawAmount) < 10000 || parseInt(withdrawAmount) > saldoDompet}
+                  className="flex-1 h-9 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors shadow-xs disabled:opacity-50 inline-flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {withdrawLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Ajukan Penarikan</span>
                 </button>
               </div>
             </form>
