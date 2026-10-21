@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function AdminMahasiswaPage() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [kelasList, setKelasList] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
@@ -79,7 +80,17 @@ export default function AdminMahasiswaPage() {
   const [alertInfo, setAlertInfo] = useState<any>(null);
   const [error, setError] = useState("");
 
+  const isSuperAdmin = currentUser?.role === "super_admin";
+  const isAdminKelas = currentUser?.role === "admin_kelas";
+  const isKaprodi = currentUser?.role === "admin" && Boolean(currentUser?.prodi_id);
+  const isDekan = currentUser?.role === "admin" && Boolean(currentUser?.fakultas) && !currentUser?.prodi_id;
+
   const loadData = () => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((d) => setCurrentUser(d.user))
+      .catch(() => {});
+
     fetch(`/api/admin/mahasiswa${filterKelas ? `?kelas_id=${filterKelas}` : ""}`)
       .then((res) => res.json())
       .then((d) => setStudents(d.data || []));
@@ -344,22 +355,24 @@ export default function AdminMahasiswaPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="h-9 px-3.5 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Tambah Mahasiswa</span>
-          </button>
-          <button
-            onClick={() => setShowCsvModal(true)}
-            className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Impor CSV</span>
-          </button>
-        </div>
+        {!isAdminKelas && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="h-9 px-3.5 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Tambah Mahasiswa</span>
+            </button>
+            <button
+              onClick={() => setShowCsvModal(true)}
+              className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg text-xs font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Impor CSV</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Info Alert (Password Sementara) */}
@@ -459,49 +472,58 @@ export default function AdminMahasiswaPage() {
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                    <button
-                      onClick={() => setRoleToggleTarget(s)}
-                      className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
-                        s.role === "admin_kelas"
-                          ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
-                          : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
-                      }`}
-                      title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
-                    >
-                      <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                      <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
-                    </button>
+                    {/* Aksi Saldo: Muncul untuk Admin Kelas, Kaprodi, Dekan, Super Admin */}
                     <button
                       onClick={() => handleOpenSaldo(s)}
                       className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Kelola Saldo (Tambah / Kurang Saldo)"
+                      title="Kelola Saldo (Setoran Tunai / Pengurangan)"
                     >
                       <Wallet className="w-3 h-3" />
                       <span>Saldo</span>
                     </button>
-                    <button
-                      onClick={() => handleOpenEdit(s)}
-                      className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Edit Nama / Pindah Kelas"
-                    >
-                      <Pencil className="w-3 h-3" />
-                      <span>Edit</span>
-                    </button>
-                    <button
-                      onClick={() => setResetTarget(s)}
-                      className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Reset Password"
-                    >
-                      <KeyRound className="w-3 h-3" />
-                      <span>Reset</span>
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(s)}
-                      className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Hapus / Nonaktifkan Mahasiswa"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+
+                    {/* Aksi Manajerial: HANYA untuk Kaprodi, Dekan, Super Admin (Bukan Admin Kelas) */}
+                    {!isAdminKelas && (
+                      <>
+                        {(isSuperAdmin || isKaprodi) && (
+                          <button
+                            onClick={() => setRoleToggleTarget(s)}
+                            className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
+                              s.role === "admin_kelas"
+                                ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
+                                : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
+                            }`}
+                            title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
+                          >
+                            <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                            <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleOpenEdit(s)}
+                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Edit Data Mahasiswa"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => setResetTarget(s)}
+                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Reset Password & Username ke ID"
+                        >
+                          <KeyRound className="w-3 h-3" />
+                          <span>Reset</span>
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget(s)}
+                          className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Hapus / Nonaktifkan Mahasiswa"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -800,41 +822,47 @@ export default function AdminMahasiswaPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-                  Fakultas
-                </label>
-                <CustomSelect
-                  value={editFakultas}
-                  onChange={setEditFakultas}
-                  placeholder="Pilih Fakultas"
-                  options={[
-                    { value: "", label: "Pilih Fakultas (Umum / Belum Ditentukan)" },
-                    ...fakultasList.map((f) => ({
-                      value: f.nama,
-                      label: `${f.nama} (${f.kode})`,
-                    })),
-                  ]}
-                />
-              </div>
+              {/* Pilihan Fakultas: HANYA untuk Super Admin */}
+              {isSuperAdmin && (
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                    Fakultas
+                  </label>
+                  <CustomSelect
+                    value={editFakultas}
+                    onChange={setEditFakultas}
+                    placeholder="Pilih Fakultas"
+                    options={[
+                      { value: "", label: "Pilih Fakultas (Umum / Belum Ditentukan)" },
+                      ...fakultasList.map((f) => ({
+                        value: f.nama,
+                        label: `${f.nama} (${f.kode})`,
+                      })),
+                    ]}
+                  />
+                </div>
+              )}
 
-              <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-                  Program Studi (Prodi)
-                </label>
-                <CustomSelect
-                  value={editProdiId}
-                  onChange={setEditProdiId}
-                  placeholder="Pilih Program Studi"
-                  options={[
-                    { value: "", label: "Pilih Program Studi (Umum / Bebas)" },
-                    ...prodiList.map((p) => ({
-                      value: p.id,
-                      label: `${p.nama} (${p.kode})`,
-                    })),
-                  ]}
-                />
-              </div>
+              {/* Pilihan Program Studi: HANYA untuk Super Admin & Dekan (Kaprodi tidak bisa ubah prodi) */}
+              {(isSuperAdmin || isDekan) && (
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                    Program Studi (Prodi)
+                  </label>
+                  <CustomSelect
+                    value={editProdiId}
+                    onChange={setEditProdiId}
+                    placeholder="Pilih Program Studi"
+                    options={[
+                      { value: "", label: "Pilih Program Studi (Umum / Bebas)" },
+                      ...prodiList.map((p) => ({
+                        value: p.id,
+                        label: `${p.nama} (${p.kode})`,
+                      })),
+                    ]}
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
