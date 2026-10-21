@@ -669,25 +669,25 @@ export default function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* Kantong Keuangan Mahasiswa (Ala Bank Jago - Max 3) */}
+      {/* Kantong Keuangan Mahasiswa (Ala Bank Jago - Max 3 Termasuk Kantong Utama) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
                 <PiggyBank className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Kantong Tabungan</span>
+                <span>Kantong Sakune</span>
               </h2>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 font-semibold">
-                {pockets.length}/3 Kantong
+                {pockets.length + 1}/3 Kantong
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-              Pos tabungan terpisah untuk mengatur kebutuhan finansialmu secara fleksibel.
+              Kelola pos keuangan pribadimu dalam maksimal 3 kantong terpisah.
             </p>
           </div>
 
-          {pockets.length < 3 && (
+          {pockets.length < 2 && (
             <button
               onClick={() => {
                 setPocketError("");
@@ -701,127 +701,145 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        {pockets.length === 0 ? (
-          <div className="bg-white dark:bg-zinc-900 border border-dashed border-gray-300 dark:border-zinc-800 rounded-xl p-8 text-center shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-gray-400 dark:text-zinc-500">
-              <FolderPlus className="w-5 h-5" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* 1. Kantong Utama / Dompet Pribadi (Default Permanen) */}
+          <div className="bg-white dark:bg-zinc-900 border-2 border-emerald-500/40 dark:border-emerald-500/30 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3 relative overflow-hidden">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 font-bold">
+                  Kantong Utama &bull; Default
+                </span>
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm mt-1.5">Dompet Pribadi</h3>
+              </div>
+              <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             </div>
+
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Belum Ada Kantong Tambahan</h4>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mt-0.5">
-                Bagi saldo dompetmu ke pos khusus seperti tabungan buku, dana darurat, atau wishlist (maksimal 3 kantong).
+              <div className="text-lg font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                Rp {saldoDompet.toLocaleString("id-ID")}
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1">
+                Sumber dana utama untuk transaksi kas, alokasi event, dan isi kantong.
               </p>
             </div>
+
+            <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+              <Link
+                href="/topup"
+                className="flex-1 h-7 rounded-md bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+              >
+                <QrCode className="w-3 h-3" />
+                <span>Top Up</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowTransferModal(true)}
+                className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <Send className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <span>Transfer</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2 & 3. Kantong Tambahan Kustom */}
+          {pockets.map((p) => {
+            const hasTarget = p.target_nominal > 0;
+            const pct = hasTarget ? Math.min(Math.round((p.saldo / p.target_nominal) * 100), 100) : null;
+
+            return (
+              <div
+                key={p.id}
+                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 shadow-xs hover:border-gray-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
+                      {hasTarget ? `Target: Rp ${p.target_nominal.toLocaleString("id-ID")}` : "Tanpa Target"}
+                    </span>
+                    <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm mt-1.5">{p.nama}</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePocket(p)}
+                    className="p-1 rounded text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    title="Hapus Kantong"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div>
+                  <div className="text-lg font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                    Rp {p.saldo.toLocaleString("id-ID")}
+                  </div>
+                  {hasTarget && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex justify-between text-[10px] text-gray-400 dark:text-zinc-500 font-mono">
+                        <span>{pct}% terkumpul</span>
+                        <span>Rp {(p.target_nominal - p.saldo > 0 ? p.target_nominal - p.saldo : 0).toLocaleString("id-ID")} lagi</span>
+                      </div>
+                      <div className="w-full bg-gray-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePocket(p);
+                      setPocketTransferMode("ke_kantong");
+                      setPocketTransferAmount("");
+                      setPocketError("");
+                      setShowPocketTransferModal(true);
+                    }}
+                    className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span>Tambah Dana</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePocket(p);
+                      setPocketTransferMode("ke_dompet");
+                      setPocketTransferAmount("");
+                      setPocketError("");
+                      setShowPocketTransferModal(true);
+                    }}
+                    disabled={p.saldo <= 0}
+                    className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeftRight className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                    <span>Tarik Saldo</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Slot Tambah Kantong (Jika total kantong masih < 3) */}
+          {pockets.length < 2 && (
             <button
+              type="button"
               onClick={() => {
                 setPocketError("");
                 setShowCreatePocketModal(true);
               }}
-              className="h-8 px-4 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+              className="border border-dashed border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-2 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer min-h-[140px]"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Buat Kantong Pertamamu</span>
+              <Plus className="w-5 h-5" />
+              <span className="text-xs font-semibold">+ Tambah Kantong Baru</span>
+              <span className="text-[10px] text-gray-400 dark:text-zinc-500">Tersisa {2 - pockets.length} slot tambahan</span>
             </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pockets.map((p) => {
-              const hasTarget = p.target_nominal > 0;
-              const pct = hasTarget ? Math.min(Math.round((p.saldo / p.target_nominal) * 100), 100) : null;
-
-              return (
-                <div
-                  key={p.id}
-                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 shadow-xs hover:border-gray-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
-                        {hasTarget ? `Target: Rp ${p.target_nominal.toLocaleString("id-ID")}` : "Tanpa Target"}
-                      </span>
-                      <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm mt-1.5">{p.nama}</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDeletePocket(p)}
-                      className="p-1 rounded text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                      title="Hapus Kantong"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <div>
-                    <div className="text-lg font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-                      Rp {p.saldo.toLocaleString("id-ID")}
-                    </div>
-                    {hasTarget && (
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-[10px] text-gray-400 dark:text-zinc-500 font-mono">
-                          <span>{pct}% terkumpul</span>
-                          <span>Rp {(p.target_nominal - p.saldo > 0 ? p.target_nominal - p.saldo : 0).toLocaleString("id-ID")} lagi</span>
-                        </div>
-                        <div className="w-full bg-gray-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-emerald-500 h-full rounded-full transition-all duration-300"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActivePocket(p);
-                        setPocketTransferMode("ke_kantong");
-                        setPocketTransferAmount("");
-                        setPocketError("");
-                        setShowPocketTransferModal(true);
-                      }}
-                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      <span>Tambah Dana</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActivePocket(p);
-                        setPocketTransferMode("ke_dompet");
-                        setPocketTransferAmount("");
-                        setPocketError("");
-                        setShowPocketTransferModal(true);
-                      }}
-                      disabled={p.saldo <= 0}
-                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <ArrowLeftRight className="w-3 h-3 text-teal-600 dark:text-teal-400" />
-                      <span>Tarik Saldo</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {pockets.length < 3 && (
-              <button
-                type="button"
-                onClick={() => {
-                  setPocketError("");
-                  setShowCreatePocketModal(true);
-                }}
-                className="border border-dashed border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-2 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer min-h-[140px]"
-              >
-                <Plus className="w-5 h-5" />
-                <span className="text-xs font-semibold">+ Tambah Kantong Baru</span>
-                <span className="text-[10px] text-gray-400 dark:text-zinc-500">Tersisa {3 - pockets.length} slot</span>
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Bottom Section: Event Sakune */}
@@ -1208,10 +1226,10 @@ export default function StudentDashboardPage() {
               <div>
                 <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
                   <PiggyBank className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Buat Kantong Tabungan Baru</span>
+                  <span>Buat Kantong Sakune Baru</span>
                 </h3>
                 <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-                  Slot kantong tersisa: {3 - pockets.length} dari maksimal 3 kantong.
+                  Slot kantong tambahan tersisa: {2 - pockets.length} dari maksimal 3 kantong (termasuk Kantong Utama).
                 </p>
               </div>
               <button

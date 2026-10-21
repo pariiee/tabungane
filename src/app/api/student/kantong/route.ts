@@ -31,10 +31,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Nama kantong wajib diisi" }, { status: 400 });
   }
 
-  // Maksimal 3 kantong per mahasiswa
+  // Maksimal 2 kantong tambahan (total 3 termasuk Kantong Utama)
   const currentCount = (db.prepare("SELECT COUNT(*) as cnt FROM kantong WHERE user_id = ?").get(user.id) as any)?.cnt || 0;
-  if (currentCount >= 3) {
-    return NextResponse.json({ error: "Batas maksimal 3 kantong telah tercapai" }, { status: 400 });
+  if (currentCount >= 2) {
+    return NextResponse.json({ error: "Batas maksimal 3 kantong (termasuk Kantong Utama) telah tercapai" }, { status: 400 });
   }
 
   const id = crypto.randomUUID();
