@@ -15,8 +15,11 @@ export async function middleware(request: NextRequest) {
       if (!encoded) return NextResponse.redirect(new URL("/login", request.url));
       const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
       const adminRoles = ["admin", "super_admin", "admin_kelas"];
-      if (!adminRoles.includes(payload.role) || payload.exp < Date.now()) {
+      if (payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (!adminRoles.includes(payload.role)) {
+        return NextResponse.redirect(new URL("/error/403", request.url));
       }
     } catch {
       return NextResponse.redirect(new URL("/login", request.url));
