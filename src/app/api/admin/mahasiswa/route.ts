@@ -106,7 +106,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id, nama, kelas_id, aktif } = await req.json();
+  const { id, nama, kelas_id, aktif, role } = await req.json();
   if (!id) {
     return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
   }

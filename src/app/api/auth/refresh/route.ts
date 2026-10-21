@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { decrypt, encrypt } from "@/lib/auth";
+import { verifySession, signSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function POST(req: Request) {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Token tidak disertakan" }, { status: 400 });
     }
 
-    const payload = await decrypt(token);
+    const payload = verifySession(token);
     if (!payload) {
       return NextResponse.json({ error: "Token tidak valid atau kedaluwarsa" }, { status: 401 });
     }
@@ -39,13 +39,13 @@ export async function POST(req: Request) {
     }
 
     const exp = Date.now() + 7 * 24 * 60 * 60 * 1000;
-    const newToken = await encrypt({
+    const newToken = signSession(JSON.stringify({
       id: user.id,
       nomor_id: user.nomor_id,
       nama: user.nama,
       role: user.role,
       exp,
-    });
+    }));
 
     return NextResponse.json({
       success: true,
