@@ -5,16 +5,18 @@ import "@/lib/seed"; // ensure seeded
 
 export async function POST(req: Request) {
   try {
-    const { nim, password } = await req.json();
+    const body = await req.json();
+    const identifier = body.id || body.nim;
+    const password = body.password;
 
-    if (!nim || !password) {
-      return NextResponse.json({ error: "NIM dan password wajib diisi" }, { status: 400 });
+    if (!identifier || !password) {
+      return NextResponse.json({ error: "ID dan password wajib diisi" }, { status: 400 });
     }
 
     const forwarded = req.headers.get("x-forwarded-for");
     const ip = (forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip")) || "127.0.0.1";
-    const cleanNim = String(nim).trim().toLowerCase();
-    const rateLimitKey = `${cleanNim}:${ip}`;
+    const cleanId = String(identifier).trim().toLowerCase();
+    const rateLimitKey = `${cleanId}:${ip}`;
 
     const now = Date.now();
     const attemptRow = db
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
 
     if (attemptRow && attemptRow.locked_until > now) {
       // Locked for 5 minutes: keep error message generic
-      return NextResponse.json({ error: "NIM atau password salah" }, { status: 401 });
+      return NextResponse.json({ error: "ID atau password salah" }, { status: 401 });
     }
 
     // Helper to record failed attempt
@@ -48,16 +50,17 @@ export async function POST(req: Request) {
       `).run(rateLimitKey, attempts, firstAttempt, lockedUntil);
     };
 
-    const user = db.prepare("SELECT * FROM users WHERE LOWER(nim) = LOWER(?) AND aktif = 1").get(cleanNim) as any;
+    // Cari user berdasarkan ID (nim) atau username
+    const user = db.prepare("SELECT * FROM users WHERE (LOWER(nim) = LOWER(?) OR (username IS NOT NULL AND LOWER(username) = LOWER(?))) AND aktif = 1").get(cleanId, cleanId) as any;
     if (!user) {
       recordFailedAttempt();
-      return NextResponse.json({ error: "NIM atau password salah" }, { status: 401 });
+      return NextResponse.json({ error: "ID atau password salah" }, { status: 401 });
     }
 
     const isValid = verifyPassword(password, user.password_hash);
     if (!isValid) {
       recordFailedAttempt();
-      return NextResponse.json({ error: "NIM atau password salah" }, { status: 401 });
+      return NextResponse.json({ error: "ID atau password salah" }, { status: 401 });
     }
 
     // Login success -> reset rate limit attempts

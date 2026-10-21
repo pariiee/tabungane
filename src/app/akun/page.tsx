@@ -517,7 +517,7 @@ export default function AkunPage() {
                     </div>
                   </div>
 
-                  {/* Footer Kartu: Nomor NIM & Cardholder */}
+                  {/* Footer Kartu: Nomor ID & Cardholder */}
                   <div className="relative z-10 pt-2 border-t border-zinc-800/80 flex items-end justify-between text-xs">
                     <div>
                       <div className="flex items-center gap-1.5 text-zinc-300 font-mono text-xs tracking-wider">
@@ -530,7 +530,7 @@ export default function AkunPage() {
                             setTimeout(() => setCopiedNIM(false), 2000);
                           }}
                           className="p-1 hover:text-white transition-colors cursor-pointer"
-                          title="Salin NIM"
+                          title="Salin ID"
                         >
                           {copiedNIM ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
                         </button>
@@ -749,11 +749,11 @@ export default function AkunPage() {
                     )}
                   </div>
 
-                  {/* NIM (Terkunci) */}
+                  {/* ID (Terkunci) */}
                   <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                        NIM
+                        ID
                       </span>
                       <Lock className="w-2.5 h-2.5 text-gray-400" />
                     </div>

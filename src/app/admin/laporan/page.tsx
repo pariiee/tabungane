@@ -110,7 +110,7 @@ export default function AdminLaporanPage() {
             <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
                 <th className="py-3 px-4 w-12 text-center">Rank</th>
-                <th className="py-3 px-4">NIM</th>
+                <th className="py-3 px-4">ID</th>
                 <th className="py-3 px-4">Nama Mahasiswa</th>
                 <th className="py-3 px-4">Progres (%)</th>
                 <th className="py-3 px-4 text-right">Saldo Terkumpul</th>

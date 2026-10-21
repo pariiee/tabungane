@@ -90,7 +90,7 @@ export default function LandingDemo() {
 
         {/* Card Footer */}
         <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-          <span className="font-mono">NIM: 240101••••</span>
+          <span className="font-mono">ID: 240101••••</span>
           <span className="text-[11px] font-semibold text-zinc-300">MAHASISWA PORTAL</span>
         </div>
       </div>

@@ -112,7 +112,7 @@ export default function LoginPage() {
         <form className="mt-6 space-y-4" onSubmit={handleLogin}>
           <div>
             <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-              NIM atau Username Admin
+              ID Pengguna atau Username
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -123,7 +123,7 @@ export default function LoginPage() {
                 required
                 value={nim}
                 onChange={(e) => setNim(e.target.value)}
-                placeholder="240101 atau admin"
+                placeholder="Masukkan ID akun atau username"
                 className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
               />
             </div>

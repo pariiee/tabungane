@@ -339,7 +339,7 @@ export default function AdminMahasiswaPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
-                <th className="py-3 px-4">NIM</th>
+                <th className="py-3 px-4">ID</th>
                 <th className="py-3 px-4">Nama Lengkap</th>
                 <th className="py-3 px-4">Kelas</th>
                 <th className="py-3 px-4">Status Password</th>
@@ -427,7 +427,7 @@ export default function AdminMahasiswaPage() {
             </div>
             <form onSubmit={handleAddStudent} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">NIM</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">ID Pengguna</label>
                 <input
                   type="text"
                   required
@@ -617,8 +617,8 @@ export default function AdminMahasiswaPage() {
           <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Edit Data & Pindah Kelas</h3>
-                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">NIM: {editStudent.nim}</p>
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Edit Data Mahasiswa</h3>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">ID: {editStudent.nim}</p>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}

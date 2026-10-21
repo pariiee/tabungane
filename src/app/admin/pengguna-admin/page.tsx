@@ -231,14 +231,14 @@ export default function PenggunaAdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
-                  Username / NIP
+                  ID Akun / Username
                 </label>
                 <input
                   type="text"
                   required
                   value={nim}
                   onChange={(e) => setNim(e.target.value)}
-                  placeholder="Contoh: admin_ti atau 198801..."
+                  placeholder="Contoh: admin_ti atau ID unik"
                   className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>

@@ -9,19 +9,22 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { target_nim, amount, catatan } = await req.json();
+    const body = await req.json();
+    const targetIdentifier = body.target_id || body.target_nim;
+    const amount = body.amount;
+    const catatan = body.catatan;
     const nominal = parseInt(amount, 10);
 
     if (isNaN(nominal) || nominal <= 0) {
       return NextResponse.json({ error: "Nominal harus lebih dari 0" }, { status: 400 });
     }
-    if (!target_nim) {
-      return NextResponse.json({ error: "NIM tujuan wajib diisi" }, { status: 400 });
+    if (!targetIdentifier) {
+      return NextResponse.json({ error: "ID tujuan wajib diisi" }, { status: 400 });
     }
 
-    const res = transferToNim(user.id, String(target_nim).trim(), nominal, catatan);
+    const res = transferToNim(user.id, String(targetIdentifier).trim(), nominal, catatan);
     return NextResponse.json({ ...res });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Gagal transfer ke NIM tujuan" }, { status: 400 });
+    return NextResponse.json({ error: err.message || "Gagal transfer ke ID tujuan" }, { status: 400 });
   }
 }

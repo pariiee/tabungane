@@ -159,9 +159,9 @@ export function transferToNim(
   const sender = db.prepare("SELECT * FROM users WHERE id = ?").get(senderUserId) as any;
   if (!sender) throw new Error("Pengirim tidak valid");
 
-  const target = db.prepare("SELECT * FROM users WHERE nim = ? AND aktif = 1").get(targetNim) as any;
-  if (!target) throw new Error(`Mahasiswa dengan NIM ${targetNim} tidak ditemukan`);
-  if (target.id === senderUserId) throw new Error("Tidak dapat transfer ke NIM sendiri");
+  const target = db.prepare("SELECT * FROM users WHERE (LOWER(nim) = LOWER(?) OR (username IS NOT NULL AND LOWER(username) = LOWER(?))) AND aktif = 1").get(targetNim, targetNim) as any;
+  if (!target) throw new Error(`Pengguna dengan ID / Username ${targetNim} tidak ditemukan`);
+  if (target.id === senderUserId) throw new Error("Tidak dapat transfer ke ID sendiri");
 
   const senderBalance = getWalletBalance(senderUserId);
   if (senderBalance < amount) {

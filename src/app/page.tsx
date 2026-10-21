@@ -294,7 +294,7 @@ export default async function Home() {
                 Masuk Menggunakan Akun Kampus
               </h4>
               <p className="text-xs text-gray-500 dark:text-zinc-400 mt-2">
-                Mahasiswa login menggunakan NIM resmi mereka, sementara pengurus masuk dengan peran aksesnya.
+                Mahasiswa login menggunakan ID resmi mereka, sementara pengurus masuk dengan peran aksesnya.
               </p>
             </div>
 

@@ -37,20 +37,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Hanya Tim Developer yang dapat membuat akun Admin" }, { status: 403 });
   }
 
-  const { nim, nama, password, role: inputRole, prodi_id, fakultas, managed_kelas_ids, custom_title } = await req.json();
+  const body = await req.json();
+  const rawId = (body.id || body.nim || "").trim();
+  const nama = (body.nama || "").trim();
+  const password = body.password || "";
+  const inputRole = body.role;
+  const prodi_id = body.prodi_id;
+  const fakultas = body.fakultas;
+  const managed_kelas_ids = body.managed_kelas_ids;
+  const custom_title = body.custom_title;
 
-  if (!nim || !nama || !password) {
-    return NextResponse.json({ error: "NIM/NIP, Nama, dan Password wajib diisi" }, { status: 400 });
+  if (!rawId || !nama || !password) {
+    return NextResponse.json({ error: "ID Akun, Nama, dan Password wajib diisi" }, { status: 400 });
   }
 
   if (password.length < 6) {
     return NextResponse.json({ error: "Password minimal 6 karakter" }, { status: 400 });
   }
 
-  const cleanNim = nim.trim();
-  const existing = db.prepare("SELECT id FROM users WHERE nim = ?").get(cleanNim);
+  const cleanNim = rawId;
+  const existing = db.prepare("SELECT id FROM users WHERE nim = ? OR (username IS NOT NULL AND username = ?)").get(cleanNim, cleanNim);
   if (existing) {
-    return NextResponse.json({ error: "NIM / NIP / Username sudah terdaftar" }, { status: 400 });
+    return NextResponse.json({ error: "ID Akun / Username sudah terdaftar" }, { status: 400 });
   }
 
   const id = crypto.randomUUID();

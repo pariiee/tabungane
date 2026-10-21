@@ -158,7 +158,7 @@ export default function RiwayatPage() {
             -Rp {stats.totalTransfer.toLocaleString("id-ID")}
           </p>
           <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
-            Kirim saldo sesama NIM
+            Kirim saldo antar ID akun
           </span>
         </div>
       </div>

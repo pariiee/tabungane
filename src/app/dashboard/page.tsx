@@ -203,7 +203,7 @@ export default function StudentDashboardPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30">
-              NIM: {user?.nim}
+              ID: {user?.nim}
             </span>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-1">
@@ -785,7 +785,7 @@ export default function StudentDashboardPage() {
             <form onSubmit={handleTransfer} className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
-                  NIM Penerima
+                  ID Penerima
                 </label>
                 <input
                   type="text"
