@@ -12,12 +12,6 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Send,
-  Layers,
-  Wallet,
-  RotateCcw,
 } from "lucide-react";
 
 export default function RiwayatPage() {
@@ -43,6 +37,27 @@ export default function RiwayatPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Summary Metrics (3 Cards)
+  const stats = useMemo(() => {
+    let totalMasuk = 0;
+    let totalEvent = 0;
+    let totalTransfer = 0;
+
+    transactions.forEach((t) => {
+      if (t.status === "berhasil") {
+        if (t.tipe === "topup_qris" || t.tipe === "transfer_masuk" || t.tipe === "manual_add") {
+          totalMasuk += Math.abs(t.jumlah);
+        } else if (t.tipe === "alokasi_keluar") {
+          totalEvent += Math.abs(t.jumlah);
+        } else if (t.tipe === "transfer_keluar") {
+          totalTransfer += Math.abs(t.jumlah);
+        }
+      }
+    });
+
+    return { totalMasuk, totalEvent, totalTransfer };
+  }, [transactions]);
 
   const getCategoryInfo = (t: any) => {
     switch (t.tipe) {
@@ -75,7 +90,7 @@ export default function RiwayatPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-32">
-      {/* Header + Filter Pojok Kanan */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
@@ -87,30 +102,73 @@ export default function RiwayatPage() {
           </p>
         </div>
 
-        {/* Filter Category di Pojok Kanan */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="w-44">
-            <CustomSelect
-              value={filterCategory}
-              onChange={setFilterCategory}
-              options={[
-                { value: "all", label: "Semua Kategori" },
-                { value: "topup", label: "Top Up QRIS" },
-                { value: "event", label: "Iuran Event Kas" },
-                { value: "transfer", label: "Transfer P2P" },
-              ]}
-            />
-          </div>
+        <button
+          onClick={() => loadData(true)}
+          disabled={refreshing}
+          className="self-start sm:self-auto h-9 px-3.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+          title="Segarkan data"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          <span>Refresh</span>
+        </button>
+      </div>
 
-          <button
-            onClick={() => loadData(true)}
-            disabled={refreshing}
-            className="h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Segarkan data"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
+      {/* 3 Bento Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+            Total Dana Masuk
+          </span>
+          <p className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
+            +Rp {stats.totalMasuk.toLocaleString("id-ID")}
+          </p>
+          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
+            Top Up QRIS & Transfer Masuk
+          </span>
+        </div>
+
+        <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+            Iuran Event Kas
+          </span>
+          <p className="text-lg font-bold font-mono text-gray-900 dark:text-zinc-100 mt-1">
+            Rp {stats.totalEvent.toLocaleString("id-ID")}
+          </p>
+          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
+            Alokasi kas kelas & kegiatan
+          </span>
+        </div>
+
+        <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+            Transfer Keluar
+          </span>
+          <p className="text-lg font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">
+            -Rp {stats.totalTransfer.toLocaleString("id-ID")}
+          </p>
+          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
+            Kirim saldo sesama NIM
+          </span>
+        </div>
+      </div>
+
+      {/* Baris Filter Pojok Kanan di Atas Tabel */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+          Daftar Mutasi ({filteredList.length})
+        </span>
+
+        <div className="w-44">
+          <CustomSelect
+            value={filterCategory}
+            onChange={setFilterCategory}
+            options={[
+              { value: "all", label: "Semua Kategori" },
+              { value: "topup", label: "Top Up QRIS" },
+              { value: "event", label: "Iuran Event Kas" },
+              { value: "transfer", label: "Transfer P2P" },
+            ]}
+          />
         </div>
       </div>
 
