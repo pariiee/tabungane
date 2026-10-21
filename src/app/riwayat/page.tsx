@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState, useMemo } from "react";
 import { formatTrxStatus } from "@/lib/format";
 import { TableRowsSkeleton } from "@/components/Skeletons";
