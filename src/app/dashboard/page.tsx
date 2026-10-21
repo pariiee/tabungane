@@ -21,7 +21,13 @@ import {
   RefreshCw,
   FileText,
   ArrowDownLeft,
-  ArrowUpRight
+  ArrowUpRight,
+  FolderPlus,
+  PiggyBank,
+  Plus,
+  Trash2,
+  ArrowLeftRight,
+  Coins
 } from "lucide-react";
 
 export default function StudentDashboardPage() {
@@ -33,6 +39,18 @@ export default function StudentDashboardPage() {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showAllocModal, setShowAllocModal] = useState(false);
   const [selectedTrx, setSelectedTrx] = useState<any | null>(null);
+
+  // Kantong state (Bank Jago style - Max 3)
+  const [pockets, setPockets] = useState<any[]>([]);
+  const [showCreatePocketModal, setShowCreatePocketModal] = useState(false);
+  const [showPocketTransferModal, setShowPocketTransferModal] = useState(false);
+  const [activePocket, setActivePocket] = useState<any | null>(null);
+  const [newPocketName, setNewPocketName] = useState("");
+  const [newPocketTarget, setNewPocketTarget] = useState("");
+  const [pocketTransferMode, setPocketTransferMode] = useState<"ke_kantong" | "ke_dompet">("ke_kantong");
+  const [pocketTransferAmount, setPocketTransferAmount] = useState("");
+  const [pocketLoading, setPocketLoading] = useState(false);
+  const [pocketError, setPocketError] = useState("");
 
   // Form states
   const [targetNim, setTargetNim] = useState("");
@@ -47,9 +65,14 @@ export default function StudentDashboardPage() {
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
     try {
-      const res = await fetch("/api/student/dashboard");
-      const d = await res.json();
+      const [resDash, resPockets] = await Promise.all([
+        fetch("/api/student/dashboard"),
+        fetch("/api/student/kantong"),
+      ]);
+      const d = await resDash.json();
+      const p = await resPockets.json();
       setData(d);
+      setPockets(p.data || []);
       if (d.groups?.length > 0 && !selectedGrupId) {
         setSelectedGrupId(d.groups[0].grup_id);
       }
@@ -133,6 +156,78 @@ export default function StudentDashboardPage() {
       setModalMsg({ type: "error", text: err.message });
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  const handleCreatePocket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPocketLoading(true);
+    setPocketError("");
+    try {
+      const res = await fetch("/api/student/kantong", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nama: newPocketName,
+          target_nominal: parseInt(newPocketTarget.replace(/\D/g, "") || "0", 10),
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal membuat kantong");
+
+      setNewPocketName("");
+      setNewPocketTarget("");
+      setShowCreatePocketModal(false);
+      loadData();
+    } catch (err: any) {
+      setPocketError(err.message);
+    } finally {
+      setPocketLoading(false);
+    }
+  };
+
+  const handlePocketTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activePocket) return;
+    setPocketLoading(true);
+    setPocketError("");
+    try {
+      const nominal = parseInt(pocketTransferAmount.replace(/\D/g, ""), 10);
+      const res = await fetch("/api/student/kantong/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kantong_id: activePocket.id,
+          nominal,
+          arah: pocketTransferMode,
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal memproses dana kantong");
+
+      setPocketTransferAmount("");
+      setShowPocketTransferModal(false);
+      loadData();
+    } catch (err: any) {
+      setPocketError(err.message);
+    } finally {
+      setPocketLoading(false);
+    }
+  };
+
+  const handleDeletePocket = async (pocket: any) => {
+    const msg = pocket.saldo > 0
+      ? `Hapus kantong "${pocket.nama}"? Sisa saldo Rp ${pocket.saldo.toLocaleString("id-ID")} akan otomatis dikembalikan ke Dompet Utama.`
+      : `Hapus kantong "${pocket.nama}"?`;
+    if (!confirm(msg)) return;
+
+    try {
+      const res = await fetch(`/api/student/kantong/${pocket.id}`, { method: "DELETE" });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal menghapus kantong");
+      loadData();
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -574,6 +669,161 @@ export default function StudentDashboardPage() {
         </div>
       </div>
 
+      {/* Kantong Keuangan Mahasiswa (Ala Bank Jago - Max 3) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
+                <PiggyBank className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Kantong Tabungan</span>
+              </h2>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 font-semibold">
+                {pockets.length}/3 Kantong
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+              Pos tabungan terpisah untuk mengatur kebutuhan finansialmu secara fleksibel.
+            </p>
+          </div>
+
+          {pockets.length < 3 && (
+            <button
+              onClick={() => {
+                setPocketError("");
+                setShowCreatePocketModal(true);
+              }}
+              className="h-8 px-3 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Buat Kantong</span>
+            </button>
+          )}
+        </div>
+
+        {pockets.length === 0 ? (
+          <div className="bg-white dark:bg-zinc-900 border border-dashed border-gray-300 dark:border-zinc-800 rounded-xl p-8 text-center shadow-xs space-y-3">
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-gray-400 dark:text-zinc-500">
+              <FolderPlus className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Belum Ada Kantong Tambahan</h4>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-sm mx-auto mt-0.5">
+                Bagi saldo dompetmu ke pos khusus seperti tabungan buku, dana darurat, atau wishlist (maksimal 3 kantong).
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setPocketError("");
+                setShowCreatePocketModal(true);
+              }}
+              className="h-8 px-4 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Buat Kantong Pertamamu</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pockets.map((p) => {
+              const hasTarget = p.target_nominal > 0;
+              const pct = hasTarget ? Math.min(Math.round((p.saldo / p.target_nominal) * 100), 100) : null;
+
+              return (
+                <div
+                  key={p.id}
+                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 shadow-xs hover:border-gray-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
+                        {hasTarget ? `Target: Rp ${p.target_nominal.toLocaleString("id-ID")}` : "Tanpa Target"}
+                      </span>
+                      <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm mt-1.5">{p.nama}</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePocket(p)}
+                      className="p-1 rounded text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Hapus Kantong"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div>
+                    <div className="text-lg font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                      Rp {p.saldo.toLocaleString("id-ID")}
+                    </div>
+                    {hasTarget && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-[10px] text-gray-400 dark:text-zinc-500 font-mono">
+                          <span>{pct}% terkumpul</span>
+                          <span>Rp {(p.target_nominal - p.saldo > 0 ? p.target_nominal - p.saldo : 0).toLocaleString("id-ID")} lagi</span>
+                        </div>
+                        <div className="w-full bg-gray-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActivePocket(p);
+                        setPocketTransferMode("ke_kantong");
+                        setPocketTransferAmount("");
+                        setPocketError("");
+                        setShowPocketTransferModal(true);
+                      }}
+                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      <span>Tambah Dana</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActivePocket(p);
+                        setPocketTransferMode("ke_dompet");
+                        setPocketTransferAmount("");
+                        setPocketError("");
+                        setShowPocketTransferModal(true);
+                      }}
+                      disabled={p.saldo <= 0}
+                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-zinc-800 text-[11px] font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <ArrowLeftRight className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                      <span>Tarik Saldo</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {pockets.length < 3 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPocketError("");
+                  setShowCreatePocketModal(true);
+                }}
+                className="border border-dashed border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-2 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer min-h-[140px]"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="text-xs font-semibold">+ Tambah Kantong Baru</span>
+                <span className="text-[10px] text-gray-400 dark:text-zinc-500">Tersisa {3 - pockets.length} slot</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Bottom Section: Event Sakune */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -944,6 +1194,185 @@ export default function StudentDashboardPage() {
                 >
                   {modalLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Alokasikan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal 4: Buat Kantong Baru */}
+      {showCreatePocketModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+                  <PiggyBank className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Buat Kantong Tabungan Baru</span>
+                </h3>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                  Slot kantong tersisa: {3 - pockets.length} dari maksimal 3 kantong.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreatePocketModal(false)}
+                className="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-zinc-100 inline-flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {pocketError && (
+              <div className="p-3 rounded-lg text-xs flex items-center gap-2 border bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{pocketError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreatePocket} className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Nama Kantong <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Tabungan Buku, Dana Liburan, Wishlist"
+                  value={newPocketName}
+                  onChange={(e) => setNewPocketName(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  Target Nominal Tabungan (Opsional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Kosongkan jika tanpa target nominal"
+                  value={newPocketTarget ? parseInt(newPocketTarget.replace(/\D/g, "") || "0").toLocaleString("id-ID") : ""}
+                  onChange={(e) => setNewPocketTarget(e.target.value.replace(/\D/g, ""))}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreatePocketModal(false)}
+                  className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={pocketLoading || !newPocketName.trim()}
+                  className="flex-1 h-9 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors shadow-xs disabled:opacity-50 inline-flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {pocketLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Simpan Kantong</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 5: Kelola Dana Kantong (Tambah / Tarik) */}
+      {showPocketTransferModal && activePocket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                  Kelola Dana Kantong: {activePocket.nama}
+                </h3>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                  Saldo Kantong: Rp {activePocket.saldo.toLocaleString("id-ID")} &bull; Dompet: Rp {saldoDompet.toLocaleString("id-ID")}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPocketTransferModal(false)}
+                className="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-zinc-100 inline-flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Tab Mode: Tambah Dana vs Tarik Saldo */}
+            <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-zinc-800/60 rounded-xl gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setPocketTransferMode("ke_kantong");
+                  setPocketError("");
+                }}
+                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                  pocketTransferMode === "ke_kantong"
+                    ? "bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 shadow-xs"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>+ Isi Kantong</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPocketTransferMode("ke_dompet");
+                  setPocketError("");
+                }}
+                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                  pocketTransferMode === "ke_dompet"
+                    ? "bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 shadow-xs"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <span>- Tarik ke Dompet</span>
+              </button>
+            </div>
+
+            {pocketError && (
+              <div className="p-3 rounded-lg text-xs flex items-center gap-2 border bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{pocketError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handlePocketTransfer} className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
+                  {pocketTransferMode === "ke_kantong"
+                    ? `Nominal yang dimasukkan (Maks: Rp ${saldoDompet.toLocaleString("id-ID")})`
+                    : `Nominal yang ditarik (Maks: Rp ${activePocket.saldo.toLocaleString("id-ID")})`}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="0"
+                  value={pocketTransferAmount ? parseInt(pocketTransferAmount.replace(/\D/g, "") || "0").toLocaleString("id-ID") : ""}
+                  onChange={(e) => setPocketTransferAmount(e.target.value.replace(/\D/g, ""))}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white font-mono font-bold"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPocketTransferModal(false)}
+                  className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={pocketLoading || !pocketTransferAmount || parseInt(pocketTransferAmount) <= 0}
+                  className="flex-1 h-9 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors shadow-xs disabled:opacity-50 inline-flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {pocketLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{pocketTransferMode === "ke_kantong" ? "Masukkan Dana" : "Tarik Dana"}</span>
                 </button>
               </div>
             </form>
