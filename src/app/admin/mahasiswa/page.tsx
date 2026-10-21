@@ -58,6 +58,7 @@ export default function AdminMahasiswaPage() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [submittingDelete, setSubmittingDelete] = useState(false);
   const [resetTarget, setResetTarget] = useState<any>(null);
+  const [roleToggleTarget, setRoleToggleTarget] = useState<any>(null);
 
   // Success / Temp Password Alert
   const [alertInfo, setAlertInfo] = useState<any>(null);
@@ -254,22 +255,21 @@ export default function AdminMahasiswaPage() {
   };
 
   // Toggle Role Mahasiswa <-> Adminya Kelas
-  const handleToggleAdminKelas = async (s: any) => {
-    const isNowAdmin = s.role === "admin_kelas";
+  const handleConfirmToggleRole = async () => {
+    if (!roleToggleTarget) return;
+    const isNowAdmin = roleToggleTarget.role === "admin_kelas";
     const newRole = isNowAdmin ? "mahasiswa" : "admin_kelas";
-    const label = isNowAdmin ? "turunkan ke Mahasiswa biasa" : "angkat menjadi Adminya Kelas";
-
-    if (!confirm(`Apakah Anda yakin ingin ${label} untuk "${s.nama}"?`)) return;
 
     try {
       setError("");
       const res = await fetch("/api/admin/mahasiswa", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: s.id, role: newRole }),
+        body: JSON.stringify({ id: roleToggleTarget.id, role: newRole }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengubah role");
+      setRoleToggleTarget(null);
       loadData();
     } catch (err: any) {
       setError(err.message);
@@ -406,7 +406,7 @@ export default function AdminMahasiswaPage() {
                   </td>
                   <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                     <button
-                      onClick={() => handleToggleAdminKelas(s)}
+                      onClick={() => setRoleToggleTarget(s)}
                       className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
                         s.role === "admin_kelas"
                           ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
@@ -796,6 +796,20 @@ export default function AdminMahasiswaPage() {
         message={`Reset password untuk ${resetTarget?.nama} (${resetTarget?.nim})? Sistem akan menghasilkan kata sandi baru secara acak.`}
         confirmText="Ya, Reset Password"
         isDestructive={false}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(roleToggleTarget)}
+        onClose={() => setRoleToggleTarget(null)}
+        onConfirm={handleConfirmToggleRole}
+        title={roleToggleTarget?.role === "admin_kelas" ? "Turunkan Role Mahasiswa?" : "Angkat Jadi Adminya Kelas?"}
+        message={
+          roleToggleTarget?.role === "admin_kelas"
+            ? `Apakah Anda yakin ingin menurunkan "${roleToggleTarget?.nama}" kembali menjadi Mahasiswa biasa? Hak akses kelola kelas akan dicabut.`
+            : `Apakah Anda yakin ingin mengangkat "${roleToggleTarget?.nama}" menjadi Adminya Kelas? Siswa ini akan memiliki wewenang kelola kelas bersangkutan.`
+        }
+        confirmText={roleToggleTarget?.role === "admin_kelas" ? "Ya, Turunkan Role" : "Ya, Angkat Jadi Admin"}
+        isDestructive={roleToggleTarget?.role === "admin_kelas"}
       />
     </div>
   );

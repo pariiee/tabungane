@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import { DashboardSkeleton } from "@/components/Skeletons";
 import CustomSelect from "@/components/CustomSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   Wallet,
   QrCode,
@@ -144,6 +145,10 @@ export default function StudentDashboardPage() {
   const [withdrawNote, setWithdrawNote] = useState("");
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawError, setWithdrawError] = useState("");
+  const [withdrawSuccessModal, setWithdrawSuccessModal] = useState(false);
+
+  // Target Hapus Kantong
+  const [deletePocketTarget, setDeletePocketTarget] = useState<any | null>(null);
 
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -334,8 +339,8 @@ export default function StudentDashboardPage() {
       setWithdrawNama("");
       setWithdrawNote("");
       setShowWithdrawModal(false);
+      setWithdrawSuccessModal(true);
       loadData();
-      alert("Pengajuan penarikan dana berhasil dibuat dan menunggu konfirmasi admin!");
     } catch (err: any) {
       setWithdrawError(err.message);
     } finally {
@@ -401,19 +406,16 @@ export default function StudentDashboardPage() {
     }
   };
 
-  const handleDeletePocket = async (pocket: any) => {
-    const msg = pocket.saldo > 0
-      ? `Hapus kantong "${pocket.nama}"? Sisa saldo Rp ${pocket.saldo.toLocaleString("id-ID")} akan otomatis dikembalikan ke Dompet Utama.`
-      : `Hapus kantong "${pocket.nama}"?`;
-    if (!confirm(msg)) return;
-
+  const handleConfirmDeletePocket = async () => {
+    if (!deletePocketTarget) return;
     try {
-      const res = await fetch(`/api/student/kantong/${pocket.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/student/kantong/${deletePocketTarget.id}`, { method: "DELETE" });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Gagal menghapus kantong");
+      setDeletePocketTarget(null);
       loadData();
     } catch (err: any) {
-      alert(err.message);
+      setPocketError(err.message);
     }
   };
 
@@ -747,7 +749,7 @@ export default function StudentDashboardPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleDeletePocket(p)}
+                    onClick={() => setDeletePocketTarget(p)}
                     className="p-1 rounded text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                     title="Hapus Kantong"
                   >
@@ -2007,6 +2009,45 @@ export default function StudentDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Modal Sukses Pengajuan Penarikan Dana */}
+      {withdrawSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-base">Pengajuan Berhasil Dibuat</h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                Permintaan penarikan saldo Anda telah diterima sistem dan sedang menunggu verifikasi &amp; transfer dari Admin.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setWithdrawSuccessModal(false)}
+              className="w-full h-9 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirm Modal: Hapus Kantong */}
+      <ConfirmModal
+        isOpen={Boolean(deletePocketTarget)}
+        onClose={() => setDeletePocketTarget(null)}
+        onConfirm={handleConfirmDeletePocket}
+        title="Hapus Kantong Sakune?"
+        message={
+          deletePocketTarget?.saldo > 0
+            ? `Hapus kantong "${deletePocketTarget?.nama}"? Seluruh sisa saldo sebesar Rp ${deletePocketTarget?.saldo.toLocaleString("id-ID")} akan otomatis dikembalikan ke Dompet Utama Anda.`
+            : `Apakah Anda yakin ingin menghapus kantong "${deletePocketTarget?.nama}"?`
+        }
+        confirmText="Ya, Hapus Kantong"
+        isDestructive={true}
+      />
     </div>
   );
 }
