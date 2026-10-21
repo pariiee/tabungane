@@ -466,7 +466,8 @@ export default function TopUpPage() {
             </div>
           )}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Kolom Kanan: Card Riwayat Top Up Terakhir & Panduan (Side-by-Side di Desktop) */}
       <div className="lg:col-span-5 space-y-4">
