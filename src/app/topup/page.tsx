@@ -189,90 +189,103 @@ export default function TopUpPage() {
       {!activePayment ? (
         <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-6 shadow-xs space-y-6">
           <form onSubmit={handleCreateQR} className="space-y-5">
-            {/* Pilihan Tujuan Top Up: Segmented Visual Cards (Bukan Dropdown) */}
-            <div>
-              <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+            {/* Pilihan Tujuan Top Up: 2-Tab Switcher [Saldo Utama] vs [Event Iuran] */}
+            <div className="space-y-3">
+              <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider">
                 Tujuan Top Up
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {/* Opsi 1: Dompet Utama */}
+
+              {/* Top Tabs */}
+              <div className="grid grid-cols-2 p-1 rounded-xl bg-gray-100 dark:bg-zinc-800/80 border border-gray-200/60 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setSelectedDestination("wallet")}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 relative ${
+                  className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     selectedDestination === "wallet"
-                      ? "border-black dark:border-white bg-gray-50 dark:bg-zinc-800/80 ring-1 ring-black dark:ring-white shadow-xs"
-                      : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900"
+                      ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
+                      : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
                   }`}
                 >
-                  <div
-                    className={`p-2 rounded-lg shrink-0 ${
-                      selectedDestination === "wallet"
-                        ? "bg-black text-white dark:bg-white dark:text-black"
-                        : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
-                    }`}
-                  >
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Saldo Utama</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedDestination === "wallet" && groups.length > 0) {
+                      setSelectedDestination(groups[0].grup_id);
+                    }
+                  }}
+                  className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    selectedDestination !== "wallet"
+                      ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
+                      : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Event Iuran {groups.length > 0 ? `(${groups.length})` : ""}</span>
+                </button>
+              </div>
+
+              {/* Info Detail Berdasarkan Tab Yang Dipilih */}
+              {selectedDestination === "wallet" ? (
+                <div className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/60 dark:border-zinc-800 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-black text-white dark:bg-white dark:text-black shrink-0">
                     <Wallet className="w-4 h-4" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-bold text-gray-900 dark:text-zinc-100">
-                        Dompet Utama
-                      </span>
-                      {selectedDestination === "wallet" && (
-                        <span className="w-4 h-4 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0">
-                          <Check className="w-2.5 h-2.5" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 leading-snug">
-                      Saku pribadi &bull; Bebas transfer / alokasi
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-900 dark:text-zinc-100">
+                      Dompet Pribadi Mahasiswa
+                    </p>
+                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                      Saldo langsung masuk ke saku Anda &bull; Bebas transfer ke teman atau alokasi ke event kapan saja.
                     </p>
                   </div>
-                </button>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/60 dark:border-zinc-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-700 dark:text-zinc-300 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" />
+                      Pilih Event Yang Tersedia
+                    </span>
+                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
+                      Otomatis tercatat lunas
+                    </span>
+                  </div>
 
-                {/* Opsi 2+: Event Sakune */}
-                {groups.map((g) => {
-                  const isSelected = selectedDestination === g.grup_id;
-                  return (
-                    <button
-                      key={g.grup_id}
-                      type="button"
-                      onClick={() => setSelectedDestination(g.grup_id)}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 relative ${
-                        isSelected
-                          ? "border-black dark:border-white bg-gray-50 dark:bg-zinc-800/80 ring-1 ring-black dark:ring-white shadow-xs"
-                          : "border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900"
-                      }`}
-                    >
-                      <div
-                        className={`p-2 rounded-lg shrink-0 ${
-                          isSelected
-                            ? "bg-black text-white dark:bg-white dark:text-black"
-                            : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
-                        }`}
-                      >
-                        <Layers className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-xs font-bold text-gray-900 dark:text-zinc-100 truncate">
-                            {g.nama_grup}
-                          </span>
-                          {isSelected && (
-                            <span className="w-4 h-4 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0">
-                              <Check className="w-2.5 h-2.5" />
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 leading-snug truncate">
-                          {g.nama_kelas} &bull; Target Rp {g.target_per_mahasiswa.toLocaleString("id-ID")}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                  {groups.length === 0 ? (
+                    <p className="text-xs text-gray-400 dark:text-zinc-500 py-2">
+                      Belum ada event tabungan aktif di kelas Anda.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      <CustomSelect
+                        value={selectedDestination}
+                        onChange={setSelectedDestination}
+                        placeholder="Pilih Event Iuran..."
+                        options={groups.map((g) => ({
+                          value: g.grup_id,
+                          label: `${g.nama_grup} (${g.nama_kelas})`,
+                          sublabel: `Target: Rp ${g.target_per_mahasiswa.toLocaleString("id-ID")}`,
+                        }))}
+                      />
+
+                      {/* Info preview event terpilih */}
+                      {(() => {
+                        const activeGrp = groups.find((g) => g.grup_id === selectedDestination);
+                        if (!activeGrp) return null;
+                        return (
+                          <div className="pt-1 flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 px-1">
+                            <span>Target: <strong className="text-black dark:text-white font-mono">Rp {activeGrp.target_per_mahasiswa.toLocaleString("id-ID")}</strong></span>
+                            <span>Kelas {activeGrp.nama_kelas}</span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Nominal Presets */}
