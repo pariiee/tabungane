@@ -14,20 +14,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Mahasiswa tidak ditemukan" }, { status: 404 });
   }
 
-  const tempPassword = `reset${Math.floor(100000 + Math.random() * 900000)}`;
-  const passwordHash = hashPassword(tempPassword);
+  const defaultId = targetUser.nomor_id || targetUser.nim;
+  const passwordHash = hashPassword(defaultId);
 
-  db.prepare("UPDATE users SET password_hash = ?, must_change_password = 1 WHERE id = ?").run(
+  db.prepare("UPDATE users SET password_hash = ?, username = ?, must_change_password = 1 WHERE id = ?").run(
     passwordHash,
+    defaultId,
     targetUser.id
   );
 
-  logAudit(user.id, "RESET_PASSWORD", targetUser.id, `Reset password untuk NIM: ${targetUser.nim}`);
+  logAudit(user.id, "RESET_PASSWORD", targetUser.id, `Reset password & username ke ID: ${defaultId}`);
 
   return NextResponse.json({
     success: true,
-    temp_password: tempPassword,
-    nim: targetUser.nim,
+    temp_password: defaultId,
+    username: defaultId,
+    nomor_id: defaultId,
+    nim: defaultId,
     nama: targetUser.nama,
+    message: `Akun berhasil direset! Username dan Password login adalah ID: ${defaultId}`,
   });
 }

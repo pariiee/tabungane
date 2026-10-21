@@ -16,11 +16,12 @@ export async function GET(req: Request) {
   const prodiScope = getProdiScope(user);
 
   let query = `
-    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.must_change_password, u.aktif, u.created_at,
-           k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi
+    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.must_change_password, u.aktif, u.created_at,
+           k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi, p.fakultas_id, f.nama as nama_fakultas
     FROM users u
     LEFT JOIN kelas k ON u.kelas_id = k.id
-    LEFT JOIN prodi p ON k.prodi_id = p.id
+    LEFT JOIN prodi p ON (k.prodi_id = p.id OR u.prodi_id = p.id)
+    LEFT JOIN fakultas f ON (p.fakultas_id = f.id OR u.fakultas = f.id OR u.fakultas = f.nama)
     WHERE u.role IN ('mahasiswa', 'admin_kelas')
   `;
   const params: any[] = [];
@@ -106,7 +107,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id, nama, kelas_id, aktif, role } = await req.json();
+  const { id, nama, nomor_id, kelas_id, prodi_id, fakultas, aktif, role } = await req.json();
   if (!id) {
     return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
   }
@@ -130,6 +131,25 @@ export async function PATCH(req: Request) {
   if (nama !== undefined && nama.trim()) {
     updates.push("nama = ?");
     params.push(nama.trim());
+  }
+
+  if (nomor_id !== undefined && nomor_id.trim()) {
+    const cleanNomor = nomor_id.trim();
+    // Cek duplikasi ID
+    const dup = db.prepare("SELECT id FROM users WHERE (nomor_id = ? OR nim = ?) AND id != ?").get(cleanNomor, cleanNomor, id);
+    if (dup) return NextResponse.json({ error: `ID ${cleanNomor} sudah digunakan akun lain` }, { status: 400 });
+    updates.push("nomor_id = ?, nim = ?");
+    params.push(cleanNomor, cleanNomor);
+  }
+
+  if (prodi_id !== undefined) {
+    updates.push("prodi_id = ?");
+    params.push(prodi_id || null);
+  }
+
+  if (fakultas !== undefined) {
+    updates.push("fakultas = ?");
+    params.push(fakultas || null);
   }
 
   if (aktif !== undefined) {

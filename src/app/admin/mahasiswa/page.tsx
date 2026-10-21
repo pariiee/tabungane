@@ -39,20 +39,35 @@ export default function AdminMahasiswaPage() {
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [csvText, setCsvText] = useState("");
 
-  // Modal Tambah Saldo Manual (M4 PRD)
+  // Modal Kelola Saldo (Tambah / Kurang Saldo)
   const [showSaldoModal, setShowSaldoModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
-  const [targetGrupId, setTargetGrupId] = useState("");
+  const [targetTujuan, setTargetTujuan] = useState("dompet_utama");
+  const [jenisAksi, setJenisAksi] = useState<"tambah" | "kurang">("tambah");
+  const [destinasiList, setDestinasiList] = useState<{
+    student: any;
+    dompet: any;
+    kantong: any[];
+    events: any[];
+  } | null>(null);
+  const [loadingDestinasi, setLoadingDestinasi] = useState(false);
   const [nominalManual, setNominalManual] = useState("");
   const [catatanManual, setCatatanManual] = useState("");
 
-  // Modal Edit / Pindah Kelas
+  // Modal Edit Mahasiswa (ID, Nama, Fakultas, Prodi, Kelas)
   const [showEditModal, setShowEditModal] = useState(false);
   const [editStudent, setEditStudent] = useState<any>(null);
+  const [editNomorId, setEditNomorId] = useState("");
   const [editNama, setEditNama] = useState("");
+  const [editFakultas, setEditFakultas] = useState("");
+  const [editProdiId, setEditProdiId] = useState("");
   const [editKelasId, setEditKelasId] = useState("");
   const [editAktif, setEditAktif] = useState(true);
   const [submittingEdit, setSubmittingEdit] = useState(false);
+
+  // Master Data Fakultas & Prodi
+  const [fakultasList, setFakultasList] = useState<any[]>([]);
+  const [prodiList, setProdiList] = useState<any[]>([]);
 
   // Modal Hapus Mahasiswa
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
@@ -76,6 +91,16 @@ export default function AdminMahasiswaPage() {
     fetch("/api/admin/grup")
       .then((res) => res.json())
       .then((d) => setGroups(d.data || []));
+
+    fetch("/api/admin/fakultas")
+      .then((res) => res.json())
+      .then((d) => setFakultasList(d.data || []))
+      .catch(() => {});
+
+    fetch("/api/admin/prodi")
+      .then((res) => res.json())
+      .then((d) => setProdiList(d.data || []))
+      .catch(() => {});
 
     setLoading(false);
   };
@@ -138,7 +163,7 @@ export default function AdminMahasiswaPage() {
     }
   };
 
-  // Reset Password
+  // Reset Password & Username ke ID Mahasiswa
   const handleResetPassword = async (student: any) => {
     try {
       const res = await fetch("/api/admin/mahasiswa/reset-password", {
@@ -147,11 +172,11 @@ export default function AdminMahasiswaPage() {
         body: JSON.stringify({ user_id: student.id }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal reset password");
+      if (!res.ok) throw new Error(data.error || "Gagal reset akun");
 
       setAlertInfo({
-        title: "Password Berhasil Direset",
-        message: `Password sementara untuk NIM ${data.nim} (${data.nama}):`,
+        title: "Akun Berhasil Direset",
+        message: `Username & Password login baru telah disetel ke ID:`,
         tempPassword: data.temp_password,
       });
     } catch (err: any) {
@@ -159,9 +184,30 @@ export default function AdminMahasiswaPage() {
     }
   };
 
-  // Tambah Saldo Manual (M4)
+  // Buka Modal Kelola Saldo (Tambah / Kurang Saldo)
+  const handleOpenSaldo = async (s: any) => {
+    setSelectedStudent(s);
+    setJenisAksi("tambah");
+    setTargetTujuan("dompet_utama");
+    setNominalManual("");
+    setCatatanManual("");
+    setShowSaldoModal(true);
+    setLoadingDestinasi(true);
+    try {
+      const res = await fetch(`/api/admin/mahasiswa/destinasi?user_id=${s.id}`);
+      const d = await res.json();
+      setDestinasiList(d);
+    } catch {
+      setDestinasiList(null);
+    } finally {
+      setLoadingDestinasi(false);
+    }
+  };
+
+  // Submit Saldo Manual (Tambah / Kurang Saldo)
   const handleManualSaldo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedStudent) return;
     setError("");
     try {
       const res = await fetch("/api/admin/transaksi/manual", {
@@ -169,31 +215,36 @@ export default function AdminMahasiswaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: selectedStudent.id,
-          grup_id: targetGrupId,
+          target_tujuan: targetTujuan,
+          jenis_aksi: jenisAksi,
           jumlah: parseInt(nominalManual, 10),
           catatan: catatanManual,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal menambah saldo manual");
+      if (!res.ok) throw new Error(data.error || "Gagal memproses transaksi saldo");
 
       setAlertInfo({
-        title: "Setoran Saldo Berhasil Dicatat",
-        message: `Nominal Rp${parseInt(nominalManual, 10).toLocaleString("id-ID")} berhasil ditambahkan ke ${selectedStudent.nama}`,
+        title: jenisAksi === "tambah" ? "Saldo Berhasil Ditambahkan" : "Saldo Berhasil Dikurangi",
+        message: data.message || `Rp ${parseInt(nominalManual, 10).toLocaleString("id-ID")} untuk ${selectedStudent.nama}`,
       });
 
       setShowSaldoModal(false);
       setNominalManual("");
       setCatatanManual("");
+      loadData();
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // Edit / Pindah Kelas
+  // Edit Data Mahasiswa Lengkap (ID, Nama, Fakultas, Prodi, Kelas)
   const handleOpenEdit = (s: any) => {
     setEditStudent(s);
-    setEditNama(s.nama);
+    setEditNomorId(s.nomor_id || s.nim || "");
+    setEditNama(s.nama || "");
+    setEditFakultas(s.fakultas || s.nama_fakultas || "");
+    setEditProdiId(s.prodi_id || "");
     setEditKelasId(s.kelas_id || "");
     setEditAktif(s.aktif !== 0);
     setShowEditModal(true);
@@ -210,7 +261,10 @@ export default function AdminMahasiswaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: editStudent.id,
+          nomor_id: editNomorId,
           nama: editNama,
+          fakultas: editFakultas,
+          prodi_id: editProdiId,
           kelas_id: editKelasId,
           aktif: editAktif,
         }),
@@ -418,16 +472,12 @@ export default function AdminMahasiswaPage() {
                       <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
                     </button>
                     <button
-                      onClick={() => {
-                        setSelectedStudent(s);
-                        if (groups.length > 0) setTargetGrupId(groups[0].id);
-                        setShowSaldoModal(true);
-                      }}
+                      onClick={() => handleOpenSaldo(s)}
                       className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Setor Saldo Tunai"
+                      title="Kelola Saldo (Tambah / Kurang Saldo)"
                     >
                       <Wallet className="w-3 h-3" />
-                      <span>Setor</span>
+                      <span>Saldo</span>
                     </button>
                     <button
                       onClick={() => handleOpenEdit(s)}
@@ -579,37 +629,83 @@ export default function AdminMahasiswaPage() {
         </div>
       )}
 
-      {/* Modal Tambah Saldo Manual (M4) */}
+      {/* Modal Kelola Saldo (Tambah / Kurang Saldo) */}
       {showSaldoModal && selectedStudent && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Tambah Saldo Manual (Setoran Tunai)</h3>
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Kelola Saldo Mahasiswa</h3>
                 <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                  Untuk: <span className="font-semibold text-gray-900 dark:text-zinc-100">{selectedStudent.nama}</span> ({selectedStudent.nim})
+                  Untuk: <span className="font-semibold text-gray-900 dark:text-zinc-100">{selectedStudent.nama}</span> ({selectedStudent.nomor_id || selectedStudent.nim})
                 </p>
               </div>
-              <button onClick={() => setShowSaldoModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white">
+              <button onClick={() => setShowSaldoModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white cursor-pointer">
                 <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Toggle Tambah / Kurang Saldo */}
+            <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-zinc-900 rounded-xl gap-1">
+              <button
+                type="button"
+                onClick={() => setJenisAksi("tambah")}
+                className={`py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                  jenisAksi === "tambah"
+                    ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-xs"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                + Tambah Saldo
+              </button>
+              <button
+                type="button"
+                onClick={() => setJenisAksi("kurang")}
+                className={`py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                  jenisAksi === "kurang"
+                    ? "bg-rose-600 text-white shadow-xs"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                - Kurangi Saldo
               </button>
             </div>
 
             <form onSubmit={handleManualSaldo} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Pilih Event Sakune</label>
-                <CustomSelect
-                  value={targetGrupId}
-                  onChange={setTargetGrupId}
-                  options={groups.map((g) => ({
-                    value: g.id,
-                    label: `${g.nama} (${g.nama_kelas})`,
-                  }))}
-                />
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Pilih Tujuan Kantong / Saldo
+                </label>
+                {loadingDestinasi ? (
+                  <div className="h-9 flex items-center px-3 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs text-gray-400">
+                    Memuat pos kantong...
+                  </div>
+                ) : (
+                  <CustomSelect
+                    value={targetTujuan}
+                    onChange={setTargetTujuan}
+                    options={[
+                      {
+                        value: "dompet_utama",
+                        label: `Kantong Utama (Dompet) — Rp ${(destinasiList?.dompet?.saldo || 0).toLocaleString("id-ID")}`,
+                      },
+                      ...(destinasiList?.kantong || []).map((k) => ({
+                        value: k.id,
+                        label: `${k.nama} — Rp ${(k.saldo || 0).toLocaleString("id-ID")}`,
+                      })),
+                      ...(destinasiList?.events || []).map((e) => ({
+                        value: e.id,
+                        label: `${e.nama} — Rp ${(e.saldo || 0).toLocaleString("id-ID")}`,
+                      })),
+                    ]}
+                  />
+                )}
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Nominal (Rp)</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Nominal {jenisAksi === "tambah" ? "Setoran / Penambahan" : "Pengurangan"} (Rp)
+                </label>
                 <input
                   type="number"
                   min={1000}
@@ -629,7 +725,7 @@ export default function AdminMahasiswaPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Setor tunai ke bendahara"
+                  placeholder={jenisAksi === "tambah" ? "Contoh: Setor tunai ke bendahara" : "Contoh: Penyesuaian koreksi saldo"}
                   value={catatanManual}
                   onChange={(e) => setCatatanManual(e.target.value)}
                   className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
@@ -640,15 +736,19 @@ export default function AdminMahasiswaPage() {
                 <button
                   type="button"
                   onClick={() => setShowSaldoModal(false)}
-                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900"
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs"
+                  className={`h-9 px-4 rounded-lg text-xs font-medium shadow-xs text-white cursor-pointer ${
+                    jenisAksi === "kurang"
+                      ? "bg-rose-600 hover:bg-rose-700"
+                      : "bg-gray-900 hover:bg-black dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900"
+                  }`}
                 >
-                  Simpan Setoran Tunai
+                  {jenisAksi === "tambah" ? "Simpan Penambahan" : "Simpan Pengurangan"}
                 </button>
               </div>
             </form>
@@ -656,18 +756,18 @@ export default function AdminMahasiswaPage() {
         </div>
       )}
 
-      {/* Modal Edit / Pindah Kelas */}
+      {/* Modal Edit Data Mahasiswa Lengkap (ID, Nama, Fakultas, Prodi, Kelas) */}
       {showEditModal && editStudent && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Edit Data Mahasiswa</h3>
-                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">ID: {editStudent.nim}</p>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">Ubah ID, nama, fakultas, prodi, dan kelas</p>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-black dark:hover:text-white"
+                className="text-gray-400 hover:text-black dark:hover:text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -676,7 +776,20 @@ export default function AdminMahasiswaPage() {
             <form onSubmit={handleSaveEdit} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-                  Nama Mahasiswa
+                  ID Pengguna (NIM / Identitas)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editNomorId}
+                  onChange={(e) => setEditNomorId(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Nama Lengkap Mahasiswa
                 </label>
                 <input
                   type="text"
@@ -689,7 +802,43 @@ export default function AdminMahasiswaPage() {
 
               <div>
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-                  Kelas Perkuliahan (Pindah Kelas)
+                  Fakultas
+                </label>
+                <CustomSelect
+                  value={editFakultas}
+                  onChange={setEditFakultas}
+                  placeholder="Pilih Fakultas"
+                  options={[
+                    { value: "", label: "Pilih Fakultas (Umum / Belum Ditentukan)" },
+                    ...fakultasList.map((f) => ({
+                      value: f.nama,
+                      label: `${f.nama} (${f.kode})`,
+                    })),
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Program Studi (Prodi)
+                </label>
+                <CustomSelect
+                  value={editProdiId}
+                  onChange={setEditProdiId}
+                  placeholder="Pilih Program Studi"
+                  options={[
+                    { value: "", label: "Pilih Program Studi (Umum / Bebas)" },
+                    ...prodiList.map((p) => ({
+                      value: p.id,
+                      label: `${p.nama} (${p.kode})`,
+                    })),
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Kelas Perkuliahan
                 </label>
                 <CustomSelect
                   value={editKelasId}
@@ -724,14 +873,14 @@ export default function AdminMahasiswaPage() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={submittingEdit}
-                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs disabled:opacity-50"
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {submittingEdit ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
@@ -792,9 +941,9 @@ export default function AdminMahasiswaPage() {
         onConfirm={() => {
           if (resetTarget) handleResetPassword(resetTarget);
         }}
-        title="Reset Password Mahasiswa?"
-        message={`Reset password untuk ${resetTarget?.nama} (${resetTarget?.nim})? Sistem akan menghasilkan kata sandi baru secara acak.`}
-        confirmText="Ya, Reset Password"
+        title="Reset Akun Mahasiswa?"
+        message={`Reset akun untuk ${resetTarget?.nama} (${resetTarget?.nomor_id || resetTarget?.nim})? Username dan password akan disetel kembali menjadi ID Pengguna (${resetTarget?.nomor_id || resetTarget?.nim}) agar mahasiswa login sangat mudah.`}
+        confirmText="Ya, Reset Akun"
         isDestructive={false}
       />
 
