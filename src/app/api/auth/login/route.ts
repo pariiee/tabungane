@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { verifyPassword, createSession } from "@/lib/auth";
+import { verifyPassword, createSession, SessionUser } from "@/lib/auth";
 import "@/lib/seed"; // ensure seeded
 
 export async function POST(req: Request) {
