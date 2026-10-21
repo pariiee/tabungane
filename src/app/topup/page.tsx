@@ -1,569 +1,411 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import CustomSelect from "@/components/CustomSelect";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
-  QrCode,
-  CheckCircle2,
-  Clock,
   AlertCircle,
-  RefreshCw,
-  Wallet,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  Sparkles,
   Check,
-  Layers,
+  ChevronDown,
   Info,
+  Layers,
+  QrCode,
+  RefreshCw,
+  Search,
+  Wallet,
+  X,
 } from "lucide-react";
 
-export default function TopUpPage() {
-  const searchParams = useSearchParams();
-  const initialGrupId = searchParams.get("grup_id") || "wallet";
+type Group = {
+  grup_id: string;
+  nama_grup: string;
+  nama_kelas: string;
+  target_per_mahasiswa: number;
+  saldo?: number; // opsional: saldo mahasiswa di event ini (untuk bar progres di popup)
+};
 
-  const [groups, setGroups] = useState<any[]>([]);
-  const [topupHistory, setTopupHistory] = useState<any[]>([]);
-  const [selectedDestination, setSelectedDestination] = useState(initialGrupId);
-  const [amount, setAmount] = useState<number>(25000);
-  const [customAmount, setCustomAmount] = useState("");
+type Trx = {
+  id: string;
+  jumlah: number;
+  status: string;
+  created_at: string;
+  nama_grup?: string;
+};
+
+const PRESETS = [10000, 25000, 50000, 100000];
+const MIN = 1000;
+const MAX = 1000000;
+
+const rp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
+const box = "border border-[#e5e5e5] bg-white dark:border-zinc-800 dark:bg-zinc-950";
+const lbl = "mb-2.5 block text-xs font-semibold uppercase tracking-[0.07em] text-[#555] dark:text-zinc-400";
+const STATUS: Record<string, string> = {
+  berhasil: "Berhasil",
+  pending: "Menunggu",
+  expired: "Kedaluwarsa",
+  canceled: "Dibatalkan",
+};
+
+function Option(props: {
+  checked: boolean;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+  onClick: () => void;
+  trailing?: React.ReactNode;
+  id?: string;
+}) {
+  const { checked, disabled, icon, title, desc, onClick, trailing, id } = props;
+  return (
+    <button
+      id={id}
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={onClick}
+      className={`flex min-w-0 items-center gap-3 border p-3.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+        checked
+          ? "border-[#0a0a0a] bg-[#f5f5f5] dark:border-white dark:bg-zinc-900"
+          : "border-[#e5e5e5] bg-white hover:bg-[#f5f5f5] dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+      }`}
+    >
+      <span
+        className={`grid h-9 w-9 flex-none place-items-center border max-[420px]:hidden ${
+          checked
+            ? "border-[#0a0a0a] bg-[#0a0a0a] text-white dark:border-white dark:bg-white dark:text-black"
+            : "border-[#e5e5e5] bg-[#f5f5f5] dark:border-zinc-800 dark:bg-zinc-900"
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <b className="block truncate text-sm font-semibold">{title}</b>
+        <small className="line-clamp-2 text-xs leading-snug text-[#555] dark:text-zinc-400">{desc}</small>
+      </span>
+      {trailing}
+    </button>
+  );
+}
+
+export default function TopUpPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [history, setHistory] = useState<Trx[]>([]);
+  const [dest, setDest] = useState<string>(searchParams.get("grup_id") || "wallet");
+  const [amount, setAmount] = useState("25000");
+  const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Payment Active State
-  const [activePayment, setActivePayment] = useState<any>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes
-  const [paymentStatus, setPaymentStatus] = useState<"pending" | "berhasil" | "expired">("pending");
-  const [newBalance, setNewBalance] = useState<number>(0);
-  const [simulating, setSimulating] = useState(false);
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const pollRef = useRef<NodeJS.Timeout | null>(null);
-
-  const loadHistory = () => {
-    fetch("/api/student/riwayat?tipe=topup&limit=5")
-      .then((res) => res.json())
-      .then((d) => setTopupHistory(d.data || []));
-  };
+  const dlgRef = useRef<HTMLDialogElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/student/dashboard")
-      .then((res) => res.json())
-      .then((data) => {
-        const grps = data?.groups || [];
+      .then((r) => r.json())
+      .then((d) => {
+        const grps: Group[] = d?.groups || [];
         setGroups(grps);
-      });
-    loadHistory();
+        // grup_id dari URL yang tidak valid -> kembali ke Dompet
+        setDest((prev) => (prev !== "wallet" && !grps.some((g) => g.grup_id === prev) ? "wallet" : prev));
+      })
+      .catch(() => {});
+    fetch("/api/student/riwayat?tipe=topup&limit=5")
+      .then((r) => r.json())
+      .then((d) => setHistory(d.data || []))
+      .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (activePayment && paymentStatus === "pending") {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            setPaymentStatus("expired");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [activePayment, paymentStatus]);
+  const selected = groups.find((g) => g.grup_id === dest);
+  const n = amount === "" ? NaN : Number(amount);
+  const valid = Number.isInteger(n) && n >= MIN && n <= MAX;
+  const showErr = amount !== "" && !valid;
+  const filtered = groups.filter((g) => g.nama_grup.toLowerCase().includes(q.toLowerCase()));
 
-  useEffect(() => {
-    if (activePayment && paymentStatus === "pending") {
-      pollRef.current = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/payments/${activePayment.trxid}/status`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.status === "berhasil") {
-              setPaymentStatus("berhasil");
-              setNewBalance(data.current_balance);
-              if (pollRef.current) clearInterval(pollRef.current);
-              if (timerRef.current) clearInterval(timerRef.current);
-            } else if (data.status === "expired") {
-              setPaymentStatus("expired");
-              if (pollRef.current) clearInterval(pollRef.current);
-            }
-          }
-        } catch (e) {
-          console.error("Polling status error:", e);
-        }
-      }, 3000);
-    }
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [activePayment, paymentStatus]);
+  const openList = () => {
+    setQ("");
+    dlgRef.current?.showModal();
+    if (groups.length > 5) requestAnimationFrame(() => searchRef.current?.focus());
+  };
+  const closeList = () => dlgRef.current?.close();
 
-  const handleCreateQR = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!valid || loading) return;
     setError("");
-
-    const finalAmount = customAmount ? parseInt(customAmount, 10) : amount;
-    if (isNaN(finalAmount) || finalAmount < 1000 || finalAmount > 1000000) {
-      setError("Nominal harus antara Rp 1.000 dan Rp 1.000.000");
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch("/api/payments/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          grup_id: selectedDestination === "wallet" ? null : selectedDestination,
-          amount: finalAmount,
-        }),
+        body: JSON.stringify({ grup_id: dest === "wallet" ? null : dest, amount: n }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal membuat kode QRIS");
-
-      setActivePayment(data);
-      setTimeLeft(300);
-      setPaymentStatus("pending");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
+      // QR, hitung mundur, dan polling status ada di halaman invoice
+      router.push(`/invoice/${data.trxid}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal membuat kode QRIS");
       setLoading(false);
     }
   };
 
-  const handleSimulatePayment = async () => {
-    if (!activePayment) return;
-    setSimulating(true);
-    try {
-      const res = await fetch(`/api/payments/${activePayment.trxid}/status?simulate_pay=1`);
-      const data = await res.json();
-      if (data.status === "berhasil") {
-        setPaymentStatus("berhasil");
-        setNewBalance(data.current_balance);
-        if (pollRef.current) clearInterval(pollRef.current);
-        if (timerRef.current) clearInterval(timerRef.current);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSimulating(false);
-    }
-  };
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  const timeFormatted = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  const nominalPresets = [10000, 25000, 50000, 100000];
-
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-32">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
-          <QrCode className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
-          <span>Top Up Saldo QRIS</span>
+    <div className="mx-auto max-w-5xl space-y-7 pb-32 lg:pb-10">
+      <header>
+        <h1 className="text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-[#0a0a0a] dark:text-white">
+          Top Up Saldo
         </h1>
-        <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-          Scan QR menggunakan GoPay, ShopeePay, BCA, Mandiri, atau mobile banking apapun. Tanpa biaya admin.
+        <p className="mt-1.5 text-[15px] text-[#555] dark:text-zinc-400">
+          Buat QRIS instan untuk menabung. Berlaku 5 menit, tanpa biaya admin.
         </p>
-      </div>
+      </header>
 
-      {error && (
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs rounded-xl border border-rose-200/50 dark:border-rose-800/30 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+        {/* ===== Kiri: form ===== */}
+        <form onSubmit={handleSubmit} noValidate className={`${box} p-5 sm:p-6`}>
+          <h2 className="mb-[22px] flex items-center gap-2.5 text-[17px] font-semibold">
+            <Wallet className="h-5 w-5" strokeWidth={1.8} />
+            Detail Top Up
+          </h2>
 
-      {/* Grid 2 Kolom di Desktop (Formulir di Kiri, Riwayat di Kanan) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Kolom Kiri: Form Topup / Layar Pembayaran QRIS */}
-        <div className="lg:col-span-7 space-y-6">
+          <span id="tujuan-label" className={lbl}>
+            Tujuan
+          </span>
+          <div role="radiogroup" aria-labelledby="tujuan-label" className="grid grid-cols-2 gap-2.5">
+            <Option
+              checked={dest === "wallet"}
+              icon={<Wallet className="h-[18px] w-[18px]" strokeWidth={1.8} />}
+              title="Dompet"
+              desc="Saldo pribadi, bisa dialokasikan ke event"
+              onClick={() => setDest("wallet")}
+            />
+            <Option
+              id="opsi-event"
+              checked={!!selected}
+              disabled={groups.length === 0}
+              icon={<Layers className="h-[18px] w-[18px]" strokeWidth={1.8} />}
+              title={selected ? selected.nama_grup : "Event"}
+              desc={
+                selected
+                  ? `Target ${rp(selected.target_per_mahasiswa)} · Kelas ${selected.nama_kelas}`
+                  : groups.length
+                  ? "Pilih event iuran"
+                  : "Belum ada event aktif"
+              }
+              onClick={openList}
+              trailing={<ChevronDown className="h-4 w-4 flex-none text-[#777]" strokeWidth={1.8} />}
+            />
+          </div>
 
-      {!activePayment ? (
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-6 shadow-xs space-y-6">
-          <form onSubmit={handleCreateQR} className="space-y-5">
-            {/* Pilihan Tujuan Top Up: 2-Tab Switcher [Saldo Utama] vs [Event Iuran] */}
-            <div className="space-y-3">
-              <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider">
-                Tujuan Top Up
-              </label>
+          <div className="mt-[22px] flex flex-wrap gap-2">
+            {PRESETS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                aria-pressed={n === p}
+                onClick={() => setAmount(String(p))}
+                className={`h-[38px] border px-3.5 font-mono text-[13px] font-medium transition-colors ${
+                  n === p
+                    ? "border-[#0a0a0a] bg-[#f5f5f5] dark:border-white dark:bg-zinc-900"
+                    : "border-[#e5e5e5] hover:bg-[#f5f5f5] dark:border-zinc-800 dark:hover:bg-zinc-900"
+                }`}
+              >
+                {rp(p)}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setAmount("")}
+              className="h-[38px] border border-[#e5e5e5] px-3.5 text-[13px] text-[#555] hover:bg-[#f5f5f5] dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            >
+              Hapus
+            </button>
+          </div>
 
-              {/* Top Tabs */}
-              <div className="grid grid-cols-2 p-1 rounded-xl bg-gray-100 dark:bg-zinc-800/80 border border-gray-200/60 dark:border-zinc-800">
-                <button
-                  type="button"
-                  onClick={() => setSelectedDestination("wallet")}
-                  className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    selectedDestination === "wallet"
-                      ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
-                      : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
-                  }`}
-                >
-                  <Wallet className="w-3.5 h-3.5" />
-                  <span>Saldo Utama</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (selectedDestination === "wallet" && groups.length > 0) {
-                      setSelectedDestination(groups[0].grup_id);
-                    }
-                  }}
-                  className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    selectedDestination !== "wallet"
-                      ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
-                      : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
-                  }`}
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Event Iuran {groups.length > 0 ? `(${groups.length})` : ""}</span>
-                </button>
-              </div>
+          <div className="mt-[26px]">
+            <label htmlFor="nominal" className={lbl}>
+              Nominal (Rp)
+            </label>
+            <input
+              id="nominal"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/\D/g, "").slice(0, 7))}
+              className="h-16 w-full border border-[#e5e5e5] bg-white px-[18px] font-mono text-[22px] text-[#0a0a0a] placeholder:text-[#777] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0a0a0a] dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:focus-visible:outline-white"
+            />
+            <p role="status" className={`mt-2.5 text-[13px] ${showErr ? "text-red-600" : "text-[#555] dark:text-zinc-400"}`}>
+              {valid
+                ? `${rp(n)} akan masuk ke ${selected ? selected.nama_grup : "Dompet"}.`
+                : showErr
+                ? `Nominal harus antara ${rp(MIN)} dan ${rp(MAX)}.`
+                : `Isi nominal atau pilih salah satu di atas. Minimal ${rp(MIN)}, maksimal ${rp(MAX)}.`}
+            </p>
+          </div>
 
-              {/* Info Detail Berdasarkan Tab Yang Dipilih */}
-              {selectedDestination === "wallet" ? (
-                <div className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/60 dark:border-zinc-800 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-black text-white dark:bg-white dark:text-black shrink-0">
-                    <Wallet className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-gray-900 dark:text-zinc-100">
-                      Dompet Pribadi Mahasiswa
-                    </p>
-                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                      Saldo langsung masuk ke saku Anda &bull; Bebas transfer ke teman atau alokasi ke event kapan saja.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-200/60 dark:border-zinc-800 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-700 dark:text-zinc-300 flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5" />
-                      Pilih Event Yang Tersedia
-                    </span>
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
-                      Otomatis tercatat lunas
-                    </span>
-                  </div>
-
-                  {groups.length === 0 ? (
-                    <p className="text-xs text-gray-400 dark:text-zinc-500 py-2">
-                      Belum ada event tabungan aktif di kelas Anda.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      <CustomSelect
-                        value={selectedDestination}
-                        onChange={setSelectedDestination}
-                        placeholder="Pilih Event Iuran..."
-                        options={groups.map((g) => ({
-                          value: g.grup_id,
-                          label: `${g.nama_grup} (${g.nama_kelas})`,
-                          sublabel: `Target: Rp ${g.target_per_mahasiswa.toLocaleString("id-ID")}`,
-                        }))}
-                      />
-
-                      {/* Info preview event terpilih */}
-                      {(() => {
-                        const activeGrp = groups.find((g) => g.grup_id === selectedDestination);
-                        if (!activeGrp) return null;
-                        return (
-                          <div className="pt-1 flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 px-1">
-                            <span>Target: <strong className="text-black dark:text-white font-mono">Rp {activeGrp.target_per_mahasiswa.toLocaleString("id-ID")}</strong></span>
-                            <span>Kelas {activeGrp.nama_kelas}</span>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-              )}
+          {error && (
+            <div role="alert" className="mt-4 flex items-center gap-2 border border-red-200 bg-red-50 p-3 text-[13px] text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
+          )}
 
-            {/* Nominal Presets */}
-            <div>
-              <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
-                Pilih Nominal
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                {nominalPresets.map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => {
-                      setAmount(preset);
-                      setCustomAmount("");
-                    }}
-                    className={`h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
-                      amount === preset && !customAmount
-                        ? "border-black dark:border-white bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
-                        : "border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-900"
+          <button
+            type="submit"
+            disabled={!valid || loading}
+            className="mt-[22px] flex h-14 w-full items-center justify-center gap-2.5 bg-[#0a0a0a] text-base font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:bg-[#777] disabled:opacity-70 dark:bg-white dark:text-black dark:disabled:bg-zinc-600 dark:disabled:text-white"
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Menyiapkan invoice…
+              </>
+            ) : (
+              <>
+                <QrCode className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                Buat QRIS
+              </>
+            )}
+          </button>
+          <p className="mt-3.5 text-center text-[13px] text-[#777] dark:text-zinc-500">
+            Verifikasi otomatis · Mendukung GoPay, ShopeePay, dan m-Banking
+          </p>
+        </form>
+
+        {/* ===== Kanan: riwayat + petunjuk ===== */}
+        <div className="grid gap-5">
+          {history.length > 0 && (
+            <section className={`${box} p-5 sm:p-6`}>
+              <div className="mb-1 flex items-center justify-between">
+                <h2 className="text-[17px] font-semibold">Riwayat Top Up QRIS</h2>
+                <Link href="/riwayat" className="text-[13px] text-[#0a0a0a] dark:text-white">
+                  Lihat semua →
+                </Link>
+              </div>
+              <ul>
+                {history.slice(0, 5).map((t, i) => (
+                  <li
+                    key={t.id}
+                    className={`justify-between gap-3 border-b border-[#e5e5e5] py-[15px] text-[13px] last:border-0 dark:border-zinc-800 ${
+                      i >= 3 ? "hidden lg:flex" : "flex"
                     }`}
                   >
-                    Rp {preset.toLocaleString("id-ID")}
-                  </button>
+                    <div>
+                      <b className="font-mono text-sm">+{rp(t.jumlah)}</b>
+                      <small className="block text-[#777] dark:text-zinc-500">
+                        {new Date(t.created_at).toLocaleString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </small>
+                    </div>
+                    <div className="text-right text-xs text-[#555] dark:text-zinc-400">
+                      {STATUS[t.status] || t.status}
+                      <br />
+                      {t.nama_grup || "Dompet"}
+                    </div>
+                  </li>
                 ))}
-              </div>
-
-              {/* Custom Amount */}
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-semibold text-gray-400 dark:text-zinc-500">
-                  Rp
-                </span>
-                <input
-                  type="number"
-                  min={1000}
-                  max={1000000}
-                  step={1000}
-                  placeholder="Atau ketik nominal kustom (1.000 - 1.000.000)"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  className="w-full h-10 pl-11 pr-4 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                />
-              </div>
-              <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1.5">
-                Minimal Rp 1.000, maksimal Rp 1.000.000 per transaksi QRIS.
-              </p>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-10 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Menyiapkan QRIS Dinamis...</span>
-                </>
-              ) : (
-                <>
-                  <QrCode className="w-3.5 h-3.5" />
-                  <span>Lanjut Terbitkan QRIS</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="border-t border-gray-100 dark:border-zinc-800/50 pt-4 flex items-center justify-between text-[11px] text-gray-400 dark:text-zinc-500">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Verifikasi otomatis real-time</span>
-            </span>
-            <span>Gateway qriskuu API</span>
-          </div>
-        </div>
-      ) : (
-        /* Active Payment Screen with QR Code */
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-xl p-6 sm:p-8 shadow-xs text-center space-y-6">
-          {paymentStatus === "pending" && (
-            <>
-              <div>
-                <span className="text-[11px] uppercase tracking-wider font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/30 px-3 py-1 rounded-full">
-                  Menunggu Pembayaran
-                </span>
-                <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">
-                  Total Bayar: Rp {activePayment.amount.toLocaleString("id-ID")}
-                </h2>
-                <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                  ID Transaksi: {activePayment.trxid}
-                </p>
-              </div>
-
-              {/* Countdown Timer */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 rounded-full text-xs font-medium">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Sisa waktu: {timeFormatted}</span>
-              </div>
-
-              {/* QR Image */}
-              <div className="flex justify-center my-2">
-                <div className="p-4 bg-white border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm inline-block">
-                  <img
-                    src={activePayment.qr_url}
-                    alt="QRIS Top Up"
-                    className="w-64 h-64 mx-auto object-contain"
-                  />
-                </div>
-              </div>
-
-              <div className="text-xs text-gray-400 dark:text-zinc-500 max-w-sm mx-auto">
-                Buka GoPay, ShopeePay, BCA, atau m-Banking Anda, pilih Scan QRIS lalu konfirmasi pembayaran.
-              </div>
-
-              {/* Testing / Simulator Action */}
-              <div className="p-3 bg-gray-50/80 dark:bg-zinc-900/60 rounded-xl border border-gray-100 dark:border-zinc-800/60 max-w-sm mx-auto space-y-2">
-                <div className="text-[11px] text-gray-500 dark:text-zinc-400 flex items-center justify-center gap-1">
-                  <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Mode Simulasi Pengujian:</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSimulatePayment}
-                  disabled={simulating}
-                  className="w-full h-8 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 rounded-lg text-xs font-medium transition-colors"
-                >
-                  {simulating ? "Memproses Bayar..." : "Simulasikan Pembayaran Berhasil"}
-                </button>
-              </div>
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setActivePayment(null)}
-                  className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 underline"
-                >
-                  Batalkan & Buat Transaksi Baru
-                </button>
-              </div>
-            </>
+              </ul>
+            </section>
           )}
 
-          {paymentStatus === "berhasil" && (
-            <div className="py-6 space-y-4">
-              <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">Pembayaran Berhasil!</h2>
-                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
-                  Saldo berhasil ditambahkan sebesar Rp {activePayment.amount.toLocaleString("id-ID")}.
-                </p>
-              </div>
-
-              <div className="flex justify-center gap-3 pt-2">
-                <Link
-                  href="/dashboard"
-                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium inline-flex items-center justify-center"
-                >
-                  Kembali ke Dashboard
-                </Link>
-                <button
-                  onClick={() => setActivePayment(null)}
-                  className="h-9 px-4 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 inline-flex items-center justify-center"
-                >
-                  Top Up Lagi
-                </button>
-              </div>
-            </div>
-          )}
-
-          {paymentStatus === "expired" && (
-            <div className="py-6 space-y-4">
-              <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30 rounded-full flex items-center justify-center mx-auto">
-                <AlertCircle className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">QR Kedaluwarsa</h2>
-                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">
-                  Batas waktu pembayaran 5 menit telah habis. Silakan buat kode QR baru.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setActivePayment(null)}
-                className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium inline-flex items-center justify-center shadow-xs"
-              >
-                Buat QR Baru
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-
-      {/* Kolom Kanan: Card Riwayat Top Up Terakhir & Panduan (Side-by-Side di Desktop) */}
-      <div className="lg:col-span-5 space-y-4">
-        <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/60">
-            <div className="flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-black dark:text-white" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-black dark:text-white">
-                Riwayat Top Up QRIS
-              </h3>
-            </div>
-            {topupHistory.length > 0 && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
-                {topupHistory.length} Terakhir
-              </span>
-            )}
-          </div>
-
-          {topupHistory.length === 0 ? (
-            <div className="py-8 text-center text-xs text-gray-400 dark:text-zinc-500">
-              Belum ada riwayat top up QRIS.
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100 dark:divide-zinc-800/60">
-              {topupHistory.map((trx) => {
-                const isBerhasil = trx.status === "berhasil";
-                const isPending = trx.status === "pending";
-                const cleanDate = new Date(trx.created_at).toLocaleString("id-ID", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                });
-
-                return (
-                  <div key={trx.id} className="py-3 flex items-center justify-between gap-3 text-xs">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-black dark:text-white font-mono">
-                          +Rp {trx.jumlah.toLocaleString("id-ID")}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                            isBerhasil
-                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                              : isPending
-                              ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
-                              : "bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400"
-                          }`}
-                        >
-                          {trx.status}
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 dark:text-zinc-500 block truncate mt-0.5">
-                        {cleanDate} &bull; {trx.qris_trx_id || trx.id.slice(0, 8)}
-                      </span>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-[11px] font-medium text-gray-500 dark:text-zinc-400">
-                        {trx.nama_grup || "Dompet"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Tips / Info QRIS Box */}
-        <div className="bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 rounded-2xl p-4 text-xs text-gray-500 dark:text-zinc-400 space-y-2">
-          <div className="flex items-center gap-1.5 font-bold text-gray-900 dark:text-zinc-100 text-[11px] uppercase tracking-wider">
-            <Info className="w-3.5 h-3.5" />
-            <span>Petunjuk Pembayaran QRIS</span>
-          </div>
-          <ul className="text-[11px] text-gray-400 dark:text-zinc-500 space-y-1 list-disc list-inside leading-relaxed">
-            <li>QR dinamis berlaku selama 15 menit sejak diterbitkan.</li>
-            <li>Saldo otomatis bertambah saat itu juga setelah transfer sukses.</li>
-            <li>Mendukung semua e-wallet (GoPay, OVO, ShopeePay) & M-Banking.</li>
-          </ul>
+          <section className={`${box} p-5 sm:p-6`}>
+            <h2 className="mb-3.5 flex items-center gap-2.5 text-[17px] font-semibold">
+              <Info className="h-5 w-5" strokeWidth={1.8} />
+              Petunjuk Pembayaran
+            </h2>
+            <ul className="grid list-disc gap-1.5 pl-[18px] text-[13px] text-[#555] dark:text-zinc-400">
+              <li>Setelah menekan Buat QRIS, kamu diarahkan ke halaman invoice berisi kode QR.</li>
+              <li>QR berlaku selama 5 menit sejak diterbitkan.</li>
+              <li>Saldo otomatis bertambah setelah transfer berhasil.</li>
+            </ul>
+          </section>
         </div>
       </div>
-    </div>
-  </div>
-);
-}
 
+      {/* ===== Popup pilih event (native <dialog>: Esc, focus trap, backdrop bawaan browser) ===== */}
+      <dialog
+        ref={dlgRef}
+        aria-label="Pilih event"
+        onClick={(e) => e.target === dlgRef.current && closeList()}
+        className="m-0 mx-auto mt-auto w-full max-w-[520px] rounded-t-[20px] border border-[#e5e5e5] bg-white p-0 text-[#0a0a0a] backdrop:bg-black/45 lg:my-auto lg:rounded-sm lg:shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+      >
+        <div className="flex max-h-[80vh] flex-col p-4 pb-[max(16px,env(safe-area-inset-bottom))] lg:max-h-[70vh]">
+          <div className="mb-3 flex items-center justify-between">
+            <b className="text-base">Pilih event</b>
+            <button type="button" onClick={closeList} aria-label="Tutup" className="p-1 text-[#555] dark:text-zinc-400">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {groups.length > 5 && (
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-3 h-[18px] w-[18px] text-[#777]" />
+              <input
+                ref={searchRef}
+                type="search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Cari event…"
+                aria-label="Cari event"
+                className="h-11 w-full border border-[#e5e5e5] bg-white pl-10 pr-3 text-[15px] dark:border-zinc-800 dark:bg-zinc-950"
+              />
+            </div>
+          )}
+
+          <div role="listbox" className="mt-2 overflow-auto">
+            {filtered.length === 0 ? (
+              <p className="py-6 text-center text-sm text-[#555] dark:text-zinc-400">Event tidak ditemukan.</p>
+            ) : (
+              filtered.map((g) => {
+                const pct =
+                  g.saldo != null && g.target_per_mahasiswa > 0
+                    ? Math.min(100, Math.round((g.saldo / g.target_per_mahasiswa) * 100))
+                    : null;
+                const on = g.grup_id === dest;
+                return (
+                  <button
+                    key={g.grup_id}
+                    type="button"
+                    role="option"
+                    aria-selected={on}
+                    onClick={() => {
+                      setDest(g.grup_id);
+                      closeList();
+                    }}
+                    className={`flex w-full items-center gap-3 border-b border-[#e5e5e5] px-1 py-3.5 text-left dark:border-zinc-800 ${
+                      on ? "bg-[#f5f5f5] dark:bg-zinc-900" : ""
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <b className="block text-[15px]">{g.nama_grup}</b>
+                      <small className="block text-xs text-[#555] dark:text-zinc-400">
+                        Kelas {g.nama_kelas} · Target {rp(g.target_per_mahasiswa)}
+                      </small>
+                      {pct !== null && (
+                        <div className="mt-2 h-1 overflow-hidden rounded-full border border-[#e5e5e5] bg-[#f5f5f5] dark:border-zinc-800 dark:bg-zinc-900">
+                          <div className="h-full bg-[#0a0a0a] dark:bg-white" style={{ width: `${pct}%` }} />
+                        </div>
+                      )}
+                    </div>
+                    {pct !== null && <span className="font-mono text-[13px] font-bold">{pct}%</span>}
+                    {on && <Check className="h-[18px] w-[18px]" strokeWidth={1.8} />}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </dialog>
+    </div>
+  );
+}
