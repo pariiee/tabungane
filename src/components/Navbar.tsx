@@ -144,7 +144,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-zinc-950 border-b border-[#e5e5e5] dark:border-zinc-800 shadow-none">
+      <header className="w-full h-16 bg-white dark:bg-zinc-950 border-b border-[#e5e5e5] dark:border-zinc-800 shadow-none">
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-full gap-4">
           {/* Brand Logo */}

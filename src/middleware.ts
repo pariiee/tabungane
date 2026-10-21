@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
       if (!adminRoles.includes(payload.role)) {
-        return NextResponse.redirect(new URL("/error/403", request.url));
+        return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     } catch {
       return NextResponse.redirect(new URL("/login", request.url));
