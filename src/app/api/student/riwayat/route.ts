@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const limit = parseInt(searchParams.get("limit") || "50", 10);
 
   let query = `
-    SELECT t.*, COALESCE(g.nama, 'Dompet Utama') as nama_grup
+    SELECT t.id, t.tipe, t.jumlah, t.status, t.catatan, t.paid_at, t.created_at, COALESCE(g.nama, 'Dompet Utama') as nama_grup
     FROM transaksi t
     LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
     LEFT JOIN grup_tabungan g ON kg.grup_id = g.id

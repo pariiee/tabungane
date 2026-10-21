@@ -56,20 +56,20 @@ export async function GET(
   const target = grup.target_per_mahasiswa || 1;
 
   const leaderboard = members
-    .map((m) => {
-      const isMe = m.user_id === user.id;
-      const pct = Math.round((m.saldo / target) * 100);
-      return {
-        user_id: m.user_id,
-        nama: m.nama,
-        nim: isMe || isAdmin ? m.nim : `${m.nim.slice(0, 3)}***`,
-        is_me: isMe,
-        progress_pct: pct,
-        tampilkan_saldo: Boolean(m.tampilkan_saldo),
-        // Saldo dikirim jika diri sendiri, admin, ATAU jika mahasiswa mengizinkan tampil publik
-        saldo: isMe || isAdmin || Boolean(m.tampilkan_saldo) ? m.saldo : null,
-      };
-    })
+  .map((m) => {
+    const isMe = m.user_id === user.id;
+    const pct = Math.round((m.saldo / target) * 100);
+    return {
+      user_id: isMe || isAdmin ? m.user_id : undefined,
+      nama: m.nama,
+      nim: isMe || isAdmin ? (m.nomor_id || m.nim) : `${String(m.nomor_id || m.nim).slice(0, 3)}***`,
+      is_me: isMe,
+      progress_pct: pct,
+      tampilkan_saldo: Boolean(m.tampilkan_saldo),
+      // Saldo dikirim jika diri sendiri, admin, ATAU jika mahasiswa mengizinkan tampil publik
+      saldo: isMe || isAdmin || Boolean(m.tampilkan_saldo) ? m.saldo : null,
+    };
+  })
     .sort((a, b) => {
       if (b.progress_pct !== a.progress_pct) {
         return b.progress_pct - a.progress_pct; // Urut persen tertinggi

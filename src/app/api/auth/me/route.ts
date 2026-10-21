@@ -12,7 +12,29 @@ export async function GET() {
     await createSession(user);
   } catch {}
 
-  return NextResponse.json({ user });
+  const sanitizedUser = {
+    id: user.id,
+    nomor_id: user.nomor_id,
+    nim: user.nomor_id,
+    nama: user.nama,
+    username: user.username,
+    role: user.role,
+    nama_kelas: user.nama_kelas,
+    nama_prodi: user.nama_prodi,
+    nama_fakultas: user.nama_fakultas,
+    foto_url: user.foto_url,
+    tampilkan_saldo_leaderboard: user.tampilkan_saldo_leaderboard,
+    ...(user.role !== "mahasiswa"
+      ? {
+          custom_title: user.custom_title,
+          managed_kelas_ids: user.managed_kelas_ids,
+          prodi_id: user.prodi_id,
+          fakultas: user.fakultas,
+        }
+      : {}),
+  };
+
+  return NextResponse.json({ user: sanitizedUser });
 }
 
 export async function PATCH(req: Request) {

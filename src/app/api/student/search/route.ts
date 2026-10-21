@@ -16,7 +16,7 @@ export async function GET(req: Request) {
 
   const term = `%${q}%`;
   const students = db.prepare(`
-    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nama, u.username, k.nama as nama_kelas
+    SELECT COALESCE(u.nomor_id, u.nim) as nomor_id, u.nama, u.username, k.nama as nama_kelas
     FROM users u
     LEFT JOIN kelas k ON u.kelas_id = k.id
     WHERE u.role IN ('mahasiswa', 'admin_kelas')

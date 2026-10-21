@@ -80,10 +80,10 @@ export async function GET(req: Request) {
 
     return {
       rank: currentRank,
-      user_id: m.user_id,
+      user_id: isMe || isAdmin ? m.user_id : undefined,
       nama: m.nama,
       foto_url: m.foto_url || null,
-      nim: isMe || isAdmin ? m.nim : `${m.nim.slice(0, 3)}***`,
+      nim: isMe || isAdmin ? (m.nomor_id || m.nim) : `${String(m.nomor_id || m.nim).slice(0, 3)}***`,
       nama_kelas: m.nama_kelas,
       is_me: isMe,
       tampilkan_saldo: isPublic,
