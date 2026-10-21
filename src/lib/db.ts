@@ -227,6 +227,38 @@ try {
     if (!uCols.some((c) => c.name === "custom_title")) {
       db.exec("ALTER TABLE users ADD COLUMN custom_title TEXT DEFAULT NULL;");
     }
+    if (!uCols.some((c) => c.name === "nomor_id")) {
+      db.exec("ALTER TABLE users ADD COLUMN nomor_id TEXT;");
+      db.exec("UPDATE users SET nomor_id = nim WHERE nomor_id IS NULL;");
+      db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nomor_id ON users(nomor_id);");
+    }
+
+    // Bidirectional triggers to retire legacy nim while ensuring 100% data integrity
+    db.exec(`
+      CREATE TRIGGER IF NOT EXISTS trg_users_nomor_id_ins AFTER INSERT ON users
+      WHEN NEW.nomor_id IS NULL AND NEW.nim IS NOT NULL
+      BEGIN
+        UPDATE users SET nomor_id = NEW.nim WHERE id = NEW.id;
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS trg_users_nim_ins AFTER INSERT ON users
+      WHEN NEW.nim IS NULL AND NEW.nomor_id IS NOT NULL
+      BEGIN
+        UPDATE users SET nim = NEW.nomor_id WHERE id = NEW.id;
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS trg_users_nomor_id_upd AFTER UPDATE OF nim ON users
+      WHEN NEW.nim IS NOT OLD.nim AND (NEW.nomor_id IS NULL OR NEW.nomor_id != NEW.nim)
+      BEGIN
+        UPDATE users SET nomor_id = NEW.nim WHERE id = NEW.id;
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS trg_users_nim_upd AFTER UPDATE OF nomor_id ON users
+      WHEN NEW.nomor_id IS NOT OLD.nomor_id AND (NEW.nim IS NULL OR NEW.nim != NEW.nomor_id)
+      BEGIN
+        UPDATE users SET nim = NEW.nomor_id WHERE id = NEW.id;
+      END;
+    `);
   } catch (err) {
     console.error("Migration users column error:", err);
   }

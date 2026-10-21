@@ -7,7 +7,8 @@ const COOKIE_NAME = "tabungane_session";
 
 export interface SessionUser {
   id: string;
-  nim: string;
+  nomor_id: string;
+  nim: string; // alias legacy
   nama: string;
   username?: string | null;
   custom_title?: string | null;
@@ -102,9 +103,12 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     // Normalisasi role: jika role admin tanpa prodi_id dan tanpa fakultas dan tanpa kelas, jadikan super_admin
     const effectiveRole = (row.role === "admin" && !row.prodi_id && !row.fakultas && !row.managed_kelas_ids) ? "super_admin" : row.role;
 
+    const nomorId = row.nomor_id || row.nim;
+
     return {
       id: row.id,
-      nim: row.nim,
+      nomor_id: nomorId,
+      nim: nomorId,
       nama: row.nama,
       username: row.username || null,
       custom_title: row.custom_title || null,
