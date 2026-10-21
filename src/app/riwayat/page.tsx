@@ -174,31 +174,29 @@ export default function RiwayatPage() {
 
       {/* Tabel Riwayat Transaksi */}
       <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
-        {loading ? (
-          <div className="p-6">
-            <TableRowsSkeleton rows={6} />
-          </div>
-        ) : filteredList.length === 0 ? (
-          <div className="py-16 text-center space-y-2">
-            <History className="w-8 h-8 text-gray-300 dark:text-zinc-700 mx-auto" />
-            <p className="text-xs text-gray-400 dark:text-zinc-500">
-              Tidak ada catatan transaksi pada filter ini.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-zinc-800/80 bg-gray-50/70 dark:bg-zinc-900/50 text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
-                  <th className="py-3 px-4 sm:px-5">Tanggal</th>
-                  <th className="py-3 px-4 sm:px-5">Jumlah</th>
-                  <th className="py-3 px-4 sm:px-5">Category</th>
-                  <th className="py-3 px-4 sm:px-5">Status</th>
-                  <th className="py-3 px-4 sm:px-5">Keterangan</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-zinc-800/80 bg-gray-50/70 dark:bg-zinc-900/50 text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+                <th className="py-3 px-4 sm:px-5">Tanggal</th>
+                <th className="py-3 px-4 sm:px-5">Jumlah</th>
+                <th className="py-3 px-4 sm:px-5">Category</th>
+                <th className="py-3 px-4 sm:px-5">Status</th>
+                <th className="py-3 px-4 sm:px-5">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60 text-gray-700 dark:text-zinc-300">
+              {loading ? (
+                <TableRowsSkeleton rows={5} cols={5} />
+              ) : filteredList.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center text-xs text-gray-400 dark:text-zinc-500">
+                    <History className="w-8 h-8 text-gray-300 dark:text-zinc-700 mx-auto mb-2" />
+                    <span>Tidak ada catatan transaksi pada filter ini.</span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60 text-gray-700 dark:text-zinc-300">
-                {filteredList.map((t) => {
+              ) : (
+                filteredList.map((t) => {
                   const { label, isPositive } = getCategoryInfo(t);
                   const isSuccess = t.status === "berhasil";
 
@@ -280,11 +278,11 @@ export default function RiwayatPage() {
                       </td>
                     </tr>
                   );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
