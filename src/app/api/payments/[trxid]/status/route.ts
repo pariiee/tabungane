@@ -28,8 +28,13 @@ export async function GET(
     trx.status = "expired";
   }
 
-  // Developer simulation helper for testing without live merchant account
+  // Developer simulation helper: strictly restrict to authenticated Super Admin or local dev
   if (simulatePay && trx.status === "pending") {
+    const { getCurrentUser } = require("@/lib/auth");
+    const user = await getCurrentUser();
+    if (!user || user.role !== "super_admin") {
+      return NextResponse.json({ error: "Simulasi pembayaran hanya diizinkan untuk Tim Developer" }, { status: 403 });
+    }
     db.prepare("UPDATE transaksi SET status = 'berhasil', paid_at = CURRENT_TIMESTAMP WHERE id = ?").run(trx.id);
     trx.status = "berhasil";
     trx.paid_at = new Date().toISOString();

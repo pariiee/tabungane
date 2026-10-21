@@ -120,7 +120,17 @@ export async function GET() {
     .all(user.id, user.id);
 
   return NextResponse.json({
-    user,
+    user: {
+      id: user.id,
+      nomor_id: user.nomor_id,
+      nama: user.nama,
+      username: user.username,
+      role: user.role,
+      nama_kelas: user.nama_kelas,
+      nama_prodi: user.nama_prodi,
+      nama_fakultas: user.nama_fakultas,
+      foto_url: user.foto_url,
+    },
     kpi: {
       saldo_dompet: saldoDompet,
       total_tabungan: totalTabungan,
