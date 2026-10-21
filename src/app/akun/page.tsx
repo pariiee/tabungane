@@ -23,6 +23,7 @@ import {
   Pencil,
   X,
   Lock,
+  Wifi,
 } from "lucide-react";
 
 export default function AkunPage() {
@@ -70,7 +71,6 @@ export default function AkunPage() {
         if (userData.user) {
           setUser(userData.user);
           setUsernameInput(userData.user.username || "");
-          // Sensor saldo langsung tersinkron dengan preferensi leaderboard
           setShowCardBalance(Boolean(userData.user.tampilkan_saldo_leaderboard));
         }
         if (typeof walletData.balance === "number") {
@@ -168,7 +168,7 @@ export default function AkunPage() {
     }
   };
 
-  // Tombol mata di atas kartu langsung mengontrol sensor saldo kartu & privasi leaderboard
+  // Tombol mata di atas kartu mengontrol sensor saldo kartu & privasi leaderboard secara otomatis
   const handleToggleSensorSaldo = async () => {
     const nextVal = !showCardBalance;
     setShowCardBalance(nextVal);
@@ -220,90 +220,87 @@ export default function AkunPage() {
 
   if (pageLoading) {
     return (
-      <div className="py-4">
+      <div className="max-w-5xl mx-auto py-8">
         <ProfileSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-32">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-6 pb-32">
+      {/* Header Halaman */}
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
-          <User className="w-5 h-5 text-gray-700 dark:text-zinc-300" />
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
+          <User className="w-6 h-6 text-black dark:text-white" strokeWidth={2} />
           <span>Pengaturan Akun & Profil</span>
         </h1>
-        <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+        <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
           Kelola foto profil, username unik, dan keamanan kata sandi Anda.
         </p>
       </div>
 
       {user && (
-        <>
-          {/* Avatar & Identitas Header */}
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {/* Avatar Preview with Camera Overlay */}
-                <div className="relative group shrink-0">
-                  <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-xl shadow-xs overflow-hidden border border-gray-200 dark:border-zinc-700">
-                    {user.foto_url ? (
-                      <img
-                        src={user.foto_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <span>{user.nama?.charAt(0) || "U"}</span>
-                    )}
-                  </div>
-                  <label
-                    htmlFor="avatar-input"
-                    className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black shadow-md border-2 border-white dark:border-zinc-900 cursor-pointer hover:scale-110 transition-transform"
-                    title="Ganti Foto Profil"
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                    <input
-                      id="avatar-input"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="sr-only"
-                      disabled={uploadingPhoto}
-                      onChange={handlePhotoUpload}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* ===== KOLOM KIRI (5/12): Profil Singkat & Kartu Virtual Bank ===== */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Card Avatar & Identitas Singkat */}
+            <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs text-center space-y-4">
+              {/* Avatar dengan Badge Kamera */}
+              <div className="relative inline-block mx-auto">
+                <div className="w-20 h-20 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-2xl shadow-sm overflow-hidden border border-gray-200 dark:border-zinc-700">
+                  {user.foto_url ? (
+                    <img
+                      src={user.foto_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
-                  </label>
+                  ) : (
+                    <span>{user.nama?.charAt(0) || "U"}</span>
+                  )}
                 </div>
+                <label
+                  htmlFor="avatar-input"
+                  className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black shadow-md border-2 border-white dark:border-zinc-900 cursor-pointer hover:scale-110 transition-transform"
+                  title="Ganti Foto Profil"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <input
+                    id="avatar-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={uploadingPhoto}
+                    onChange={handlePhotoUpload}
+                  />
+                </label>
+              </div>
 
-                <div className="min-w-0">
-                  <h2 className="text-base font-bold text-gray-900 dark:text-zinc-100 truncate">
-                    {user.nama}
-                  </h2>
-                  <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 flex items-center gap-2">
-                    {user.username ? (
-                      <span className="font-mono text-gray-700 dark:text-zinc-300">@{user.username}</span>
-                    ) : (
-                      <span className="italic text-gray-400 dark:text-zinc-500">username belum di set</span>
-                    )}
-                    <span>&bull;</span>
-                    <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-semibold text-[10px]">
-                      {user.custom_title || (user.role === "super_admin" ? "Tim Developer" : user.role === "admin_kelas" ? "Adminya Kelas" : user.role)}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
-                    Format JPG, PNG, WEBP &bull; Maks. 500 KB
-                  </p>
+              {/* Nama, Username, dan Role Badge */}
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100 truncate">
+                  {user.nama}
+                </h2>
+                <div className="mt-1 flex items-center justify-center gap-2 text-xs">
+                  {user.username ? (
+                    <span className="font-mono text-gray-700 dark:text-zinc-300">@{user.username}</span>
+                  ) : (
+                    <span className="italic text-gray-400 dark:text-zinc-500">username belum di set</span>
+                  )}
+                  <span>&bull;</span>
+                  <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-semibold text-[10px]">
+                    {user.custom_title || (user.role === "super_admin" ? "Tim Developer" : user.role === "admin_kelas" ? "Adminya Kelas" : user.role)}
+                  </span>
                 </div>
               </div>
 
-              {/* Avatar Actions */}
-              <div className="flex items-center gap-2 self-start sm:self-center">
+              {/* Tombol Aksi Foto */}
+              <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
                 <label
                   htmlFor="avatar-input"
-                  className={`px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
                     uploadingPhoto ? "opacity-50 pointer-events-none" : ""
                   }`}
                 >
@@ -320,306 +317,327 @@ export default function AkunPage() {
                     type="button"
                     onClick={() => setShowDeleteModal(true)}
                     disabled={uploadingPhoto}
-                    className="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer inline-flex items-center gap-1"
-                    title="Hapus Foto"
+                    className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer inline-flex items-center gap-1"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Hapus</span>
+                    <span>Hapus</span>
                   </button>
                 )}
               </div>
+
+              {/* Feedback Alerts Foto */}
+              {photoError && (
+                <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs flex items-center justify-center gap-2 text-left">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{photoError}</span>
+                </div>
+              )}
+
+              {photoSuccess && (
+                <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{photoSuccess}</span>
+                </div>
+              )}
             </div>
 
-            {/* Photo Feedback Alerts */}
-            {photoError && (
-              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{photoError}</span>
-              </div>
-            )}
-
-            {photoSuccess && (
-              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>{photoSuccess}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Lengkap Info Akademik (Nama, NIM, Fakultas, Prodi, Kelas Terkunci; Hanya Username yang Bisa Diubah) */}
-          <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/60">
-              <span className="text-xs font-bold uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
-                <GraduationCap className="w-4 h-4" />
-                Data & Informasi Mahasiswa
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setUsernameInput(user.username || "");
-                  setUsernameError("");
-                  setIsEditingUsername(true);
-                }}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
-              >
-                <Pencil className="w-3 h-3" />
-                <span>Ubah Username</span>
-              </button>
-            </div>
-
-            {/* Grid 6 Detail */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {/* Nama Lengkap (Terkunci dari Kampus) */}
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                    Nama Lengkap
-                  </span>
-                  <Lock className="w-2.5 h-2.5 text-gray-400" />
-                </div>
-                <span className="text-xs font-bold text-black dark:text-white mt-1 block truncate">
-                  {user.nama}
+            {/* Card ATM Virtual Sakune (Aspek Rasio Kartu Bank Realistis) */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-gray-500 dark:text-zinc-400 flex items-center gap-1.5 uppercase tracking-wider">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Kartu Virtual Sakune</span>
                 </span>
+                {/* Tombol Mata Sensor Saldo Terintegrasi */}
+                <button
+                  type="button"
+                  onClick={handleToggleSensorSaldo}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                  title={showCardBalance ? "Sensor saldo di kartu & Leaderboard" : "Tampilkan nominal saldo"}
+                >
+                  {showCardBalance ? (
+                    <>
+                      <Eye className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Saldo Terbuka</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="w-3.5 h-3.5 text-gray-400" />
+                      <span>Saldo Disensor</span>
+                    </>
+                  )}
+                </button>
               </div>
 
-              {/* Username (Bisa diubah mandiri via modal popup) */}
-              <div
-                onClick={() => {
-                  setUsernameInput(user.username || "");
-                  setUsernameError("");
-                  setIsEditingUsername(true);
-                }}
-                className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group"
-                title="Klik untuk ubah username"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                    Username
-                  </span>
-                  <Pencil className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Desain Kartu ATM Elegan */}
+              <div className="relative rounded-2xl p-6 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 text-white shadow-xl border border-zinc-800/80 aspect-[1.58/1] flex flex-col justify-between overflow-hidden group">
+                <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-white/5 blur-2xl pointer-events-none group-hover:bg-white/10 transition-all duration-700" />
+
+                {/* Top Row Kartu */}
+                <div className="flex items-start justify-between relative z-10">
+                  <div className="flex items-center gap-2.5">
+                    {/* Chip EMV Emas */}
+                    <div className="w-10 h-7 rounded-sm bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 border border-amber-300/50 relative shadow-inner overflow-hidden flex items-center justify-center">
+                      <div className="w-full h-[1px] bg-amber-800/50 absolute top-1/2 -translate-y-1/2" />
+                      <div className="h-full w-[1px] bg-amber-800/50 absolute left-1/3" />
+                      <div className="h-full w-[1px] bg-amber-800/50 absolute right-1/3" />
+                    </div>
+                    <Wifi className="w-4 h-4 text-zinc-400 rotate-90" />
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-xs font-black tracking-wider text-white block">
+                      SAKUNE<span className="text-emerald-400">.</span>
+                    </span>
+                    <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-mono">
+                      DEBIT
+                    </span>
+                  </div>
                 </div>
-                {user.username ? (
-                  <span className="text-xs font-mono font-bold text-black dark:text-white mt-1 block truncate">
-                    @{user.username}
+
+                {/* Saldo Siap Pakai di Tengah */}
+                <div className="relative z-10 my-auto py-2">
+                  <span className="text-[9px] text-zinc-400 uppercase tracking-widest block font-medium">
+                    Saldo Dompet Utama
                   </span>
-                ) : (
-                  <span className="text-xs italic text-gray-400 dark:text-zinc-500 mt-1 block truncate">
-                    username belum di set
-                  </span>
-                )}
-              </div>
-
-              {/* NIM (Terkunci) */}
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                    NIM
-                  </span>
-                  <Lock className="w-2.5 h-2.5 text-gray-400" />
-                </div>
-                <span className="text-xs font-mono font-bold text-black dark:text-white mt-1 block truncate">
-                  {user.nim}
-                </span>
-              </div>
-
-              {/* Fakultas (Terkunci) */}
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                    Fakultas
-                  </span>
-                  <Lock className="w-2.5 h-2.5 text-gray-400" />
-                </div>
-                <span className="text-xs font-medium text-black dark:text-white mt-1 block truncate">
-                  {user.nama_fakultas || user.fakultas || "Fakultas Ilmu Komputer"}
-                </span>
-              </div>
-
-              {/* Program Studi (Terkunci) */}
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                    Program Studi
-                  </span>
-                  <Lock className="w-2.5 h-2.5 text-gray-400" />
-                </div>
-                <span className="text-xs font-medium text-black dark:text-white mt-1 block truncate">
-                  {user.nama_prodi || "Sistem Informasi"}
-                </span>
-              </div>
-
-              {/* Kelas (Terkunci) */}
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                    Kelas
-                  </span>
-                  <Lock className="w-2.5 h-2.5 text-gray-400" />
-                </div>
-                <span className="text-xs font-bold font-mono text-black dark:text-white mt-1 block truncate">
-                  {user.nama_kelas || "-"}
-                </span>
-              </div>
-            </div>
-            <p className="text-[10px] text-gray-400 dark:text-zinc-500 pt-1 border-t border-gray-100 dark:border-zinc-800/50">
-              * Data akademik resmi (Nama Lengkap, NIM, Fakultas, Prodi, Kelas) hanya dapat diubah oleh Dekan, Kaprodi, atau Administrator.
-            </p>
-          </div>
-
-          {/* Virtual Credit / Debit Card Wallet dengan Tombol Sensor Saldo Terintegrasi */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 flex items-center gap-1.5 uppercase tracking-wider">
-                <CreditCard className="w-3.5 h-3.5" />
-                <span>Kartu Virtual Sakune</span>
-              </span>
-              {/* Tombol Mata Sensor Saldo Langsung (Mengontrol tampilan kartu & Leaderboard) */}
-              <button
-                type="button"
-                onClick={handleToggleSensorSaldo}
-                className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
-                title={showCardBalance ? "Sensor saldo di kartu & Leaderboard" : "Tampilkan saldo di kartu & Leaderboard"}
-              >
-                {showCardBalance ? (
-                  <>
-                    <Eye className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Saldo Terbuka</span>
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="w-3.5 h-3.5 text-gray-400" />
-                    <span>Saldo Disensor</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="relative rounded-2xl p-6 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 text-white shadow-xl border border-zinc-800/80">
-              {/* Header Kartu */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono tracking-widest text-zinc-400 uppercase">
-                  SAKUNE SISFOR DEBIT
-                </span>
-                <div className="w-7 h-5 rounded bg-amber-400/80 border border-amber-300/40 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_50%,transparent_75%)]" />
-                </div>
-              </div>
-
-              {/* EMV Microchip */}
-              <div className="mt-5 flex items-center gap-3">
-                <div className="w-9 h-7 rounded bg-amber-300/90 border border-amber-200 shadow-inner flex items-center justify-center">
-                  <div className="w-7 h-5 border border-amber-500/50 rounded-xs" />
-                </div>
-                <span className="text-[10px] text-zinc-400 font-mono tracking-wider">
-                  DIGITAL WALLET
-                </span>
-              </div>
-
-              {/* Saldo Dompet */}
-              <div className="mt-5">
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
-                  Saldo Siap Pakai
-                </span>
-                <div className="flex items-baseline justify-between mt-0.5">
-                  <span className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-white">
+                  <div className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-white mt-0.5">
                     {showCardBalance
-                      ? wallet
+                      ? wallet !== null
                         ? `Rp ${wallet.balance.toLocaleString("id-ID")}`
                         : "Rp 0"
                       : "••••••••••"}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-semibold border border-emerald-500/30">
-                    Aktif
-                  </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Footer Kartu */}
-              <div className="mt-6 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono">{formatCardNumber(user.nim)}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(user.nim);
-                      setCopiedNIM(true);
-                      setTimeout(() => setCopiedNIM(false), 2000);
-                    }}
-                    className="p-1 hover:text-white transition-colors cursor-pointer"
-                    title="Salin NIM"
-                  >
-                    {copiedNIM ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  </button>
+                {/* Footer Kartu: Nomor NIM & Cardholder */}
+                <div className="relative z-10 pt-2 border-t border-zinc-800/80 flex items-end justify-between text-xs">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-zinc-300 font-mono text-xs tracking-wider">
+                      <span>{formatCardNumber(user.nim)}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(user.nim || "");
+                          setCopiedNIM(true);
+                          setTimeout(() => setCopiedNIM(false), 2000);
+                        }}
+                        className="p-1 hover:text-white transition-colors cursor-pointer"
+                        title="Salin NIM"
+                      >
+                        {copiedNIM ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
+                      </button>
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold truncate block mt-0.5 max-w-[180px]">
+                      {user.nama}
+                    </span>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-[8px] uppercase tracking-widest text-zinc-500 block">
+                      Valid Thru
+                    </span>
+                    <span className="font-mono text-[11px] text-zinc-300 font-bold">
+                      12/28
+                    </span>
+                  </div>
                 </div>
-                <span className="text-[11px] font-semibold text-zinc-300">MAHASISWA PORTAL</span>
               </div>
             </div>
           </div>
-        </>
-      )}
 
-      {/* Change Password Card */}
-      <div className="bg-white dark:bg-[#111113] border border-gray-100 dark:border-zinc-800/80 rounded-2xl p-6 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-zinc-800/50">
-          <KeyRound className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
-          <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">
-            Ganti Kata Sandi
-          </h3>
+          {/* ===== KOLOM KANAN (7/12): Data Akademik & Ganti Password ===== */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Card Data & Informasi Mahasiswa */}
+            <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/80">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4" />
+                  Data & Informasi Mahasiswa
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsernameInput(user.username || "");
+                    setUsernameError("");
+                    setIsEditingUsername(true);
+                  }}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" />
+                  <span>Ubah Username</span>
+                </button>
+              </div>
+
+              {/* Grid 6 Detail */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Nama Lengkap (Terkunci) */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                      Nama Lengkap
+                    </span>
+                    <Lock className="w-2.5 h-2.5 text-gray-400" />
+                  </div>
+                  <span className="text-xs font-bold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                    {user.nama}
+                  </span>
+                </div>
+
+                {/* Username (Bisa diubah mandiri via popup) */}
+                <div
+                  onClick={() => {
+                    setUsernameInput(user.username || "");
+                    setUsernameError("");
+                    setIsEditingUsername(true);
+                  }}
+                  className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group"
+                  title="Klik untuk ubah username"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                      Username
+                    </span>
+                    <Pencil className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  {user.username ? (
+                    <span className="text-xs font-mono font-bold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                      @{user.username}
+                    </span>
+                  ) : (
+                    <span className="text-xs italic text-gray-400 dark:text-zinc-500 mt-1 block truncate">
+                      username belum di set
+                    </span>
+                  )}
+                </div>
+
+                {/* NIM (Terkunci) */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                      NIM
+                    </span>
+                    <Lock className="w-2.5 h-2.5 text-gray-400" />
+                  </div>
+                  <span className="text-xs font-mono font-bold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                    {user.nim}
+                  </span>
+                </div>
+
+                {/* Fakultas (Terkunci) */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                      Fakultas
+                    </span>
+                    <Lock className="w-2.5 h-2.5 text-gray-400" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                    {user.nama_fakultas || user.fakultas || "Fakultas Ilmu Komputer"}
+                  </span>
+                </div>
+
+                {/* Program Studi (Terkunci) */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                      Program Studi
+                    </span>
+                    <Lock className="w-2.5 h-2.5 text-gray-400" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                    {user.nama_prodi || "Sistem Informasi"}
+                  </span>
+                </div>
+
+                {/* Kelas (Terkunci) */}
+                <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                      Kelas
+                    </span>
+                    <Lock className="w-2.5 h-2.5 text-gray-400" />
+                  </div>
+                  <span className="text-xs font-bold font-mono text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                    {user.nama_kelas || "-"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/60 flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-zinc-500">
+                <Lock className="w-3 h-3 shrink-0" />
+                <span>Data akademik resmi hanya dapat diubah oleh Dekan, Kaprodi, atau Administrator.</span>
+              </div>
+            </div>
+
+            {/* Card Keamanan & Ganti Kata Sandi */}
+            <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-zinc-800/80">
+                <KeyRound className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
+                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-xs uppercase tracking-wider">
+                  Keamanan Kata Sandi
+                </h3>
+              </div>
+
+              {message && (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/30 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{message}</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs rounded-xl border border-rose-200/50 dark:border-rose-800/30 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                      Password Baru
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Min. 6 karakter"
+                      className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                      Konfirmasi Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Ulangi password baru"
+                      className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={loading || !newPassword}
+                    className="h-10 px-5 bg-black hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-black rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+                    <span>{loading ? "Menyimpan..." : "Simpan Password Baru"}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-
-        {message && (
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs rounded-lg border border-emerald-200/50 dark:border-emerald-800/30 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{message}</span>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs rounded-lg border border-rose-200/50 dark:border-rose-800/30 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div>
-            <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1.5">
-              Password Baru (min. 6 karakter)
-            </label>
-            <input
-              type="password"
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1.5">
-              Konfirmasi Password Baru
-            </label>
-            <input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full h-10 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 cursor-pointer"
-          >
-            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
-            <span>{loading ? "Menyimpan Perubahan..." : "Simpan Password Baru"}</span>
-          </button>
-        </form>
-      </div>
+      )}
 
       {/* Custom Monochrome Confirmation Modal for Photo Delete */}
       {showDeleteModal && (
@@ -635,14 +653,14 @@ export default function AkunPage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={confirmPhotoDelete}
-                className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer"
               >
                 Ya, Hapus
               </button>
