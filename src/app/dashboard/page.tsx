@@ -508,11 +508,11 @@ export default function StudentDashboardPage() {
       </div>
 
       {/* Kantong Keuangan Mahasiswa (Ala Bank Jago - Max 3 Termasuk Kantong Utama) */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
+              <h2 className="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
                 <PiggyBank className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Kantong Sakune</span>
               </h2>
@@ -521,7 +521,7 @@ export default function StudentDashboardPage() {
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-              Pos keuangan terpisah berbentuk kartu persegi untuk mengatur pos finansialmu.
+              Pos keuangan terpisah untuk membagi tabungan pribadi sesuai kebutuhan.
             </p>
           </div>
 
@@ -539,50 +539,46 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* 1. Kantong Utama / Dompet Pribadi (Default Permanen - Persegi) */}
-          <div className="bg-white dark:bg-zinc-900 border-2 border-emerald-500/50 dark:border-emerald-500/40 rounded-2xl p-5 shadow-xs flex flex-col justify-between aspect-square relative overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-stretch">
+          {/* 1. Kantong Utama / Dompet Pribadi (Default Permanen) */}
+          <div className="bg-white dark:bg-zinc-900 border border-emerald-500/40 dark:border-emerald-500/30 rounded-xl p-4 shadow-xs flex flex-col justify-between min-h-[160px] sm:min-h-[168px] relative">
             <div className="flex items-start justify-between gap-2">
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-800/60 font-bold">
-                  Kantong Utama &bull; Default
-                </span>
-                <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-base mt-2">Dompet Pribadi</h3>
-              </div>
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <Wallet className="w-4 h-4" />
-              </div>
+              <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 font-semibold">
+                Kantong Utama &bull; Default
+              </span>
+              <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             </div>
 
-            <div>
-              <div className="text-2xl font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+            <div className="my-2">
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Dompet Pribadi</h3>
+              <div className="text-xl font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-0.5">
                 Rp {saldoDompet.toLocaleString("id-ID")}
               </div>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                Sumber dana utama untuk transaksi kas, alokasi event, dan isi kantong.
+              <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+                Sumber dana utama transaksi &amp; transfer
               </p>
             </div>
 
-            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+            <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
               <Link
                 href="/topup"
-                className="flex-1 h-8 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                className="flex-1 h-7.5 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center justify-center gap-1 cursor-pointer shadow-xs"
               >
-                <QrCode className="w-3.5 h-3.5" />
+                <QrCode className="w-3 h-3" />
                 <span>Top Up</span>
               </Link>
               <button
                 type="button"
                 onClick={() => setShowTransferModal(true)}
-                className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 text-xs font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <Send className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 <span>Transfer</span>
               </button>
             </div>
           </div>
 
-          {/* 2 & 3. Kantong Tambahan Kustom (Persegi dengan Palet Warna) */}
+          {/* 2 & 3. Kantong Tambahan Kustom */}
           {pockets.map((p) => {
             const theme = THEME_MAP[p.warna] || THEME_MAP.zinc;
             const hasTarget = p.target_nominal > 0;
@@ -591,46 +587,49 @@ export default function StudentDashboardPage() {
             return (
               <div
                 key={p.id}
-                className={`${theme.bg} ${theme.border} border-2 rounded-2xl p-5 shadow-xs flex flex-col justify-between aspect-square transition-all relative overflow-hidden`}
+                className={`${theme.bg} ${theme.border} border rounded-xl p-4 shadow-xs flex flex-col justify-between min-h-[160px] sm:min-h-[168px] transition-all relative`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md border font-semibold ${theme.badge}`}>
-                      {hasTarget ? `Target: Rp ${p.target_nominal.toLocaleString("id-ID")}` : "Tanpa Target"}
-                    </span>
-                    <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-base mt-2 truncate max-w-[180px]">{p.nama}</h3>
-                  </div>
+                  <span className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md border font-semibold ${theme.badge}`}>
+                    {hasTarget ? `Target: Rp ${p.target_nominal.toLocaleString("id-ID")}` : "Tanpa Target"}
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleDeletePocket(p)}
                     className="p-1 rounded text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                     title="Hapus Kantong"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div>
-                  <div className="text-2xl font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                <div className="my-2">
+                  <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm truncate">{p.nama}</h3>
+                  <div className="text-xl font-mono font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-0.5">
                     Rp {p.saldo.toLocaleString("id-ID")}
                   </div>
-                  {hasTarget && (
-                    <div className="mt-2 space-y-1">
+
+                  {hasTarget ? (
+                    <div className="mt-1.5 space-y-1">
                       <div className="flex justify-between text-[10px] text-gray-400 dark:text-zinc-500 font-mono">
-                        <span>{pct}% terkumpul</span>
-                        <span>Rp {(p.target_nominal - p.saldo > 0 ? p.target_nominal - p.saldo : 0).toLocaleString("id-ID")} lagi</span>
+                        <span>{pct}% tercapai</span>
+                        <span>Sisa Rp {Math.max(0, p.target_nominal - p.saldo).toLocaleString("id-ID")}</span>
                       </div>
-                      <div className="w-full bg-gray-200/60 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-gray-200/70 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                         <div
                           className={`${theme.bar} h-full rounded-full transition-all duration-300`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
                     </div>
+                  ) : (
+                    <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
+                      Siap dialokasikan
+                    </p>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
+                <div className="pt-2.5 border-t border-gray-100 dark:border-zinc-800/80 flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -640,9 +639,9 @@ export default function StudentDashboardPage() {
                       setPocketError("");
                       setShowPocketTransferModal(true);
                     }}
-                    className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 text-xs font-semibold text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="flex-1 h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <Plus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                     <span>Isi</span>
                   </button>
                   <button
@@ -655,9 +654,9 @@ export default function StudentDashboardPage() {
                       setShowPocketTransferModal(true);
                     }}
                     disabled={p.saldo <= 0}
-                    className="flex-1 h-8 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 text-xs font-semibold text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="flex-1 h-7.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <ArrowLeftRight className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                    <ArrowLeftRight className="w-3 h-3 text-teal-600 dark:text-teal-400" />
                     <span>Tarik</span>
                   </button>
                 </div>
@@ -665,7 +664,7 @@ export default function StudentDashboardPage() {
             );
           })}
 
-          {/* Slot Tambah Kantong Baru (Persegi) */}
+          {/* Slot Tambah Kantong Baru */}
           {pockets.length < 2 && (
             <button
               type="button"
@@ -673,13 +672,13 @@ export default function StudentDashboardPage() {
                 setPocketError("");
                 setShowCreatePocketModal(true);
               }}
-              className="border-2 border-dashed border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 rounded-2xl p-5 flex flex-col items-center justify-center text-center space-y-2.5 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer aspect-square"
+              className="border border-dashed border-gray-300 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-1.5 text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer min-h-[160px] sm:min-h-[168px]"
             >
-              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800/80 flex items-center justify-center">
-                <Plus className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800/80 flex items-center justify-center">
+                <Plus className="w-4 h-4" />
               </div>
-              <span className="text-xs font-bold">+ Tambah Kantong</span>
-              <span className="text-[11px] text-gray-400 dark:text-zinc-500">Tersisa {2 - pockets.length} slot tambahan</span>
+              <span className="text-xs font-semibold">+ Tambah Kantong</span>
+              <span className="text-[10px] text-gray-400 dark:text-zinc-500">Tersisa {2 - pockets.length} slot tambahan</span>
             </button>
           )}
         </div>
