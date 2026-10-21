@@ -16,12 +16,12 @@ export async function GET(req: Request) {
   const prodiScope = getProdiScope(user);
 
   let query = `
-    SELECT u.id, u.nim, u.nama, u.role, u.kelas_id, u.must_change_password, u.aktif, u.created_at,
+    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.must_change_password, u.aktif, u.created_at,
            k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi
     FROM users u
     LEFT JOIN kelas k ON u.kelas_id = k.id
     LEFT JOIN prodi p ON k.prodi_id = p.id
-    WHERE u.role = 'mahasiswa'
+    WHERE u.role IN ('mahasiswa', 'admin_kelas')
   `;
   const params: any[] = [];
 
@@ -119,7 +119,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Anda tidak berhak memindahkan mahasiswa ke kelas di luar Program Studi Anda" }, { status: 403 });
   }
 
-  const student = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'mahasiswa'").get(id) as any;
+  const student = db.prepare("SELECT * FROM users WHERE id = ? AND role IN ('mahasiswa', 'admin_kelas')").get(id) as any;
   if (!student) {
     return NextResponse.json({ error: "Mahasiswa tidak ditemukan" }, { status: 404 });
   }
@@ -135,6 +135,17 @@ export async function PATCH(req: Request) {
   if (aktif !== undefined) {
     updates.push("aktif = ?");
     params.push(aktif ? 1 : 0);
+  }
+
+  if (role !== undefined && (role === "admin_kelas" || role === "mahasiswa")) {
+    updates.push("role = ?");
+    params.push(role);
+    if (role === "admin_kelas") {
+      updates.push("managed_kelas_ids = ?");
+      params.push(JSON.stringify([student.kelas_id]));
+    } else {
+      updates.push("managed_kelas_ids = NULL");
+    }
   }
 
   const kelasChanged = kelas_id !== undefined && kelas_id !== student.kelas_id;

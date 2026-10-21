@@ -150,6 +150,40 @@ try {
       locked_until INTEGER NOT NULL DEFAULT 0
     );
 
+    -- Kantong Keuangan Mahasiswa (Sub-wallets / Pockets, max 3 per user)
+    CREATE TABLE IF NOT EXISTS kantong (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      nama TEXT NOT NULL,
+      target_nominal INTEGER DEFAULT 0,
+      saldo INTEGER DEFAULT 0,
+      warna TEXT DEFAULT 'zinc',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- Pengajuan Penarikan Saldo Dompet Utama (Withdrawals)
+    CREATE TABLE IF NOT EXISTS pengajuan_penarikan (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      jumlah INTEGER NOT NULL,
+      metode TEXT NOT NULL,
+      nomor_tujuan TEXT NOT NULL,
+      nama_penerima TEXT NOT NULL,
+      catatan TEXT,
+      status TEXT DEFAULT 'pending',
+      bukti_transfer_url TEXT,
+      catatan_admin TEXT,
+      diproses_oleh TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_kantong_user ON kantong(user_id);
+    CREATE INDEX IF NOT EXISTS idx_pengajuan_penarikan_user ON pengajuan_penarikan(user_id);
+    CREATE INDEX IF NOT EXISTS idx_pengajuan_penarikan_status ON pengajuan_penarikan(status);
+
     -- Ensure explicit UNIQUE indexes for strict constraint enforcement
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);

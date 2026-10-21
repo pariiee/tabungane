@@ -286,10 +286,12 @@ export default function PenggunaAdminPage() {
                   onChange={setRole}
                   options={[
                     { value: "admin", label: "Admin Prodi / Dekan" },
-                    { value: "admin_kelas", label: "Adminya Kelas (Komting / Bendahara)" },
                     { value: "super_admin", label: "Tim Developer (Akses Penuh)" },
                   ]}
                 />
+                <p className="text-[11px] text-gray-500 dark:text-zinc-500 mt-1">
+                  * Catatan: Role <span className="font-semibold text-gray-700 dark:text-zinc-300">Adminya Kelas</span> diangkat langsung dari siswa terkait di menu <span className="font-semibold text-gray-700 dark:text-zinc-300">Kelola Mahasiswa</span>.
+                </p>
               </div>
 
               {role === "admin" && (
