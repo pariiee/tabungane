@@ -28,12 +28,13 @@ export default function AkunPage() {
   const [user, setUser] = useState<any>(null);
   const [pageLoading, setPageLoading] = useState(true);
 
-  // Username edit state
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  // Profile edit state (Nama Lengkap & Username)
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [namaInput, setNamaInput] = useState("");
   const [usernameInput, setUsernameInput] = useState("");
-  const [savingUsername, setSavingUsername] = useState(false);
-  const [usernameError, setUsernameError] = useState("");
-  const [usernameSuccess, setUsernameSuccess] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState("");
 
   // Password state
   const [newPassword, setNewPassword] = useState("");
@@ -73,6 +74,7 @@ export default function AkunPage() {
       .then(([userData, walletData]) => {
         if (userData.user) {
           setUser(userData.user);
+          setNamaInput(userData.user.nama || "");
           setUsernameInput(userData.user.username || "");
           setTampilkanSaldo(Boolean(userData.user.tampilkan_saldo_leaderboard));
         }
@@ -145,29 +147,29 @@ export default function AkunPage() {
     }
   };
 
-  const handleSaveUsername = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUsernameError("");
-    setUsernameSuccess("");
-    setSavingUsername(true);
+    setProfileError("");
+    setProfileSuccess("");
+    setSavingProfile(true);
 
     try {
       const res = await fetch("/api/auth/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: usernameInput }),
+        body: JSON.stringify({ nama: namaInput, username: usernameInput }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal mengubah username");
+      if (!res.ok) throw new Error(data.error || "Gagal memperbarui profil");
 
       setUser(data.user);
-      setIsEditingUsername(false);
-      setUsernameSuccess("Username berhasil disimpan!");
-      setTimeout(() => setUsernameSuccess(""), 3000);
+      setIsEditingProfile(false);
+      setProfileSuccess("Profil berhasil diperbarui!");
+      setTimeout(() => setProfileSuccess(""), 3000);
     } catch (err: any) {
-      setUsernameError(err.message);
+      setProfileError(err.message);
     } finally {
-      setSavingUsername(false);
+      setSavingProfile(false);
     }
   };
 
@@ -367,33 +369,49 @@ export default function AkunPage() {
               <button
                 type="button"
                 onClick={() => {
+                  setNamaInput(user.nama || "");
                   setUsernameInput(user.username || "");
-                  setUsernameError("");
-                  setIsEditingUsername(true);
+                  setProfileError("");
+                  setIsEditingProfile(true);
                 }}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
               >
                 <Pencil className="w-3 h-3" />
-                <span>Ubah Username</span>
+                <span>Ubah Data Diri</span>
               </button>
             </div>
 
             {/* Grid 6 Detail */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                  Nama Lengkap
-                </span>
+              {/* Nama Lengkap (Bisa diubah) */}
+              <div
+                onClick={() => {
+                  setNamaInput(user.nama || "");
+                  setUsernameInput(user.username || "");
+                  setProfileError("");
+                  setIsEditingProfile(true);
+                }}
+                className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group"
+                title="Klik untuk ubah nama"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                    Nama Lengkap
+                  </span>
+                  <Pencil className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
                 <span className="text-xs font-bold text-black dark:text-white mt-1 block truncate">
                   {user.nama}
                 </span>
               </div>
 
+              {/* Username (Bisa diubah) */}
               <div
                 onClick={() => {
+                  setNamaInput(user.nama || "");
                   setUsernameInput(user.username || "");
-                  setUsernameError("");
-                  setIsEditingUsername(true);
+                  setProfileError("");
+                  setIsEditingProfile(true);
                 }}
                 className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group"
                 title="Klik untuk ubah username"
@@ -415,37 +433,53 @@ export default function AkunPage() {
                 )}
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                  NIM
-                </span>
+              {/* NIM (Read-only / Terkunci) */}
+              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                    NIM
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-mono">Terkunci</span>
+                </div>
                 <span className="text-xs font-mono font-bold text-black dark:text-white mt-1 block truncate">
                   {user.nim}
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                  Fakultas
-                </span>
+              {/* Fakultas (Read-only / Terkunci) */}
+              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                    Fakultas
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-mono">Terkunci</span>
+                </div>
                 <span className="text-xs font-medium text-black dark:text-white mt-1 block truncate">
                   {user.nama_fakultas || user.fakultas || "Fakultas Ilmu Komputer"}
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                  Program Studi
-                </span>
+              {/* Program Studi (Read-only / Terkunci) */}
+              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                    Program Studi
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-mono">Terkunci</span>
+                </div>
                 <span className="text-xs font-medium text-black dark:text-white mt-1 block truncate">
                   {user.nama_prodi || "Sistem Informasi"}
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-                  Kelas
-                </span>
+              {/* Kelas (Read-only / Terkunci) */}
+              <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 opacity-90">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                    Kelas
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-mono">Terkunci</span>
+                </div>
                 <span className="text-xs font-bold font-mono text-black dark:text-white mt-1 block truncate">
                   {user.nama_kelas || "-"}
                 </span>
@@ -668,23 +702,24 @@ export default function AkunPage() {
         </div>
       )}
 
-      {/* Modal Popup Ubah Username */}
-      {isEditingUsername && (
+      {/* Modal Popup Ubah Data Diri (Nama & Username) */}
+      {isEditingProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-150">
-          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800">
               <div className="flex items-center gap-2">
-                <AtSign className="w-4 h-4 text-black dark:text-white" />
+                <User className="w-4 h-4 text-black dark:text-white" />
                 <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
-                  Ubah Username
+                  Ubah Data Profil
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  setIsEditingUsername(false);
+                  setIsEditingProfile(false);
+                  setNamaInput(user.nama || "");
                   setUsernameInput(user.username || "");
-                  setUsernameError("");
+                  setProfileError("");
                 }}
                 className="p-1 rounded-lg text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
               >
@@ -692,10 +727,26 @@ export default function AkunPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveUsername} className="space-y-4">
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              {/* Nama Lengkap */}
               <div>
                 <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Username Baru
+                  Nama Lengkap
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={namaInput}
+                  onChange={(e) => setNamaInput(e.target.value)}
+                  placeholder="Nama lengkap Anda"
+                  className="w-full h-10 px-3 text-xs rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 font-medium text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Username Akun
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-xs font-bold text-gray-400 dark:text-zinc-500 font-mono">
@@ -704,29 +755,33 @@ export default function AkunPage() {
                   <input
                     type="text"
                     required
-                    autoFocus
                     value={usernameInput}
                     onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                     placeholder="contoh: budi_santoso"
                     className="w-full h-10 pl-8 pr-3 text-xs rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 font-mono text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1.5 leading-relaxed">
-                  Gunakan huruf kecil, angka, atau underscore (_). Minimal 3 karakter.
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1 leading-relaxed">
+                  Hanya huruf kecil, angka, dan underscore (_). Minimal 3 karakter.
                 </p>
               </div>
 
-              {usernameError && (
+              {/* Catatan Hak Akses Data Akademik */}
+              <div className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800/60 text-[10px] text-gray-500 dark:text-zinc-400 leading-relaxed">
+                Data akademik resmi (NIM: <strong>{user.nim}</strong>, Kelas: <strong>{user.nama_kelas}</strong>, {user.nama_prodi}) terkunci dan hanya dapat diperbarui oleh administrator kampus.
+              </div>
+
+              {profileError && (
                 <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{usernameError}</span>
+                  <span>{profileError}</span>
                 </div>
               )}
 
-              {usernameSuccess && (
+              {profileSuccess && (
                 <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>{usernameSuccess}</span>
+                  <span>{profileSuccess}</span>
                 </div>
               )}
 
@@ -734,9 +789,10 @@ export default function AkunPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setIsEditingUsername(false);
+                    setIsEditingProfile(false);
+                    setNamaInput(user.nama || "");
                     setUsernameInput(user.username || "");
-                    setUsernameError("");
+                    setProfileError("");
                   }}
                   className="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
                 >
@@ -744,11 +800,11 @@ export default function AkunPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={savingUsername || !usernameInput.trim()}
+                  disabled={savingProfile || !namaInput.trim() || !usernameInput.trim()}
                   className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
-                  {savingUsername ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                  <span>Simpan</span>
+                  {savingProfile ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>Simpan Perubahan</span>
                 </button>
               </div>
             </form>

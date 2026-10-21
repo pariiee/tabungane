@@ -18,7 +18,16 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { db } = require("@/lib/db");
 
-  // 1. Update Username
+  // 1. Update Nama Lengkap
+  if (body.nama !== undefined) {
+    const rawNama = (body.nama || "").trim();
+    if (!rawNama || rawNama.length < 2) {
+      return NextResponse.json({ error: "Nama lengkap minimal 2 karakter" }, { status: 400 });
+    }
+    db.prepare("UPDATE users SET nama = ? WHERE id = ?").run(rawNama, user.id);
+  }
+
+  // 2. Update Username
   if (body.username !== undefined) {
     const rawUsername = (body.username || "").trim().toLowerCase();
     if (rawUsername) {
