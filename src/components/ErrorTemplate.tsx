@@ -54,8 +54,8 @@ export default function ErrorTemplate({
       : "Edge Network & Proxy Error";
 
   return (
-    <div className="min-h-[75vh] flex items-center justify-center p-4 sm:p-6">
-      <div className="max-w-md w-full bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 text-center">
+    <div className="fixed inset-0 z-[60] bg-white dark:bg-zinc-950 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="max-w-md w-full bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 text-center my-auto">
         {/* Header Badge & Code */}
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/60 text-xs font-mono text-gray-600 dark:text-zinc-400">
