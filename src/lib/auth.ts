@@ -7,8 +7,7 @@ const COOKIE_NAME = "tabungane_session";
 
 export interface SessionUser {
   id: string;
-  nomor_id?: string;
-  nim: string; // alias legacy
+  nomor_id: string;
   nama: string;
   username?: string | null;
   custom_title?: string | null;
@@ -85,7 +84,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
     const row = db.prepare(`
       SELECT 
-        u.id, u.nim, u.nama, u.username, u.custom_title, u.role, u.must_change_password, u.aktif, 
+        u.id, u.nomor_id, u.nama, u.username, u.custom_title, u.role, u.must_change_password, u.aktif, 
         u.kelas_id, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.foto_url, 
         COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard,
         k.nama as nama_kelas,
@@ -103,12 +102,9 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     // Normalisasi role: jika role admin tanpa prodi_id dan tanpa fakultas dan tanpa kelas, jadikan super_admin
     const effectiveRole = (row.role === "admin" && !row.prodi_id && !row.fakultas && !row.managed_kelas_ids) ? "super_admin" : row.role;
 
-    const nomorId = row.nomor_id || row.nim;
-
     return {
       id: row.id,
-      nomor_id: nomorId,
-      nim: nomorId,
+      nomor_id: row.nomor_id,
       nama: row.nama,
       username: row.username || null,
       custom_title: row.custom_title || null,
@@ -134,7 +130,7 @@ export async function createSession(user: SessionUser) {
   const exp = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
   const payload = JSON.stringify({
     id: user.id,
-    nim: user.nim,
+    nomor_id: user.nomor_id,
     nama: user.nama,
     role: user.role,
     exp,

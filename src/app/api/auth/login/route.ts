@@ -66,10 +66,9 @@ export async function POST(req: Request) {
     // Login success -> reset rate limit attempts
     db.prepare("DELETE FROM login_attempts WHERE key = ?").run(rateLimitKey);
 
-    const sessionUser = {
+    const sessionUser: SessionUser = {
       id: user.id,
-      nomor_id: user.nomor_id || user.nim,
-      nim: user.nomor_id || user.nim,
+      nomor_id: user.nomor_id,
       nama: user.nama,
       role: user.role,
       must_change_password: Boolean(user.must_change_password),

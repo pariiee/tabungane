@@ -73,7 +73,7 @@ export async function POST(req: Request) {
     }
 
     // Call QRIS generator
-    const topupLabel = isWallet ? `Top up Dompet Utama ${user.nim}` : `Top up Event ${user.nim}`;
+    const topupLabel = isWallet ? `Top up Dompet Utama ${user.nomor_id}` : `Top up Event ${user.nomor_id}`;
     const qrisRes = await createQrisPayment(nominal, topupLabel);
 
     const trxId = crypto.randomUUID();

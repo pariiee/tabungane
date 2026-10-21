@@ -57,10 +57,10 @@ export default function AkunPage() {
   // Virtual Wallet Card State & Sensor Saldo (Khusus role yang punya wallet)
   const [wallet, setWallet] = useState<{ balance: number } | null>(null);
   const [showCardBalance, setShowCardBalance] = useState(true);
-  const [copiedNIM, setCopiedNIM] = useState(false);
+  const [copiedID, setCopiedID] = useState(false);
 
-  const formatCardNumber = (nim: string = "") => {
-    const clean = nim.replace(/\D/g, "");
+  const formatCardNumber = (nomorId: string = "") => {
+    const clean = nomorId.replace(/\D/g, "");
     if (!clean) return "2405 •••• •••• 9999";
     const last4 = clean.slice(-4).padStart(4, "0");
     return `2405  ••••  ••••  ${last4}`;
@@ -521,18 +521,18 @@ export default function AkunPage() {
                   <div className="relative z-10 pt-2 border-t border-zinc-800/80 flex items-end justify-between text-xs">
                     <div>
                       <div className="flex items-center gap-1.5 text-zinc-300 font-mono text-xs tracking-wider">
-                        <span>{formatCardNumber(user.nim)}</span>
+                        <span>{formatCardNumber(user.nomor_id || user.nim)}</span>
                         <button
                           type="button"
                           onClick={() => {
-                            navigator.clipboard.writeText(user.nim || "");
-                            setCopiedNIM(true);
-                            setTimeout(() => setCopiedNIM(false), 2000);
+                            navigator.clipboard.writeText(user.nomor_id || user.nim || "");
+                            setCopiedID(true);
+                            setTimeout(() => setCopiedID(false), 2000);
                           }}
                           className="p-1 hover:text-white transition-colors cursor-pointer"
                           title="Salin ID"
                         >
-                          {copiedNIM ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
+                          {copiedID ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-zinc-500" />}
                         </button>
                       </div>
                       <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold truncate block mt-0.5 max-w-[180px]">
@@ -758,7 +758,7 @@ export default function AkunPage() {
                       <Lock className="w-2.5 h-2.5 text-gray-400" />
                     </div>
                     <span className="text-xs font-mono font-bold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
-                      {user.nim}
+                      {user.nomor_id || user.nim}
                     </span>
                   </div>
 
