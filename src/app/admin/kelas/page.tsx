@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
+import CustomSelect from "@/components/CustomSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2, RefreshCw, Building2 } from "lucide-react";
 
 export default function AdminKelasPage() {
@@ -15,6 +17,7 @@ export default function AdminKelasPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; nama: string } | null>(null);
 
   const loadData = async () => {
     try {
@@ -77,8 +80,6 @@ export default function AdminKelasPage() {
   };
 
   const handleDeleteKelas = async (id: string, namaKelas: string) => {
-    if (!confirm(`Hapus kelas ${namaKelas}? Data mahasiswa terkait mungkin terpengaruh.`)) return;
-
     try {
       const res = await fetch(`/api/admin/kelas?id=${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -140,17 +141,14 @@ export default function AdminKelasPage() {
               <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                 Program Studi
               </label>
-              <select
+              <CustomSelect
                 value={prodiId}
-                onChange={(e) => setProdiId(e.target.value)}
-                className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-              >
-                {prodiList.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nama} ({p.kode})
-                  </option>
-                ))}
-              </select>
+                onChange={setProdiId}
+                options={prodiList.map((p) => ({
+                  value: p.id,
+                  label: `${p.nama} (${p.kode})`,
+                }))}
+              />
             </div>
           )}
 
@@ -241,8 +239,8 @@ export default function AdminKelasPage() {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
-                        onClick={() => handleDeleteKelas(k.id, k.nama)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors"
+                        onClick={() => setDeleteTarget({ id: k.id, nama: k.nama })}
+                        className="p-1.5 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
                         title="Hapus Kelas"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -255,6 +253,18 @@ export default function AdminKelasPage() {
           </table>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) handleDeleteKelas(deleteTarget.id, deleteTarget.nama);
+        }}
+        title="Hapus Kelas?"
+        message={`Hapus kelas "${deleteTarget?.nama}"? Data mahasiswa terkait mungkin terpengaruh.`}
+        confirmText="Ya, Hapus"
+        isDestructive={true}
+      />
     </div>
   );
 }

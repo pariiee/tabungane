@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { TableRowsSkeleton } from "@/components/Skeletons";
+import CustomSelect from "@/components/CustomSelect";
 import { FileText, Download, Filter, Users, Wallet, Trophy, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function AdminLaporanPage() {
@@ -77,17 +78,17 @@ export default function AdminLaporanPage() {
       {/* Selector Grup */}
       <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex items-center gap-3">
         <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Pilih Event Sakune:</label>
-        <select
-          value={selectedGrupId}
-          onChange={(e) => setSelectedGrupId(e.target.value)}
-          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg text-xs font-medium text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white max-w-sm"
-        >
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.nama} ({g.nama_kelas})
-            </option>
-          ))}
-        </select>
+        <div className="w-72">
+          <CustomSelect
+            value={selectedGrupId}
+            onChange={setSelectedGrupId}
+            placeholder="Pilih Event..."
+            options={groups.map((g) => ({
+              value: g.id,
+              label: `${g.nama} (${g.nama_kelas})`,
+            }))}
+          />
+        </div>
       </div>
 
       {/* Preview Table */}

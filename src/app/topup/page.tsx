@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import CustomSelect from "@/components/CustomSelect";
 import {
   QrCode,
   CheckCircle2,
@@ -185,18 +186,17 @@ export default function TopUpPage() {
               <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
                 Tujuan Top Up
               </label>
-              <select
+              <CustomSelect
                 value={selectedDestination}
-                onChange={(e) => setSelectedDestination(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-              >
-                <option value="wallet">Dompet Utama (Saku Pribadi — Bebas Kirim / Alokasi)</option>
-                {groups.map((g) => (
-                  <option key={g.grup_id} value={g.grup_id}>
-                    Event: {g.nama_grup} ({g.nama_kelas} &bull; Target: Rp {g.target_per_mahasiswa.toLocaleString("id-ID")})
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedDestination}
+                options={[
+                  { value: "wallet", label: "Dompet Utama (Saku Pribadi — Bebas Kirim / Alokasi)" },
+                  ...groups.map((g) => ({
+                    value: g.grup_id,
+                    label: `Event: ${g.nama_grup} (${g.nama_kelas} • Target: Rp ${g.target_per_mahasiswa.toLocaleString("id-ID")})`,
+                  })),
+                ]}
+              />
             </div>
 
             {/* Nominal Presets */}

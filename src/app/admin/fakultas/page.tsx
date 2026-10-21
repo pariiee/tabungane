@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   Landmark,
   Plus,
@@ -22,6 +23,7 @@ export default function AdminFakultasPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; nama: string } | null>(null);
 
   const loadData = async () => {
     try {
@@ -74,8 +76,6 @@ export default function AdminFakultasPage() {
   };
 
   const handleDeleteFakultas = async (id: string, namaFakultas: string) => {
-    if (!confirm(`Hapus Fakultas "${namaFakultas}"? Tindakan ini tidak dapat dibatalkan.`)) return;
-
     setError("");
     setSuccess("");
 
@@ -262,8 +262,8 @@ export default function AdminFakultasPage() {
                         {isSuperAdmin && (
                           <td className="px-6 py-4 text-right">
                             <button
-                              onClick={() => handleDeleteFakultas(f.id, f.nama)}
-                              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
+                              onClick={() => setDeleteTarget({ id: f.id, nama: f.nama })}
+                              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 cursor-pointer"
                               title="Hapus Fakultas"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -279,6 +279,18 @@ export default function AdminFakultasPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) handleDeleteFakultas(deleteTarget.id, deleteTarget.nama);
+        }}
+        title="Hapus Fakultas?"
+        message={`Hapus data Fakultas "${deleteTarget?.nama}"? Jurusan yang terkait mungkin akan terpengaruh.`}
+        confirmText="Ya, Hapus"
+        isDestructive={true}
+      />
     </div>
   );
 }

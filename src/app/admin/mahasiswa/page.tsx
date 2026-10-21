@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import CustomSelect from "@/components/CustomSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   Users,
   UserPlus,
@@ -54,6 +56,7 @@ export default function AdminMahasiswaPage() {
   // Modal Hapus Mahasiswa
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [submittingDelete, setSubmittingDelete] = useState(false);
+  const [resetTarget, setResetTarget] = useState<any>(null);
 
   // Success / Temp Password Alert
   const [alertInfo, setAlertInfo] = useState<any>(null);
@@ -135,7 +138,6 @@ export default function AdminMahasiswaPage() {
 
   // Reset Password
   const handleResetPassword = async (student: any) => {
-    if (!confirm(`Reset password untuk ${student.nama} (${student.nim})?`)) return;
     try {
       const res = await fetch("/api/admin/mahasiswa/reset-password", {
         method: "POST",
@@ -151,7 +153,7 @@ export default function AdminMahasiswaPage() {
         tempPassword: data.temp_password,
       });
     } catch (err: any) {
-      alert(err.message);
+      setError(err.message);
     }
   };
 
@@ -314,18 +316,20 @@ export default function AdminMahasiswaPage() {
       {/* Filter Bar */}
       <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex items-center gap-3">
         <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Filter Kelas:</label>
-        <select
-          value={filterKelas}
-          onChange={(e) => setFilterKelas(e.target.value)}
-          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-        >
-          <option value="">Semua Kelas</option>
-          {kelasList.map((k) => (
-            <option key={k.id} value={k.id}>
-              {k.nama} ({k.tahun_ajaran})
-            </option>
-          ))}
-        </select>
+        <div className="w-56">
+          <CustomSelect
+            value={filterKelas}
+            onChange={setFilterKelas}
+            placeholder="Semua Kelas"
+            options={[
+              { value: "", label: "Semua Kelas" },
+              ...kelasList.map((k) => ({
+                value: k.id,
+                label: `${k.nama} (${k.tahun_ajaran})`,
+              })),
+            ]}
+          />
+        </div>
         <span className="text-xs text-gray-400 dark:text-zinc-500 ml-auto">{students.length} Mahasiswa ditemukan</span>
       </div>
 
@@ -389,7 +393,7 @@ export default function AdminMahasiswaPage() {
                       <span>Edit</span>
                     </button>
                     <button
-                      onClick={() => handleResetPassword(s)}
+                      onClick={() => setResetTarget(s)}
                       className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                       title="Reset Password"
                     >
@@ -448,19 +452,18 @@ export default function AdminMahasiswaPage() {
 
               <div>
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Pilih Kelas</label>
-                <select
-                  required
+                <CustomSelect
                   value={newKelasId}
-                  onChange={(e) => setNewKelasId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                >
-                  <option value="">-- Pilih Kelas --</option>
-                  {kelasList.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.nama} ({k.tahun_ajaran})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setNewKelasId}
+                  placeholder="-- Pilih Kelas --"
+                  options={[
+                    { value: "", label: "-- Pilih Kelas --" },
+                    ...kelasList.map((k) => ({
+                      value: k.id,
+                      label: `${k.nama} (${k.tahun_ajaran})`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -550,18 +553,14 @@ export default function AdminMahasiswaPage() {
             <form onSubmit={handleManualSaldo} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Pilih Event Sakune</label>
-                <select
-                  required
+                <CustomSelect
                   value={targetGrupId}
-                  onChange={(e) => setTargetGrupId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                >
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.nama} ({g.nama_kelas})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setTargetGrupId}
+                  options={groups.map((g) => ({
+                    value: g.id,
+                    label: `${g.nama} (${g.nama_kelas})`,
+                  }))}
+                />
               </div>
 
               <div>
@@ -647,19 +646,18 @@ export default function AdminMahasiswaPage() {
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Kelas Perkuliahan (Pindah Kelas)
                 </label>
-                <select
-                  required
+                <CustomSelect
                   value={editKelasId}
-                  onChange={(e) => setEditKelasId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                >
-                  <option value="">Pilih Kelas</option>
-                  {kelasList.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      Kelas {k.nama} ({k.tahun_ajaran})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setEditKelasId}
+                  placeholder="Pilih Kelas"
+                  options={[
+                    { value: "", label: "Pilih Kelas" },
+                    ...kelasList.map((k) => ({
+                      value: k.id,
+                      label: `Kelas ${k.nama} (${k.tahun_ajaran})`,
+                    })),
+                  ]}
+                />
                 <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
                   Pindah kelas akan otomatis mengikutsertakan mahasiswa ke event tabungan aktif kelas baru.
                 </p>
@@ -742,6 +740,18 @@ export default function AdminMahasiswaPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={Boolean(resetTarget)}
+        onClose={() => setResetTarget(null)}
+        onConfirm={() => {
+          if (resetTarget) handleResetPassword(resetTarget);
+        }}
+        title="Reset Password Mahasiswa?"
+        message={`Reset password untuk ${resetTarget?.nama} (${resetTarget?.nim})? Sistem akan menghasilkan kata sandi baru secara acak.`}
+        confirmText="Ya, Reset Password"
+        isDestructive={false}
+      />
     </div>
   );
 }

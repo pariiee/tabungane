@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
+import CustomSelect from "@/components/CustomSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   ShieldCheck,
   UserPlus,
@@ -31,6 +33,7 @@ export default function PenggunaAdminPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; nama: string } | null>(null);
 
   const loadData = async () => {
     try {
@@ -123,8 +126,6 @@ export default function PenggunaAdminPage() {
   };
 
   const handleDeleteAdmin = async (id: string, namaAdmin: string) => {
-    if (!confirm(`Hapus akun admin "${namaAdmin}"? Aksesnya ke sistem akan langsung dicabut.`)) return;
-
     setError("");
     setSuccess("");
 
@@ -280,15 +281,15 @@ export default function PenggunaAdminPage() {
                 <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
                   Role / Jabatan
                 </label>
-                <select
+                <CustomSelect
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                >
-                  <option value="admin">Admin Prodi / Dekan</option>
-                  <option value="admin_kelas">Adminya Kelas (Komting / Bendahara)</option>
-                  <option value="super_admin">Tim Developer (Akses Penuh)</option>
-                </select>
+                  onChange={setRole}
+                  options={[
+                    { value: "admin", label: "Admin Prodi / Dekan" },
+                    { value: "admin_kelas", label: "Adminya Kelas (Komting / Bendahara)" },
+                    { value: "super_admin", label: "Tim Developer (Akses Penuh)" },
+                  ]}
+                />
               </div>
 
               {role === "admin" && (
@@ -296,36 +297,24 @@ export default function PenggunaAdminPage() {
                   <label className="block text-xs font-semibold text-gray-700 dark:text-zinc-300 mb-1">
                     Wilayah Pengawasan (Fakultas / Prodi)
                   </label>
-                  <div className="relative">
-                    <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-                    <select
-                      value={scopeTarget}
-                      onChange={(e) => setScopeTarget(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                    >
-                      <option value="">-- Pilih Wilayah --</option>
-
-                      {fakultasList.length > 0 && (
-                        <optgroup label="Tingkat Fakultas (Dekan / Pengawas Fakultas)">
-                          {fakultasList.map((f) => (
-                            <option key={f.id} value={`fakultas:${f.nama}`}>
-                              Dekan - {f.nama} ({f.kode})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-
-                      {prodiList.length > 0 && (
-                        <optgroup label="Tingkat Program Studi (Kaprodi / Admin Jurusan)">
-                          {prodiList.map((p) => (
-                            <option key={p.id} value={`prodi:${p.id}`}>
-                              Kaprodi - {p.nama} ({p.kode})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    value={scopeTarget}
+                    onChange={setScopeTarget}
+                    placeholder="-- Pilih Wilayah Pengawasan --"
+                    options={[
+                      { value: "", label: "-- Pilih Wilayah --" },
+                      ...fakultasList.map((f) => ({
+                        value: `fakultas:${f.nama}`,
+                        label: `Dekan - ${f.nama} (${f.kode})`,
+                        group: "Tingkat Fakultas (Dekan / Pengawas Fakultas)",
+                      })),
+                      ...prodiList.map((p) => ({
+                        value: `prodi:${p.id}`,
+                        label: `Kaprodi - ${p.nama} (${p.kode})`,
+                        group: "Tingkat Program Studi (Kaprodi / Admin Jurusan)",
+                      })),
+                    ]}
+                  />
                 </div>
               )}
 
@@ -469,8 +458,8 @@ export default function PenggunaAdminPage() {
                           <td className="px-6 py-4 text-right">
                             {!isMe && (
                               <button
-                                onClick={() => handleDeleteAdmin(a.id, a.nama)}
-                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
+                                onClick={() => setDeleteTarget({ id: a.id, nama: a.nama })}
+                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 cursor-pointer"
                                 title="Cabut Akses Admin"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -487,6 +476,18 @@ export default function PenggunaAdminPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) handleDeleteAdmin(deleteTarget.id, deleteTarget.nama);
+        }}
+        title="Cabut Akses Admin?"
+        message={`Cabut hak akses admin untuk "${deleteTarget?.nama}"? Akun tidak lagi dapat mengakses portal pengawasan.`}
+        confirmText="Ya, Cabut Akses"
+        isDestructive={true}
+      />
     </div>
   );
 }

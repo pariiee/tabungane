@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatTrxType, formatTrxStatus } from "@/lib/format";
+import CustomSelect from "@/components/CustomSelect";
 import {
   ArrowRightLeft,
   RotateCcw,
@@ -133,43 +134,50 @@ export default function AdminTransaksiPage() {
           <span>Filter:</span>
         </div>
 
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-        >
-          <option value="">Semua Status</option>
-          <option value="berhasil">Berhasil</option>
-          <option value="pending">Pending</option>
-          <option value="expired">Expired</option>
-          <option value="canceled">Canceled</option>
-        </select>
+        <div className="w-36">
+          <CustomSelect
+            value={filterStatus}
+            onChange={setFilterStatus}
+            placeholder="Semua Status"
+            options={[
+              { value: "", label: "Semua Status" },
+              { value: "berhasil", label: "Berhasil" },
+              { value: "pending", label: "Pending" },
+              { value: "expired", label: "Expired" },
+              { value: "canceled", label: "Canceled" },
+            ]}
+          />
+        </div>
 
-        <select
-          value={filterGrup}
-          onChange={(e) => setFilterGrup(e.target.value)}
-          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-        >
-          <option value="">Semua Event</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.nama}
-            </option>
-          ))}
-        </select>
+        <div className="w-44">
+          <CustomSelect
+            value={filterGrup}
+            onChange={setFilterGrup}
+            placeholder="Semua Event"
+            options={[
+              { value: "", label: "Semua Event" },
+              ...groups.map((g) => ({
+                value: g.id,
+                label: g.nama,
+              })),
+            ]}
+          />
+        </div>
 
-        <select
-          value={filterKelas}
-          onChange={(e) => setFilterKelas(e.target.value)}
-          className="h-8 px-2.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs rounded-lg text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-        >
-          <option value="">Semua Kelas</option>
-          {kelasList.map((k) => (
-            <option key={k.id} value={k.id}>
-              Kelas {k.nama}
-            </option>
-          ))}
-        </select>
+        <div className="w-40">
+          <CustomSelect
+            value={filterKelas}
+            onChange={setFilterKelas}
+            placeholder="Semua Kelas"
+            options={[
+              { value: "", label: "Semua Kelas" },
+              ...kelasList.map((k) => ({
+                value: k.id,
+                label: `Kelas ${k.nama}`,
+              })),
+            ]}
+          />
+        </div>
 
         <span className="text-gray-400 dark:text-zinc-500 ml-auto">{transactions.length} transaksi ditampilkan</span>
       </div>

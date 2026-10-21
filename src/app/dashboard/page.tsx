@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import { DashboardSkeleton } from "@/components/Skeletons";
+import CustomSelect from "@/components/CustomSelect";
 import {
   Wallet,
   QrCode,
@@ -889,17 +890,14 @@ export default function StudentDashboardPage() {
                 <label className="text-xs font-medium text-gray-700 dark:text-zinc-300 block mb-1">
                   Pilih Event Sakune Tujuan
                 </label>
-                <select
+                <CustomSelect
                   value={selectedGrupId}
-                  onChange={(e) => setSelectedGrupId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                >
-                  {groups.map((g: any) => (
-                    <option key={g.grup_id} value={g.grup_id}>
-                      {g.nama_grup} (Target: Rp {g.target_per_mahasiswa.toLocaleString("id-ID")})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedGrupId}
+                  options={groups.map((g: any) => ({
+                    value: g.grup_id,
+                    label: `${g.nama_grup} (Target: Rp ${g.target_per_mahasiswa.toLocaleString("id-ID")})`,
+                  }))}
+                />
               </div>
 
               <div>

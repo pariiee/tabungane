@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
+import CustomSelect from "@/components/CustomSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   Building2,
   Plus,
@@ -25,6 +27,7 @@ export default function AdminProdiPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; nama: string } | null>(null);
 
   const loadData = async () => {
     try {
@@ -85,8 +88,6 @@ export default function AdminProdiPage() {
   };
 
   const handleDeleteProdi = async (id: string, namaProdi: string) => {
-    if (!confirm(`Hapus Program Studi "${namaProdi}"? Tindakan ini tidak dapat dibatalkan.`)) return;
-
     setError("");
     setSuccess("");
 
@@ -165,17 +166,14 @@ export default function AdminProdiPage() {
                     Fakultas
                   </label>
                   {fakultasList.length > 0 ? (
-                    <select
+                    <CustomSelect
                       value={fakultas}
-                      onChange={(e) => setFakultas(e.target.value)}
-                      className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                    >
-                      {fakultasList.map((f) => (
-                        <option key={f.id} value={f.nama}>
-                          {f.nama} ({f.kode})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setFakultas}
+                      options={fakultasList.map((f) => ({
+                        value: f.nama,
+                        label: `${f.nama} (${f.kode})`,
+                      }))}
+                    />
                   ) : (
                     <input
                       type="text"
@@ -317,8 +315,8 @@ export default function AdminProdiPage() {
                         {isSuperAdmin && (
                           <td className="px-6 py-4 text-right">
                             <button
-                              onClick={() => handleDeleteProdi(p.id, p.nama)}
-                              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
+                              onClick={() => setDeleteTarget({ id: p.id, nama: p.nama })}
+                              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 cursor-pointer"
                               title="Hapus Program Studi"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -334,6 +332,18 @@ export default function AdminProdiPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) handleDeleteProdi(deleteTarget.id, deleteTarget.nama);
+        }}
+        title="Hapus Program Studi?"
+        message={`Hapus data Program Studi "${deleteTarget?.nama}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        isDestructive={true}
+      />
     </div>
   );
 }

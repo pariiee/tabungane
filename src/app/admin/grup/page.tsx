@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import CustomSelect from "@/components/CustomSelect";
 import { Layers, Plus, Calendar, Target, Users, Wallet, ArrowRight, AlertCircle, CheckCircle2, RefreshCw, X } from "lucide-react";
 
 export default function AdminGrupPage() {
@@ -193,20 +194,18 @@ export default function AdminGrupPage() {
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Target Event
                 </label>
-                <select
-                  required
+                <CustomSelect
                   value={kelasId}
-                  onChange={(e) => setKelasId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-                >
-                  <option value="all">Semua Kelas (Terbuka / Lintas Angkatan)</option>
-                  {kelasList.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      Kelas {k.nama} ({k.tahun_ajaran})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                  onChange={setKelasId}
+                  options={[
+                    { value: "all", label: "Semua Kelas (Terbuka / Lintas Angkatan)" },
+                    ...kelasList.map((k) => ({
+                      value: k.id,
+                      label: `Kelas ${k.nama} (${k.tahun_ajaran})`,
+                    })),
+                  ]}
+                />
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
                   Pilih "Semua Kelas" untuk mengikutsertakan seluruh mahasiswa aktif secara otomatis.
                 </p>
               </div>
