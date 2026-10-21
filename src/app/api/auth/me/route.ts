@@ -18,8 +18,14 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { db } = require("@/lib/db");
 
-  // 1. Update Nama Lengkap
+  // 1. Update Nama Lengkap (Hanya role atas / staf, mahasiswa terkunci)
   if (body.nama !== undefined) {
+    if (user.role === "mahasiswa") {
+      return NextResponse.json(
+        { error: "Nama lengkap mahasiswa dikunci dan hanya dapat diubah oleh Dekan/Kaprodi/Admin" },
+        { status: 403 }
+      );
+    }
     const rawNama = (body.nama || "").trim();
     if (!rawNama || rawNama.length < 2) {
       return NextResponse.json({ error: "Nama lengkap minimal 2 karakter" }, { status: 400 });
