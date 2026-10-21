@@ -152,25 +152,70 @@ export function transferToNim(
   senderUserId: string,
   targetNim: string,
   amount: number,
-  catatan?: string
+  catatan?: string,
+  sumberId: string = "dompet_utama"
 ) {
-  if (amount <= 0) throw new Error("Nominal transfer harus lebih dari 0");
+  if (amount < 1000) throw new Error("Minimal transfer adalah Rp 1.000");
 
   const sender = db.prepare("SELECT * FROM users WHERE id = ?").get(senderUserId) as any;
   if (!sender) throw new Error("Pengirim tidak valid");
 
-  const target = db.prepare("SELECT * FROM users WHERE (LOWER(nim) = LOWER(?) OR (username IS NOT NULL AND LOWER(username) = LOWER(?))) AND aktif = 1").get(targetNim, targetNim) as any;
+  const target = db.prepare(`
+    SELECT * FROM users 
+    WHERE (LOWER(COALESCE(nomor_id, nim)) = LOWER(?) OR LOWER(nim) = LOWER(?) OR (username IS NOT NULL AND LOWER(username) = LOWER(?))) 
+      AND aktif = 1
+  `).get(targetNim, targetNim, targetNim) as any;
+
   if (!target) throw new Error(`Pengguna dengan ID / Username ${targetNim} tidak ditemukan`);
-  if (target.id === senderUserId) throw new Error("Tidak dapat transfer ke ID sendiri");
+  if (target.id === senderUserId) throw new Error("Tidak dapat transfer ke akun sendiri");
+  if (target.role !== "mahasiswa" && target.role !== "admin_kelas") {
+    throw new Error("Penerima transfer wajib berstatus mahasiswa");
+  }
+
+  let sumberNama = "Dompet Utama";
+  if (sumberId !== "dompet_utama") {
+    const pocket = db.prepare("SELECT * FROM kantong WHERE id = ? AND user_id = ?").get(sumberId, senderUserId) as any;
+    if (!pocket) throw new Error("Kantong sumber tidak ditemukan");
+    if (pocket.saldo < amount) {
+      throw new Error(`Saldo Kantong "${pocket.nama}" tidak mencukupi (Tersedia: Rp ${pocket.saldo.toLocaleString("id-ID")})`);
+    }
+    sumberNama = `Kantong "${pocket.nama}"`;
+
+    return runTransaction(() => {
+      // 1. Kurangi saldo kantong
+      db.prepare("UPDATE kantong SET saldo = saldo - ? WHERE id = ?").run(amount, sumberId);
+
+      const targetId = target.nomor_id || target.nim;
+      const senderId = sender.nomor_id || sender.nim;
+      const noteSender = catatan ? `Transfer ke ${target.nama} (${targetId}) dari ${sumberNama}: ${catatan}` : `Transfer ke ${target.nama} (${targetId}) dari ${sumberNama}`;
+      const noteReceiver = catatan ? `Transfer dari ${sender.nama} (${senderId}): ${catatan}` : `Transfer dari ${sender.nama} (${senderId})`;
+
+      // 2. Catat riwayat keluar di sender
+      db.prepare(`
+        INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at)
+        VALUES (?, ?, NULL, 'transfer_keluar', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
+      `).run(crypto.randomUUID(), senderUserId, -amount, noteSender);
+
+      // 3. Kredit receiver
+      db.prepare(`
+        INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at)
+        VALUES (?, ?, NULL, 'transfer_masuk', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
+      `).run(crypto.randomUUID(), target.id, amount, noteReceiver);
+
+      return { success: true, transferred: amount, target_nama: target.nama, sumber: sumberNama };
+    });
+  }
 
   const senderBalance = getWalletBalance(senderUserId);
   if (senderBalance < amount) {
-    throw new Error(`Saldo dompet tidak mencukupi (Tersedia: Rp ${senderBalance.toLocaleString("id-ID")})`);
+    throw new Error(`Saldo Dompet Utama tidak mencukupi (Tersedia: Rp ${senderBalance.toLocaleString("id-ID")})`);
   }
 
   return runTransaction(() => {
-    const noteSender = catatan ? `Transfer ke ${target.nama} (${target.nim}): ${catatan}` : `Transfer ke ${target.nama} (${target.nim})`;
-    const noteReceiver = catatan ? `Transfer dari ${sender.nama} (${sender.nim}): ${catatan}` : `Transfer dari ${sender.nama} (${sender.nim})`;
+    const targetId = target.nomor_id || target.nim;
+    const senderId = sender.nomor_id || sender.nim;
+    const noteSender = catatan ? `Transfer ke ${target.nama} (${targetId}): ${catatan}` : `Transfer ke ${target.nama} (${targetId})`;
+    const noteReceiver = catatan ? `Transfer dari ${sender.nama} (${senderId}): ${catatan}` : `Transfer dari ${sender.nama} (${senderId})`;
 
     // Deduct sender
     db.prepare(`
@@ -184,6 +229,6 @@ export function transferToNim(
       VALUES (?, ?, NULL, 'transfer_masuk', ?, 'berhasil', ?, CURRENT_TIMESTAMP)
     `).run(crypto.randomUUID(), target.id, amount, noteReceiver);
 
-    return { success: true, transferred: amount, target_nama: target.nama };
+    return { success: true, transferred: amount, target_nama: target.nama, sumber: sumberNama };
   });
 }
