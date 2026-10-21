@@ -46,6 +46,18 @@ const formatNumber = (numStr: string) => {
   return parseInt(clean, 10).toLocaleString("id-ID");
 };
 
+const getSisaHari = (deadlineStr?: string) => {
+  if (!deadlineStr) return null;
+  const deadline = new Date(deadlineStr);
+  if (isNaN(deadline.getTime())) return null;
+  const now = new Date();
+  const diffTime = deadline.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return "berakhir";
+  if (diffDays === 0) return "hari ini";
+  return `sisa ${diffDays} hari`;
+};
+
 const box = "border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] rounded-2xl shadow-xs";
 const lbl = "mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400";
 const STATUS: Record<string, string> = {
@@ -447,8 +459,8 @@ export default function TopUpPage() {
 
                     {/* Baris Tengah: Info Kelas & Target */}
                     <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5">
-                      Kelas {g.nama_kelas} &middot; Target {rp(g.target_per_mahasiswa)}
-                      {g.deadline && ` &middot; sisa ${g.deadline}`}
+                      Kelas {g.nama_kelas} &bull; Target {rp(g.target_per_mahasiswa)}
+                      {getSisaHari(g.deadline) && ` • ${getSisaHari(g.deadline)}`}
                     </p>
 
                     {/* Baris Bawah: Horizontal Progress Bar */}
