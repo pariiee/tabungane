@@ -1,31 +1,28 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { formatTrxType, formatTrxStatus } from "@/lib/format";
-import { ListRowsSkeleton } from "@/components/Skeletons";
+import { formatTrxStatus } from "@/lib/format";
+import { TableRowsSkeleton } from "@/components/Skeletons";
+import CustomSelect from "@/components/CustomSelect";
 import {
   History,
-  ArrowUpRight,
-  ArrowDownLeft,
-  RotateCcw,
-  Clock,
   CheckCircle2,
+  Clock,
   AlertCircle,
+  RefreshCw,
+  ArrowDownLeft,
+  ArrowUpRight,
   Send,
   Layers,
   Wallet,
-  RefreshCw,
-  QrCode,
-  Filter,
+  RotateCcw,
 } from "lucide-react";
-
-type FilterTab = "all" | "topup" | "event" | "transfer";
 
 export default function RiwayatPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [filterCategory, setFilterCategory] = useState("all");
 
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -45,242 +42,144 @@ export default function RiwayatPage() {
     loadData();
   }, []);
 
-  // Summary Metrics
-  const stats = useMemo(() => {
-    let totalMasuk = 0;
-    let totalEvent = 0;
-    let totalTransfer = 0;
-
-    transactions.forEach((t) => {
-      if (t.status === "berhasil") {
-        if (t.tipe === "topup_qris" || t.tipe === "transfer_masuk" || t.tipe === "manual_add") {
-          totalMasuk += Math.abs(t.jumlah);
-        } else if (t.tipe === "alokasi_keluar") {
-          totalEvent += Math.abs(t.jumlah);
-        } else if (t.tipe === "transfer_keluar") {
-          totalTransfer += Math.abs(t.jumlah);
-        }
-      }
-    });
-
-    return { totalMasuk, totalEvent, totalTransfer };
-  }, [transactions]);
-
-  // Filtered List
-  const filteredList = useMemo(() => {
-    if (activeTab === "all") return transactions;
-    if (activeTab === "topup") return transactions.filter((t) => t.tipe === "topup_qris");
-    if (activeTab === "event") return transactions.filter((t) => t.tipe === "alokasi_keluar" || t.tipe === "alokasi_masuk");
-    if (activeTab === "transfer") return transactions.filter((t) => t.tipe === "transfer_keluar" || t.tipe === "transfer_masuk");
-    return transactions;
-  }, [transactions, activeTab]);
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-6 pb-20">
-        <div className="space-y-2 animate-pulse">
-          <div className="h-7 w-48 bg-gray-200 dark:bg-zinc-800 rounded-lg" />
-          <div className="h-3.5 w-72 bg-gray-100 dark:bg-zinc-800/60 rounded" />
-        </div>
-        <ListRowsSkeleton count={6} />
-      </div>
-    );
-  }
-
-  const getTrxDetails = (t: any) => {
-    const isPositive = t.jumlah > 0;
+  const getCategoryInfo = (t: any) => {
     switch (t.tipe) {
       case "topup_qris":
-        return {
-          label: "Top Up QRIS",
-          icon: <QrCode className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
-          isPositive: true,
-        };
+        return { label: "Top Up QRIS", isPositive: true };
       case "transfer_keluar":
-        return {
-          label: "Transfer Keluar",
-          icon: <Send className="w-4 h-4 text-rose-600 dark:text-rose-400" />,
-          isPositive: false,
-        };
+        return { label: "Transfer Keluar", isPositive: false };
       case "transfer_masuk":
-        return {
-          label: "Transfer Masuk",
-          icon: <Send className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
-          isPositive: true,
-        };
+        return { label: "Transfer Masuk", isPositive: true };
       case "alokasi_keluar":
-        return {
-          label: "Iuran Event Sakune",
-          icon: <Layers className="w-4 h-4 text-zinc-800 dark:text-zinc-200" />,
-          isPositive: false,
-        };
+        return { label: "Iuran Event Kas", isPositive: false };
       case "alokasi_masuk":
-        return {
-          label: "Dana Masuk dari Dompet",
-          icon: <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
-          isPositive: true,
-        };
+        return { label: "Dana Masuk Event", isPositive: true };
       case "manual_add":
-        return {
-          label: "Setoran Kas Tunai",
-          icon: <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />,
-          isPositive: true,
-        };
+        return { label: "Setoran Kas Tunai", isPositive: true };
       case "reversal":
-        return {
-          label: "Koreksi Saldo (Reversal)",
-          icon: <RotateCcw className="w-4 h-4 text-rose-600 dark:text-rose-400" />,
-          isPositive: false,
-        };
+        return { label: "Koreksi Saldo", isPositive: false };
       default:
-        return {
-          label: formatTrxType(t.tipe),
-          icon: isPositive ? <ArrowUpRight className="w-4 h-4 text-emerald-600" /> : <RotateCcw className="w-4 h-4 text-rose-600" />,
-          isPositive,
-        };
+        return { label: t.tipe || "Transaksi", isPositive: t.jumlah > 0 };
     }
   };
 
+  const filteredList = useMemo(() => {
+    if (filterCategory === "all") return transactions;
+    if (filterCategory === "topup") return transactions.filter((t) => t.tipe === "topup_qris");
+    if (filterCategory === "event") return transactions.filter((t) => t.tipe === "alokasi_keluar" || t.tipe === "alokasi_masuk");
+    if (filterCategory === "transfer") return transactions.filter((t) => t.tipe === "transfer_keluar" || t.tipe === "transfer_masuk");
+    return transactions;
+  }, [transactions, filterCategory]);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-32">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-6 pb-32">
+      {/* Header + Filter Pojok Kanan */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-2">
             <History className="w-6 h-6 text-black dark:text-white" strokeWidth={2} />
             <span>Riwayat Transaksi</span>
           </h1>
-          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Laporan lengkap mutasi dompet utama, iuran event Sakune, dan transfer antar mahasiswa.
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+            Semua catatan mutasi dompet utama, iuran event kelas, dan transfer antar mahasiswa.
           </p>
         </div>
 
-        <button
-          onClick={() => loadData(true)}
-          disabled={refreshing}
-          className="self-start sm:self-auto h-9 px-3.5 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
-          <span>Segarkan</span>
-        </button>
-      </div>
+        {/* Filter Category di Pojok Kanan */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="w-44">
+            <CustomSelect
+              value={filterCategory}
+              onChange={setFilterCategory}
+              options={[
+                { value: "all", label: "Semua Kategori" },
+                { value: "topup", label: "Top Up QRIS" },
+                { value: "event", label: "Iuran Event Kas" },
+                { value: "transfer", label: "Transfer P2P" },
+              ]}
+            />
+          </div>
 
-      {/* 3 Bento Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-            Total Dana Masuk
-          </span>
-          <p className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-            +Rp {stats.totalMasuk.toLocaleString("id-ID")}
-          </p>
-          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
-            Top Up QRIS & Transfer Masuk
-          </span>
-        </div>
-
-        <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-            Iuran Event Sakune
-          </span>
-          <p className="text-lg font-bold font-mono text-gray-900 dark:text-zinc-100 mt-1">
-            Rp {stats.totalEvent.toLocaleString("id-ID")}
-          </p>
-          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
-            Alokasi kas kelas & kegiatan
-          </span>
-        </div>
-
-        <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111113] shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
-            Transfer Keluar
-          </span>
-          <p className="text-lg font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">
-            -Rp {stats.totalTransfer.toLocaleString("id-ID")}
-          </p>
-          <span className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5 block">
-            Kirim saldo sesama NIM
-          </span>
+          <button
+            onClick={() => loadData(true)}
+            disabled={refreshing}
+            className="h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Segarkan data"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
       </div>
 
-      {/* Filter Tabs Pills */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-gray-100 dark:bg-zinc-800/60 border border-gray-200/60 dark:border-zinc-800 w-fit text-xs">
-        <button
-          type="button"
-          onClick={() => setActiveTab("all")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-            activeTab === "all"
-              ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
-              : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
-          }`}
-        >
-          Semua ({transactions.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("topup")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-            activeTab === "topup"
-              ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
-              : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
-          }`}
-        >
-          Top Up QRIS
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("event")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-            activeTab === "event"
-              ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
-              : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
-          }`}
-        >
-          Event Kas
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("transfer")}
-          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-            activeTab === "transfer"
-              ? "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-xs"
-              : "text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white"
-          }`}
-        >
-          Transfer P2P
-        </button>
-      </div>
-
-      {/* Transactions Container */}
+      {/* Tabel Riwayat Transaksi */}
       <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
-        {filteredList.length === 0 ? (
+        {loading ? (
+          <div className="p-6">
+            <TableRowsSkeleton rows={6} />
+          </div>
+        ) : filteredList.length === 0 ? (
           <div className="py-16 text-center space-y-2">
             <History className="w-8 h-8 text-gray-300 dark:text-zinc-700 mx-auto" />
             <p className="text-xs text-gray-400 dark:text-zinc-500">
-              Tidak ada transaksi pada kategori ini.
+              Tidak ada catatan transaksi pada filter ini.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-zinc-800/60">
-            {filteredList.map((t) => {
-              const { label, icon, isPositive } = getTrxDetails(t);
-              const isSuccess = t.status === "berhasil";
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-zinc-800/80 bg-gray-50/70 dark:bg-zinc-900/50 text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+                  <th className="py-3 px-4 sm:px-5">Tanggal</th>
+                  <th className="py-3 px-4 sm:px-5">Jumlah</th>
+                  <th className="py-3 px-4 sm:px-5">Category</th>
+                  <th className="py-3 px-4 sm:px-5">Status</th>
+                  <th className="py-3 px-4 sm:px-5">Keterangan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60 text-gray-700 dark:text-zinc-300">
+                {filteredList.map((t) => {
+                  const { label, isPositive } = getCategoryInfo(t);
+                  const isSuccess = t.status === "berhasil";
 
-              return (
-                <div
-                  key={t.id}
-                  className="p-4 sm:p-5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
-                      {icon}
-                    </div>
-                    <div className="truncate">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 dark:text-zinc-100 text-xs sm:text-sm">
+                  return (
+                    <tr
+                      key={t.id}
+                      className="hover:bg-gray-50/60 dark:hover:bg-zinc-900/40 transition-colors"
+                    >
+                      {/* Tanggal */}
+                      <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap text-gray-500 dark:text-zinc-400 font-mono text-[11px]">
+                        {new Date(t.created_at).toLocaleString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+
+                      {/* Jumlah */}
+                      <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
+                        <span
+                          className={`font-mono font-bold text-xs sm:text-sm ${
+                            isPositive
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-gray-900 dark:text-zinc-100"
+                          }`}
+                        >
+                          {isPositive ? "+" : "-"}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                        </span>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
+                        <span className="font-semibold text-gray-900 dark:text-zinc-100">
                           {label}
                         </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                             isSuccess
@@ -299,44 +198,31 @@ export default function RiwayatPage() {
                           )}
                           <span>{formatTrxStatus(t.status)}</span>
                         </span>
-                      </div>
+                      </td>
 
-                      <div className="text-[11px] text-gray-400 dark:text-zinc-500 mt-0.5 truncate">
-                        <span>{t.nama_grup}</span>
-                        <span className="mx-1.5">&bull;</span>
-                        <span>
-                          {new Date(t.created_at).toLocaleString("id-ID", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </span>
-                      </div>
-
-                      {t.catatan && (
-                        <div className="text-[11px] text-gray-500 dark:text-zinc-400 italic mt-0.5 truncate">
-                          {t.catatan}
+                      {/* Keterangan */}
+                      <td className="py-3.5 px-4 sm:px-5">
+                        <div className="min-w-0 max-w-xs truncate">
+                          <span className="text-gray-900 dark:text-zinc-200 font-medium">
+                            {t.nama_grup || "Dompet"}
+                          </span>
+                          {t.catatan && (
+                            <span className="text-gray-400 dark:text-zinc-500 ml-1.5 italic text-[11px]">
+                              ({t.catatan})
+                            </span>
+                          )}
+                          {t.qris_trx_id && (
+                            <span className="text-[10px] font-mono text-gray-400 dark:text-zinc-500 block">
+                              QRIS ID: {t.qris_trx_id}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="text-right shrink-0 ml-4">
-                    <div
-                      className={`text-sm sm:text-base font-bold font-mono tracking-tight ${
-                        isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-900 dark:text-zinc-100"
-                      }`}
-                    >
-                      {isPositive ? "+" : "-"}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
-                    </div>
-                    {t.qris_trx_id && (
-                      <span className="text-[10px] font-mono text-gray-400 dark:text-zinc-500 block mt-0.5">
-                        {t.qris_trx_id}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
