@@ -61,5 +61,6 @@ export const config = {
     "/riwayat/:path*",
     "/grup/:path*",
     "/akun/:path*",
+    "/leaderboard/:path*",
   ],
 };
