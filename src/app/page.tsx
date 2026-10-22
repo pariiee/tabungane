@@ -35,24 +35,29 @@ export default async function Home() {
     <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] text-[#111215] dark:text-[#f4f3ef] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black font-sans">
       <ArtcraftScrollChoreo />
       {/* ─── 1. TOP HUD TICKER BAR ─── */}
-      <div className="border-b border-[#111215]/15 dark:border-white/10 bg-[#eae8e3]/60 dark:bg-[#131418]/60 text-[11px] font-mono tracking-tight text-[#111215]/70 dark:text-white/60">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-10 h-9 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              SYSTEM ACTIVE
+      <div className="border-b border-[#111215]/15 dark:border-white/10 bg-[#eae8e3]/80 dark:bg-[#131418]/80 backdrop-blur-xs text-[11px] font-mono tracking-tight text-[#111215]/70 dark:text-white/60">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10 h-10 flex items-center justify-between whitespace-nowrap overflow-hidden select-none">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span>SYSTEM ACTIVE</span>
             </span>
-            <span className="hidden sm:inline opacity-30">|</span>
-            <span className="hidden sm:inline">SAKUNE SISFOR v2.4</span>
-            <span className="hidden md:inline opacity-30">|</span>
-            <span className="hidden md:inline">IMMUTABLE LEDGER & QRIS ENGINE</span>
+            <span className="hidden sm:inline opacity-25">|</span>
+            <span className="hidden sm:inline font-semibold text-[#111215] dark:text-white">SAKUNE SISFOR v2.4</span>
+            <span className="hidden md:inline opacity-25">|</span>
+            <span className="hidden md:inline opacity-70">IMMUTABLE LEDGER &amp; QRIS ENGINE</span>
           </div>
-          <div className="flex items-center gap-3 text-[10px] sm:text-[11px]">
-            <span>FAKULTAS ILMU KOMPUTER</span>
-            <span className="opacity-30">/</span>
-            <span>PRODI SISTEM INFORMASI</span>
-            <span className="opacity-30">|</span>
-            <ThemeToggle className="w-6 h-6 border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10" />
+          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="sm:hidden font-mono text-[10px] text-[#111215]/80 dark:text-white/80">
+                FIK · SISFOR
+              </span>
+              <span className="hidden lg:inline">FAKULTAS ILMU KOMPUTER</span>
+              <span className="hidden lg:inline opacity-25">/</span>
+              <span className="hidden sm:inline">PRODI SISTEM INFORMASI</span>
+            </div>
+            <span className="opacity-25">|</span>
+            <ThemeToggle className="w-6 h-6 hover:bg-black/5 dark:hover:bg-white/10" />
           </div>
         </div>
       </div>
