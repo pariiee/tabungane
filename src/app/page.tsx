@@ -409,9 +409,15 @@ export default async function Home() {
             <span>© 2026 PRODI SISTEM INFORMASI</span>
           </div>
           <div className="flex items-center gap-5">
-            <Link href="/topup" className="hover:underline">Top Up QRIS</Link>
-            <Link href="/leaderboard" className="hover:underline">Leaderboard</Link>
-            <Link href="/login" className="hover:underline">Masuk Portal</Link>
+            {user ? (
+              <>
+                <Link href="/topup" className="hover:underline">Top Up QRIS</Link>
+                <Link href="/leaderboard" className="hover:underline">Leaderboard</Link>
+                <Link href="/dashboard" className="hover:underline">Dashboard</Link>
+              </>
+            ) : (
+              <Link href="/login" className="hover:underline">Masuk Portal</Link>
+            )}
           </div>
         </div>
       </footer>

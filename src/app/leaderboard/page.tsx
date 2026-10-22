@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LeaderboardSkeleton } from "@/components/Skeletons";
 import {
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 
 export default function LeaderboardPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<"saldo" | "topup">("saldo");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [myStanding, setMyStanding] = useState<any>(null);
@@ -19,6 +21,10 @@ export default function LeaderboardPage() {
   const loadData = async (activeTab = tab) => {
     try {
       const res = await fetch(`/api/leaderboard?tab=${activeTab}`);
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
       const data = await res.json();
       setLeaderboard(data.leaderboard || []);
       setMyStanding(data.my_standing || null);
