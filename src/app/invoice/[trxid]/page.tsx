@@ -44,7 +44,7 @@ export default function InvoicePage({ params }: { params: Promise<{ trxid: strin
           setError(data.error);
         } else {
           setPayment(data);
-          if (data.status === "berhasil") {
+          if (data.status === "berhasil" || data.status === "paid") {
             setPaymentStatus("berhasil");
           } else if (data.status === "expired") {
             setPaymentStatus("expired");
@@ -90,12 +90,12 @@ export default function InvoicePage({ params }: { params: Promise<{ trxid: strin
     };
   }, [paymentStatus]);
 
-  // Fast polling payment status every 3s for realtime UX
+  // Polling payment status every 10s
   useEffect(() => {
     if (paymentStatus === "pending") {
       pollRef.current = setInterval(() => {
         checkStatus(false);
-      }, 3000);
+      }, 10000);
     }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
