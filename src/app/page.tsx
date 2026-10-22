@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import LandingDemo from "@/components/LandingDemo";
 import ArtcraftScrollChoreo from "@/components/ArtcraftScrollChoreo";
 import HeroVisualArt from "@/components/HeroVisualArt";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Wallet,
   QrCode,
@@ -50,6 +51,8 @@ export default async function Home() {
             <span>FAKULTAS ILMU KOMPUTER</span>
             <span className="opacity-30">/</span>
             <span>PRODI SISTEM INFORMASI</span>
+            <span className="opacity-30">|</span>
+            <ThemeToggle className="w-6 h-6 border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10" />
           </div>
         </div>
       </div>
