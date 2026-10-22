@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Lock, User, ShieldCheck, AlertCircle, ArrowLeft, Sun, Moon } from "lucide-react";
+import { Lock, User, ShieldCheck, AlertCircle, ArrowLeft, Sun, Moon, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [nim, setNim] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -169,14 +170,25 @@ export default function LoginPage() {
               <Lock className="w-3.5 h-3.5 text-gray-500" />
               <span>Password</span>
             </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full h-10 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-black dark:text-white rounded-none focus:outline-none focus:border-black dark:focus:border-white transition-colors font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full h-10 pl-3 pr-10 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-black dark:text-white rounded-none focus:outline-none focus:border-black dark:focus:border-white transition-colors font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center text-gray-400 hover:text-black dark:text-zinc-500 dark:hover:text-white transition-colors cursor-pointer"
+                title={showPassword ? "Sembunyikan password" : "Lihat password"}
+                aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {/* Primary Submit Button */}
