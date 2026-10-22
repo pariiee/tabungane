@@ -270,6 +270,12 @@ try {
       db.exec("ALTER TABLE users ADD COLUMN custom_permissions TEXT DEFAULT NULL;");
     }
 
+    // Auto-migration for transaksi qr_url
+    const tCols = db.prepare("PRAGMA table_info(transaksi)").all() as any[];
+    if (!tCols.some((c) => c.name === "qr_url")) {
+      db.exec("ALTER TABLE transaksi ADD COLUMN qr_url TEXT DEFAULT NULL;");
+    }
+
     // Bidirectional triggers to retire legacy nim while ensuring 100% data integrity
     db.exec(`
       CREATE TRIGGER IF NOT EXISTS trg_users_nomor_id_ins AFTER INSERT ON users

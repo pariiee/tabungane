@@ -79,8 +79,8 @@ export async function POST(req: Request) {
     const trxId = crypto.randomUUID();
     db.prepare(`
       INSERT INTO transaksi (
-        id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan, dibuat_oleh, expired_at
-      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, ?, ?, ?)
+        id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan, dibuat_oleh, expired_at, qr_url
+      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, ?, ?, ?, ?)
     `).run(
       trxId,
       user.id,
@@ -89,7 +89,8 @@ export async function POST(req: Request) {
       qrisRes.trxid ?? null,
       topupLabel,
       user.nama,
-      qrisRes.expired_at ?? null
+      qrisRes.expired_at ?? null,
+      qrisRes.qr_url ?? null
     );
 
     return NextResponse.json({
