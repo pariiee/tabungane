@@ -210,9 +210,9 @@ export default function InvoicePage({ params }: { params: Promise<{ trxid: strin
         {/* ─── 1. CARD HEADER ─── */}
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-4">
           <div className="flex items-center gap-2.5">
-            {/* Merchant Square Logo */}
-            <div className="w-7 h-7 bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold font-mono text-xs">
-              S
+            {/* Merchant Logo */}
+            <div className="w-7 h-7 flex items-center justify-center shrink-0">
+              <img src="/icon.svg" alt="Sakune Logo" className="w-7 h-7 object-contain" />
             </div>
             <span className="font-bold text-sm tracking-wider text-black dark:text-white uppercase">
               SAKUNE SISFOR

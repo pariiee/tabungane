@@ -171,8 +171,8 @@ export default function Navbar() {
               href={isAdmin ? "/admin" : "/dashboard"}
               className="flex items-center gap-3 group"
             >
-              <div className="w-9 h-9 rounded-sm bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-sm shrink-0">
-                S
+              <div className="w-9 h-9 flex items-center justify-center shrink-0">
+                <img src="/icon.svg" alt="Sakune Logo" className="w-9 h-9 object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-bold tracking-tight text-black dark:text-white leading-none">

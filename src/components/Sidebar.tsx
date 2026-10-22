@@ -97,8 +97,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Brand Header */}
       <div>
         <div className={`h-16 flex items-center border-b border-gray-100 dark:border-zinc-800 ${collapsed ? "justify-center px-2" : "px-4 gap-3"} overflow-hidden`}>
-          <div className="w-8 h-8 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 font-bold text-sm tracking-tight shadow-xs">
-            S
+          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+            <img src="/icon.svg" alt="Sakune Logo" className="w-8 h-8 object-contain" />
           </div>
           {!collapsed && (
             <div className="truncate">
