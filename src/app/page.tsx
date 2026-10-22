@@ -16,6 +16,7 @@ import {
   Landmark,
   HelpCircle,
   ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 export default async function Home() {
