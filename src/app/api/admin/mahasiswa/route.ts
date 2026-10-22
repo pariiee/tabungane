@@ -175,10 +175,18 @@ export async function PATCH(req: Request) {
   }
 
   if (custom_permissions !== undefined) {
+    const oldPerms = student.custom_permissions || "[]";
+    const newPerms = custom_permissions ? (typeof custom_permissions === "string" ? custom_permissions : JSON.stringify(custom_permissions)) : "[]";
+    if (oldPerms !== newPerms) {
+      logAudit(
+        user.id,
+        "UPDATE_PERMISSIONS",
+        id,
+        `Ubah izin ${student.nama} (${student.nomor_id || student.nim}): ${oldPerms} -> ${newPerms}`
+      );
+    }
     updates.push("custom_permissions = ?");
-    params.push(
-      custom_permissions ? (typeof custom_permissions === "string" ? custom_permissions : JSON.stringify(custom_permissions)) : null
-    );
+    params.push(custom_permissions ? (typeof custom_permissions === "string" ? custom_permissions : JSON.stringify(custom_permissions)) : null);
   }
 
   if (updates.length > 0) {
