@@ -30,7 +30,8 @@ export async function runQrisReconcileJob() {
         });
 
         if (res.ok) {
-          const data = await res.json();
+          const json = await res.json();
+          const data = json.data || json;
           const remoteStatus = String(data.status || "").toLowerCase();
 
           if (remoteStatus === "paid" || remoteStatus === "berhasil") {
@@ -38,7 +39,7 @@ export async function runQrisReconcileJob() {
             creditPayment(
               trxid,
               `recon-${trxid}-${Date.now()}`,
-              JSON.stringify(data),
+              JSON.stringify(json),
               paidAmount
             );
           } else if (remoteStatus === "expired" || remoteStatus === "canceled") {

@@ -23,36 +23,39 @@ export async function GET(
     return NextResponse.json({ error: "Transaksi tidak ditemukan" }, { status: 404 });
   }
 
-  // Check if expired
-  if (trx.status === "pending" && trx.expired_at && new Date(trx.expired_at) < new Date()) {
-    db.prepare("UPDATE transaksi SET status = 'expired' WHERE id = ?").run(trx.id);
-    trx.status = "expired";
-  }
-
-  // Fallback sync with gateway if still pending
-  if (trx.status === "pending" && trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
+  // First: Fallback sync with gateway if pending or expired
+  if ((trx.status === "pending" || trx.status === "expired") && trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
     try {
-      const apiKey = process.env.QRISKUU_API_KEY || "";
-      if (apiKey) {
-        const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
-        const qRes = await fetch(`${baseUrl}/payments/${encodeURIComponent(trx.qris_trx_id)}`, {
-          headers: { "X-API-Key": apiKey },
-          signal: AbortSignal.timeout(3000),
-        });
-        if (qRes.ok) {
-          const qData = await qRes.json();
-          const qItem = qData.data || qData;
-          if (qItem.status === "paid" || qItem.status === "berhasil") {
-            db.prepare("UPDATE transaksi SET status = 'berhasil', paid_at = CURRENT_TIMESTAMP WHERE id = ?").run(trx.id);
-            trx.status = "berhasil";
-            trx.paid_at = new Date().toISOString();
-          } else if (qItem.status === "expired" || qItem.status === "canceled") {
-            db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(qItem.status, trx.id);
-            trx.status = qItem.status;
-          }
+      const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
+      const qRes = await fetch(`${baseUrl}/payments/${encodeURIComponent(trx.qris_trx_id)}/status`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (qRes.ok) {
+        const qJson = await qRes.json();
+        const qItem = qJson.data || qJson;
+        const remoteStatus = String(qItem.status || "").toLowerCase();
+        if (remoteStatus === "paid" || remoteStatus === "berhasil") {
+          const { creditPayment } = require("@/lib/ledger");
+          creditPayment(
+            trx.qris_trx_id,
+            `sync-${trx.qris_trx_id}-${Date.now()}`,
+            JSON.stringify(qJson),
+            qItem.amount ? Number(qItem.amount) : trx.jumlah
+          );
+          trx.status = "berhasil";
+          trx.paid_at = qItem.paid_at ? (typeof qItem.paid_at === "number" ? new Date(qItem.paid_at * 1000).toISOString() : qItem.paid_at) : new Date().toISOString();
+        } else if (remoteStatus === "expired" || remoteStatus === "canceled") {
+          db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(remoteStatus, trx.id);
+          trx.status = remoteStatus;
         }
       }
     } catch {}
+  }
+
+  // Check if locally expired (only if gateway did not mark it paid)
+  if (trx.status === "pending" && trx.expired_at && new Date(trx.expired_at) < new Date()) {
+    db.prepare("UPDATE transaksi SET status = 'expired' WHERE id = ?").run(trx.id);
+    trx.status = "expired";
   }
 
   // Developer simulation helper: strictly restrict to authenticated Super Admin or local dev
