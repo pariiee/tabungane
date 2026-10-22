@@ -49,7 +49,14 @@ export default function InvoicePage({ params }: { params: Promise<{ trxid: strin
           } else if (data.status === "expired") {
             setPaymentStatus("expired");
           }
+          if (data.expired_at) {
+            const diff = Math.max(0, Math.floor((new Date(data.expired_at).getTime() - Date.now()) / 1000));
+            setTimeLeft(diff);
+          }
         }
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error || "Transaksi tidak ditemukan");
       }
     } catch (e: any) {
       if (isManual) setError(e.message);
