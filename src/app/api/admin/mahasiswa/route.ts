@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   const prodiScope = getProdiScope(user);
 
   let query = `
-    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.must_change_password, u.aktif, u.created_at,
+    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.custom_permissions, u.must_change_password, u.aktif, u.created_at,
            k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi, p.fakultas_id, f.nama as nama_fakultas
     FROM users u
     LEFT JOIN kelas k ON u.kelas_id = k.id
@@ -107,7 +107,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id, nama, nomor_id, kelas_id, prodi_id, fakultas, aktif, role } = await req.json();
+  const { id, nama, nomor_id, kelas_id, prodi_id, fakultas, aktif, role, custom_permissions } = await req.json();
   if (!id) {
     return NextResponse.json({ error: "ID mahasiswa wajib disertakan" }, { status: 400 });
   }
@@ -172,6 +172,13 @@ export async function PATCH(req: Request) {
   if (kelas_id !== undefined) {
     updates.push("kelas_id = ?");
     params.push(kelas_id || null);
+  }
+
+  if (custom_permissions !== undefined) {
+    updates.push("custom_permissions = ?");
+    params.push(
+      custom_permissions ? (typeof custom_permissions === "string" ? custom_permissions : JSON.stringify(custom_permissions)) : null
+    );
   }
 
   if (updates.length > 0) {

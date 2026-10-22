@@ -55,7 +55,7 @@ export default function AdminMahasiswaPage() {
   const [nominalManual, setNominalManual] = useState("");
   const [catatanManual, setCatatanManual] = useState("");
 
-  // Modal Edit Mahasiswa (ID, Nama, Fakultas, Prodi, Kelas)
+  // Modal Edit Mahasiswa (ID, Nama, Fakultas, Prodi, Kelas, Permissions)
   const [showEditModal, setShowEditModal] = useState(false);
   const [editStudent, setEditStudent] = useState<any>(null);
   const [editNomorId, setEditNomorId] = useState("");
@@ -64,6 +64,7 @@ export default function AdminMahasiswaPage() {
   const [editProdiId, setEditProdiId] = useState("");
   const [editKelasId, setEditKelasId] = useState("");
   const [editAktif, setEditAktif] = useState(true);
+  const [editPermissions, setEditPermissions] = useState<string[]>([]);
   const [submittingEdit, setSubmittingEdit] = useState(false);
 
   // Master Data Fakultas & Prodi
@@ -84,6 +85,21 @@ export default function AdminMahasiswaPage() {
   const isAdminKelas = currentUser?.role === "admin_kelas";
   const isKaprodi = currentUser?.role === "admin" && Boolean(currentUser?.prodi_id);
   const isDekan = currentUser?.role === "admin" && Boolean(currentUser?.fakultas) && !currentUser?.prodi_id;
+
+  const canUserDo = (u: any, perm: string): boolean => {
+    if (!u) return false;
+    if (u.role === "super_admin") return true;
+    if (u.custom_permissions) {
+      try {
+        const p = typeof u.custom_permissions === "string" ? JSON.parse(u.custom_permissions) : u.custom_permissions;
+        if (Array.isArray(p)) return p.includes(perm);
+        if (typeof p === "object" && p !== null && typeof p[perm] === "boolean") return p[perm];
+      } catch {}
+    }
+    if (u.role === "admin_kelas") return perm === "manage_saldo";
+    if (u.role === "admin") return ["manage_saldo", "edit_mahasiswa", "reset_mahasiswa", "manage_event"].includes(perm);
+    return false;
+  };
 
   const loadData = () => {
     fetch("/api/auth/me")
@@ -258,6 +274,13 @@ export default function AdminMahasiswaPage() {
     setEditProdiId(s.prodi_id || "");
     setEditKelasId(s.kelas_id || "");
     setEditAktif(s.aktif !== 0);
+    try {
+      const raw = s.custom_permissions;
+      const p = raw ? (typeof raw === "string" ? JSON.parse(raw) : raw) : [];
+      setEditPermissions(Array.isArray(p) ? p : []);
+    } catch {
+      setEditPermissions([]);
+    }
     setShowEditModal(true);
   };
 
@@ -278,6 +301,7 @@ export default function AdminMahasiswaPage() {
           prodi_id: editProdiId,
           kelas_id: editKelasId,
           aktif: editAktif,
+          custom_permissions: editPermissions,
         }),
       });
       const data = await res.json();
@@ -472,57 +496,67 @@ export default function AdminMahasiswaPage() {
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                    {/* Aksi Saldo: Muncul untuk Admin Kelas, Kaprodi, Dekan, Super Admin */}
-                    <button
-                      onClick={() => handleOpenSaldo(s)}
-                      className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Kelola Saldo (Setoran Tunai / Pengurangan)"
-                    >
-                      <Wallet className="w-3 h-3" />
-                      <span>Saldo</span>
-                    </button>
+                    {/* Aksi Saldo: Muncul jika memiliki izin manage_saldo */}
+                    {canUserDo(currentUser, "manage_saldo") && (
+                      <button
+                        onClick={() => handleOpenSaldo(s)}
+                        className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Kelola Saldo (Setoran Tunai / Pengurangan)"
+                      >
+                        <Wallet className="w-3 h-3" />
+                        <span>Saldo</span>
+                      </button>
+                    )}
 
-                    {/* Aksi Manajerial: HANYA untuk Kaprodi, Dekan, Super Admin (Bukan Admin Kelas) */}
-                    {!isAdminKelas && (
-                      <>
-                        {(isSuperAdmin || isKaprodi) && (
-                          <button
-                            onClick={() => setRoleToggleTarget(s)}
-                            className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
-                              s.role === "admin_kelas"
-                                ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
-                                : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
-                            }`}
-                            title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
-                          >
-                            <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                            <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleOpenEdit(s)}
-                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Edit Data Mahasiswa"
-                        >
-                          <Pencil className="w-3 h-3" />
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          onClick={() => setResetTarget(s)}
-                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Reset Password & Username ke ID"
-                        >
-                          <KeyRound className="w-3 h-3" />
-                          <span>Reset</span>
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(s)}
-                          className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Hapus / Nonaktifkan Mahasiswa"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </>
+                    {/* Promosi / Demote Admin Kelas: Hanya Super Admin & Kaprodi */}
+                    {(isSuperAdmin || isKaprodi) && (
+                      <button
+                        onClick={() => setRoleToggleTarget(s)}
+                        className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
+                          s.role === "admin_kelas"
+                            ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
+                            : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
+                        }`}
+                        title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
+                      >
+                        <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
+                      </button>
+                    )}
+
+                    {/* Edit Mahasiswa: Muncul jika memiliki izin edit_mahasiswa */}
+                    {canUserDo(currentUser, "edit_mahasiswa") && (
+                      <button
+                        onClick={() => handleOpenEdit(s)}
+                        className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Edit Data Mahasiswa"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                    )}
+
+                    {/* Reset Password: Muncul jika memiliki izin reset_mahasiswa */}
+                    {canUserDo(currentUser, "reset_mahasiswa") && (
+                      <button
+                        onClick={() => setResetTarget(s)}
+                        className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Reset Password & Username ke ID"
+                      >
+                        <KeyRound className="w-3 h-3" />
+                        <span>Reset</span>
+                      </button>
+                    )}
+
+                    {/* Hapus Mahasiswa: Hanya Super Admin atau yang memiliki izin hapus_mahasiswa */}
+                    {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
+                      <button
+                        onClick={() => setDeleteTarget(s)}
+                        className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Hapus / Nonaktifkan Mahasiswa"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -884,6 +918,40 @@ export default function AdminMahasiswaPage() {
                   Pindah kelas akan otomatis mengikutsertakan mahasiswa ke event tabungan aktif kelas baru.
                 </p>
               </div>
+
+              {/* Hak Akses Granular Mandiri (Bisa Diberikan ke Mahasiswa / Admin Kelas) */}
+              {(isSuperAdmin || isKaprodi) && (
+                <div className="pt-2 border-t border-gray-100 dark:border-zinc-800 space-y-2">
+                  <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider">
+                    Hak Akses Granular Tambahan
+                  </label>
+                  <div className="space-y-1.5 bg-gray-50 dark:bg-zinc-950 p-2.5 rounded-xl border border-gray-200 dark:border-zinc-800">
+                    {[
+                      { key: "manage_saldo", label: "Kelola Saldo (+/- Setoran & Koreksi)" },
+                      { key: "edit_mahasiswa", label: "Edit Profil & Pindah Kelas" },
+                      { key: "reset_mahasiswa", label: "Reset Password Mahasiswa" },
+                      { key: "manage_event", label: "Kelola Event Sakune Kelas" },
+                      { key: "approve_withdraw", label: "Verifikasi Pengajuan Tarik Saldo" },
+                    ].map((perm) => (
+                      <label key={perm.key} className="flex items-center gap-2 cursor-pointer text-xs text-gray-700 dark:text-zinc-300">
+                        <input
+                          type="checkbox"
+                          checked={editPermissions.includes(perm.key)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditPermissions([...editPermissions, perm.key]);
+                            } else {
+                              setEditPermissions(editPermissions.filter((k) => k !== perm.key));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-black focus:ring-black"
+                        />
+                        <span>{perm.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="pt-1">
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700 dark:text-zinc-300">

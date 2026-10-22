@@ -22,6 +22,34 @@ export interface SessionUser {
   nama_fakultas?: string | null;
   tampilkan_saldo_leaderboard?: boolean;
   foto_url?: string | null;
+  custom_permissions?: string | null;
+}
+
+export function hasPermission(user: SessionUser | any, permission: string): boolean {
+  if (!user) return false;
+  if (user.role === "super_admin") return true;
+
+  if (user.custom_permissions) {
+    try {
+      const parsed = typeof user.custom_permissions === "string" ? JSON.parse(user.custom_permissions) : user.custom_permissions;
+      if (Array.isArray(parsed)) {
+        return parsed.includes(permission);
+      }
+      if (typeof parsed === "object" && parsed !== null) {
+        if (typeof parsed[permission] === "boolean") return parsed[permission];
+      }
+    } catch {}
+  }
+
+  // Fallback default role 4-tier
+  switch (user.role) {
+    case "admin_kelas":
+      return permission === "manage_saldo";
+    case "admin":
+      return ["manage_saldo", "edit_mahasiswa", "reset_mahasiswa", "manage_event", "export_laporan"].includes(permission);
+    default:
+      return false;
+  }
 }
 
 export function isAdminUser(user: SessionUser | null): user is SessionUser {

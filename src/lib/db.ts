@@ -266,6 +266,9 @@ try {
       db.exec("UPDATE users SET nomor_id = nim WHERE nomor_id IS NULL;");
       db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nomor_id ON users(nomor_id);");
     }
+    if (!uCols.some((c) => c.name === "custom_permissions")) {
+      db.exec("ALTER TABLE users ADD COLUMN custom_permissions TEXT DEFAULT NULL;");
+    }
 
     // Bidirectional triggers to retire legacy nim while ensuring 100% data integrity
     db.exec(`

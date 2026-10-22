@@ -24,6 +24,7 @@ export async function GET() {
     nama_fakultas: user.nama_fakultas,
     foto_url: user.foto_url,
     tampilkan_saldo_leaderboard: user.tampilkan_saldo_leaderboard,
+    custom_permissions: user.custom_permissions,
     ...(user.role !== "mahasiswa"
       ? {
           custom_title: user.custom_title,
