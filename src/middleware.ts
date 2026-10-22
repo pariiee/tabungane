@@ -26,13 +26,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect Student pages
+  // Protect Student pages & Leaderboard
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/topup") ||
     pathname.startsWith("/riwayat") ||
     pathname.startsWith("/grup") ||
-    pathname.startsWith("/akun")
+    pathname.startsWith("/akun") ||
+    pathname.startsWith("/leaderboard")
   ) {
     if (!sessionCookie) {
       return NextResponse.redirect(new URL("/login", request.url));
