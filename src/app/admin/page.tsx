@@ -15,6 +15,7 @@ import {
   Clock,
   XCircle,
   FileText,
+  GraduationCap,
   X
 } from "lucide-react";
 
@@ -182,7 +183,7 @@ export default function AdminDashboardPage() {
         <div className="bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between min-w-0">
           <div className="flex items-center justify-between text-gray-500 dark:text-zinc-400 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider gap-1">
             <span className="truncate">MAHASISWA</span>
-            <XCircle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-rose-500 shrink-0" />
+            <GraduationCap className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-black dark:text-white shrink-0" />
           </div>
           <div className="mt-1.5">
             <div className="text-lg sm:text-xl font-bold text-black dark:text-white tracking-tight tabular-nums truncate min-w-0">
