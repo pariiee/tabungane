@@ -116,11 +116,18 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Brand Header: Logo on left, Sign in text on right side */}
+        {/* Brand Header: Clean direct logo glyph beside Sign in text (no boxed container) */}
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 flex items-center justify-center shrink-0">
-            <img src="/icon.svg" alt="Logo" className="w-7 h-7 object-contain" />
-          </div>
+          <svg
+            className="w-10 h-10 text-black dark:text-white shrink-0"
+            viewBox="74 68 108 120"
+            fill="currentColor"
+            role="img"
+            aria-label="Sakune Logo"
+          >
+            <path d="M 176 96 L 154 74 L 102 74 L 80 96 L 80 114 L 116 132 L 116 110 L 98 101 L 98 96 L 150 96 L 162 108 Z" />
+            <path d="M 140 124 L 140 146 L 158 155 L 158 160 L 106 160 L 94 148 L 80 160 L 102 182 L 154 182 L 176 160 L 176 142 Z" />
+          </svg>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-black dark:text-white leading-none">
               Sign in
