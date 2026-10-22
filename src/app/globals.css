@@ -43,3 +43,37 @@ body {
 .marquee:hover .marquee-track {
   animation-play-state: paused;
 }
+
+/* Technical Swiss Corner Crosshairs (ArtCraft style) */
+.tick {
+  pointer-events: none;
+  width: 11px;
+  height: 11px;
+  position: absolute;
+}
+
+.tick:before,
+.tick:after {
+  content: "";
+  background: currentColor;
+  opacity: 0.35;
+  position: absolute;
+}
+
+.tick:before {
+  width: 1px;
+  top: 0;
+  bottom: 0;
+  left: 5px;
+}
+
+.tick-half:before {
+  top: 5px;
+}
+
+.tick:after {
+  height: 1px;
+  top: 5px;
+  left: 0;
+  right: 0;
+}

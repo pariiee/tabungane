@@ -97,7 +97,7 @@ export default function StudentDashboardPage() {
   const [showAllocModal, setShowAllocModal] = useState(false);
   const [selectedTrx, setSelectedTrx] = useState<any | null>(null);
 
-  // Kantong state (Bank Jago style - Max 3)
+  // Kantong state (Kantong Sakune - Max 3)
   const [pockets, setPockets] = useState<any[]>([]);
   const [showCreatePocketModal, setShowCreatePocketModal] = useState(false);
   const [showPocketTransferModal, setShowPocketTransferModal] = useState(false);
@@ -638,7 +638,7 @@ export default function StudentDashboardPage() {
         </button>
       </div>
 
-      {/* Kantong Keuangan Mahasiswa (Ala Bank Jago - Max 3 Termasuk Kantong Utama) */}
+      {/* Kantong Keuangan Mahasiswa (Kantong Sakune - Max 3 Termasuk Kantong Utama) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>

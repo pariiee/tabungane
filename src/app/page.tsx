@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import LandingDemo from "@/components/LandingDemo";
+import ArtcraftScrollChoreo from "@/components/ArtcraftScrollChoreo";
 import {
   Wallet,
   QrCode,
@@ -10,13 +11,15 @@ import {
   Users,
   Layers,
   ArrowRight,
-  CheckCircle2,
   TrendingUp,
   CreditCard,
   Landmark,
-  HelpCircle,
-  ChevronDown,
+  FileText,
+  Lock,
   ChevronRight,
+  Shield,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 
 export default async function Home() {
@@ -28,6 +31,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] text-[#111215] dark:text-[#f4f3ef] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black font-sans">
+      <ArtcraftScrollChoreo />
       {/* ─── 1. TOP HUD TICKER BAR ─── */}
       <div className="border-b border-[#111215]/15 dark:border-white/10 bg-[#eae8e3]/60 dark:bg-[#131418]/60 text-[11px] font-mono tracking-tight text-[#111215]/70 dark:text-white/60">
         <div className="max-w-[1280px] mx-auto px-6 md:px-10 h-9 flex items-center justify-between">
@@ -55,15 +59,15 @@ export default async function Home() {
           {/* Subtle grid pattern background */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none" />
 
-          <div className="max-w-3xl relative z-10">
+          <div data-reveal-group="true" className="max-w-3xl relative z-10">
             {/* HUD Eyebrow Tag */}
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-[#111215]/20 dark:border-white/15 bg-white/70 dark:bg-black/40 text-[10px] font-mono uppercase tracking-widest text-[#111215]/80 dark:text-white/80 mb-6 backdrop-blur-xs">
+            <div data-reveal="true" className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-[#111215]/20 dark:border-white/15 bg-white/70 dark:bg-black/40 text-[10px] font-mono uppercase tracking-widest text-[#111215]/80 dark:text-white/80 mb-6 backdrop-blur-xs">
               <span className="w-1.5 h-1.5 bg-black dark:bg-white" />
               <span>Platform Finansial Mahasiswa & Kas Kelas</span>
             </div>
 
             {/* Display Title with Serif Italic Accent */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-[#111215] dark:text-white">
+            <h1 data-reveal="true" className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-[#111215] dark:text-white">
               Kelola kas & tabungan{" "}
               <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
                 secara transparan.
@@ -71,12 +75,12 @@ export default async function Home() {
             </h1>
 
             {/* Sub-headline */}
-            <p className="mt-6 text-sm sm:text-base md:text-lg text-[#111215]/75 dark:text-white/70 max-w-2xl leading-relaxed">
-              Bagi pos keuangan harianmu dengan <strong>Kantong Sakune</strong> (ala Bank Jago), pantau kas event kelas dengan target terukur, dan nikmati setor tunai atau QRIS otomatis berkecepatan tinggi.
+            <p data-reveal="true" className="mt-6 text-sm sm:text-base md:text-lg text-[#111215]/75 dark:text-white/70 max-w-2xl leading-relaxed">
+              Bagi pos keuangan harianmu dengan <strong>Kantong Sakune</strong>, pantau kas event kelas dengan target terukur, dan nikmati setor tunai atau QRIS otomatis berkecepatan tinggi.
             </p>
 
             {/* Actions */}
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div data-reveal="true" className="mt-8 flex flex-wrap items-center gap-3">
               {user ? (
                 <Link
                   href={isAdmin ? "/admin" : "/dashboard"}
@@ -114,7 +118,7 @@ export default async function Home() {
           </div>
 
           {/* Interactive Virtual Card Showcase */}
-          <div className="mt-12 max-w-xl">
+          <div data-reveal="true" className="mt-12 max-w-xl">
             <LandingDemo />
           </div>
         </div>
@@ -159,7 +163,10 @@ export default async function Home() {
       </div>
 
       {/* ─── 4. SECTION FITUR UTAMA (ARTCRAFT BENTO GRID COMPACT) ─── */}
-      <section id="fitur" className="border-b border-[#111215]/15 dark:border-white/10">
+      <section id="fitur" data-choreo="true" className="relative border-b border-[#111215]/15 dark:border-white/10">
+        <span aria-hidden="true" data-draw-rule="true" className="absolute inset-x-0 top-0 h-px bg-[#111215]/20 dark:bg-white/15" />
+        <span aria-hidden="true" data-draw-tick="true" className="tick tick-half z-30 -top-[5px] -left-[6px]" />
+        <span aria-hidden="true" data-draw-tick="true" className="tick tick-half z-30 -top-[5px] -right-[5px]" />
         <div className="max-w-[1280px] mx-auto border-x border-[#111215]/15 dark:border-white/10">
           {/* Sticky Eyebrow Section Bar */}
           <div className="sticky top-0 z-30 border-b border-[#111215]/15 dark:border-white/10 bg-[#f4f3ef]/80 dark:bg-[#0e0f12]/80 backdrop-blur-md">
@@ -176,7 +183,7 @@ export default async function Home() {
           </div>
 
           {/* Section Heading */}
-          <div className="px-6 py-10 md:px-10 md:py-14">
+          <div data-reveal="true" className="px-6 py-10 md:px-10 md:py-14">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
               Kendali presisi yang{" "}
               <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
@@ -189,9 +196,9 @@ export default async function Home() {
           </div>
 
           {/* Compact 2-Column Grid with 1px border lines */}
-          <div className="grid gap-px border-t border-[#111215]/15 dark:border-white/10 bg-[#111215]/15 dark:bg-white/10 md:grid-cols-2">
+          <div data-reveal-group="true" className="grid gap-px border-t border-[#111215]/15 dark:border-white/10 bg-[#111215]/15 dark:bg-white/10 md:grid-cols-2">
             {/* Card 1: Kantong Sakune */}
-            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+            <article data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
               <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
                 <span>Sub-Wallet Keuangan</span>
                 <span>01</span>
@@ -225,7 +232,7 @@ export default async function Home() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-[#111215] dark:text-white">
-                    Kantong Sakune (Bank Jago Style)
+                    Kantong Sakune (Sub-Wallet Mandiri)
                   </h3>
                   <p className="mt-1 text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
                     Satu Kantong Utama permanen sebagai saldo saku & penerima QRIS, plus 2 kantong kustom dengan 6 pilihan palet warna untuk memilah pos tabungan secara mandiri.
@@ -235,7 +242,7 @@ export default async function Home() {
             </article>
 
             {/* Card 2: Tarik Saldo Dompet */}
-            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+            <article data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
               <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
                 <span>Pencairan Dompet</span>
                 <span>02</span>
@@ -271,7 +278,7 @@ export default async function Home() {
             </article>
 
             {/* Card 3: Kas & Event Kelas */}
-            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+            <article data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
               <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
                 <span>Event Kas Bersama</span>
                 <span>03</span>
@@ -302,7 +309,7 @@ export default async function Home() {
             </article>
 
             {/* Card 4: 4-Tier RBAC & Isolasi Wilayah */}
-            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+            <article data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
               <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
                 <span>Hierarki RBAC</span>
                 <span>04</span>
@@ -341,7 +348,10 @@ export default async function Home() {
       </section>
 
       {/* ─── 5. SECTION ARSITEKTUR & INTEGRITAS ─── */}
-      <section className="border-b border-[#111215]/15 dark:border-white/10">
+      <section data-choreo="true" className="relative border-b border-[#111215]/15 dark:border-white/10">
+        <span aria-hidden="true" data-draw-rule="true" className="absolute inset-x-0 top-0 h-px bg-[#111215]/20 dark:bg-white/15" />
+        <span aria-hidden="true" data-draw-tick="true" className="tick tick-half z-30 -top-[5px] -left-[6px]" />
+        <span aria-hidden="true" data-draw-tick="true" className="tick tick-half z-30 -top-[5px] -right-[5px]" />
         <div className="max-w-[1280px] mx-auto border-x border-[#111215]/15 dark:border-white/10">
           <div className="sticky top-0 z-30 border-b border-[#111215]/15 dark:border-white/10 bg-[#f4f3ef]/80 dark:bg-[#0e0f12]/80 backdrop-blur-md">
             <div className="flex items-center justify-between gap-4 px-6 py-3 md:px-10">
@@ -356,7 +366,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="px-6 py-10 md:px-10 md:py-14 max-w-3xl">
+          <div data-reveal="true" className="px-6 py-10 md:px-10 md:py-14 max-w-3xl">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
               Transparansi penuh,{" "}
               <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
@@ -365,22 +375,22 @@ export default async function Home() {
             </h2>
           </div>
 
-          <div className="grid gap-px border-t border-[#111215]/15 dark:border-white/10 bg-[#111215]/15 dark:bg-white/10 md:grid-cols-3">
-            <div className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
+          <div data-reveal-group="true" className="grid gap-px border-t border-[#111215]/15 dark:border-white/10 bg-[#111215]/15 dark:bg-white/10 md:grid-cols-3">
+            <div data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
               <span className="font-mono text-[10px] uppercase tracking-widest opacity-40">01 / ARSITEKTUR</span>
               <h3 className="font-bold text-sm text-[#111215] dark:text-white">Immutable Double Ledger</h3>
               <p className="text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
                 Pencatatan saldo hanya menggunakan transaksi append-only. Koreksi saldo dilakukan melalui jurnal pembalik otomatis.
               </p>
             </div>
-            <div className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
+            <div data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
               <span className="font-mono text-[10px] uppercase tracking-widest opacity-40">02 / FORENSIK</span>
               <h3 className="font-bold text-sm text-[#111215] dark:text-white">Audit Log Per-Aksi</h3>
               <p className="text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
                 Setiap mutasi saldo manual, reset kata sandi, dan perubahan hak akses granular dicatat permanen dalam riwayat audit kampus.
               </p>
             </div>
-            <div className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
+            <div data-reveal="true" className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
               <span className="font-mono text-[10px] uppercase tracking-widest opacity-40">03 / PRIVASI</span>
               <h3 className="font-bold text-sm text-[#111215] dark:text-white">Kanonikal ID & Sensor Saldo</h3>
               <p className="text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
@@ -392,21 +402,22 @@ export default async function Home() {
       </section>
 
       {/* ─── 6. CALL TO ACTION & FOOTER ─── */}
-      <section className="border-b border-[#111215]/15 dark:border-white/10 py-16 md:py-24">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-10 text-center">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-[#111215]/20 dark:border-white/15 bg-white/70 dark:bg-black/40 text-[10px] font-mono uppercase tracking-widest text-[#111215]/80 dark:text-white/80 mb-4">
+      <section data-choreo="true" className="relative border-b border-[#111215]/15 dark:border-white/10 py-16 md:py-24">
+        <span aria-hidden="true" data-draw-rule="true" className="absolute inset-x-0 top-0 h-px bg-[#111215]/20 dark:bg-white/15" />
+        <div data-reveal-group="true" className="max-w-[1280px] mx-auto px-6 md:px-10 text-center">
+          <div data-reveal="true" className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-[#111215]/20 dark:border-white/15 bg-white/70 dark:bg-black/40 text-[10px] font-mono uppercase tracking-widest text-[#111215]/80 dark:text-white/80 mb-4">
             <span>SISTEM INFORMASI TABUNGAN KAMPUS</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
+          <h2 data-reveal="true" className="text-3xl sm:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
             Mulai bangun kebiasaan menabung{" "}
             <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
               hari ini.
             </span>
           </h2>
-          <p className="mt-4 text-xs sm:text-sm text-[#111215]/70 dark:text-white/60 max-w-md mx-auto">
+          <p data-reveal="true" className="mt-4 text-xs sm:text-sm text-[#111215]/70 dark:text-white/60 max-w-md mx-auto">
             Bergabunglah dengan ratusan mahasiswa lainnya dalam ekosistem kas kelas yang transparan dan tertib administrasi.
           </p>
-          <div className="mt-8 flex justify-center gap-3">
+          <div data-reveal="true" className="mt-8 flex justify-center gap-3">
             <Link
               href={user ? (isAdmin ? "/admin" : "/dashboard") : "/login"}
               className="h-10 px-6 rounded-lg bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] font-medium text-xs sm:text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2"
