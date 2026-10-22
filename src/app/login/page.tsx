@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, ShieldCheck, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { Lock, User, ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -91,12 +92,24 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
 
       {/* Main Sharp Login Card (0px border-radius, clean border lines, corner ticks) */}
-      <div className="relative max-w-[400px] w-full border border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#121316] p-8 sm:p-10 rounded-none shadow-sm space-y-6 z-10">
-        {/* Corner Ticks */}
+      <div className="relative max-w-sm w-full border border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#121316] p-8 rounded-none shadow-sm z-10 space-y-6">
+        {/* Technical Corner Ticks */}
         <span className="tick -top-[5px] -left-[6px]" />
         <span className="tick -top-[5px] -right-[5px]" />
         <span className="tick -bottom-[5px] -left-[6px]" />
         <span className="tick -bottom-[5px] -right-[5px]" />
+
+        {/* Back to Welcome Link */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors group cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span>Kembali ke Beranda</span>
+          </Link>
+          <span className="text-[10px] font-mono text-gray-400">SAKUNE</span>
+        </div>
 
         {/* Brand Header */}
         <div>
@@ -122,19 +135,19 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <form className="space-y-4" onSubmit={handleLogin}>
-          {/* Field 1: Username or ID */}
+          {/* Field 1: ID / Username */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 mb-1.5">
-              <Mail className="w-3.5 h-3.5 text-gray-500" />
-              <span>Username or Email</span>
+              <User className="w-3.5 h-3.5 text-gray-500" />
+              <span>ID / Username</span>
             </label>
             <input
               type="text"
               required
               value={nim}
               onChange={(e) => setNim(e.target.value)}
-              placeholder="username or you@email.com"
-              className="w-full h-10 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-black dark:text-white rounded-none focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+              placeholder="Nomor ID atau Username"
+              className="w-full h-10 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-black dark:text-white rounded-none focus:outline-none focus:border-black dark:focus:border-white transition-colors font-mono"
             />
           </div>
 
