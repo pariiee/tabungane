@@ -5,8 +5,31 @@ import ClientShell from "@/components/ClientShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://sakune.sisforhub.web.id"),
   title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
   description: "Web dompet digital kampus dan tabungan bersama per kelas dengan QRIS dan transparansi leaderboard progres.",
+  openGraph: {
+    title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
+    description: "In This Economy? Yuk Nabung. Portal kas dan tabungan mahasiswa transparan.",
+    url: "https://sakune.sisforhub.web.id",
+    siteName: "SAKUNE SISFOR",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "SAKUNE — In This Economy? Yuk Nabung",
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
+    description: "In This Economy? Yuk Nabung. Portal kas dan tabungan mahasiswa transparan.",
+    images: ["/opengraph-image"],
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
