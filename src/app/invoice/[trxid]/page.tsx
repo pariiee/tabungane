@@ -106,10 +106,11 @@ export default function InvoicePage() {
     };
   }, [trxid, paymentStatus]);
 
-  // Auto-redirect countdown on success, canceled, or expired (3s delay)
+  // Auto-redirect countdown on success (3s) or canceled/expired (10s)
   useEffect(() => {
     if (paymentStatus === "berhasil" || paymentStatus === "canceled" || paymentStatus === "expired") {
-      setRedirectCount(3);
+      const initialSeconds = (paymentStatus === "canceled" || paymentStatus === "expired") ? 10 : 3;
+      setRedirectCount(initialSeconds);
       redirectRef.current = setInterval(() => {
         setRedirectCount((prev) => {
           if (prev <= 1) {

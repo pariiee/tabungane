@@ -1202,10 +1202,16 @@ export default function StudentDashboardPage() {
                           )}
                         </td>
 
-                        <td className="py-3 px-2 text-right font-mono font-bold whitespace-nowrap">
-                          <span className={isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
-                            {isPositive ? "+" : ""}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
-                          </span>
+                        <td className="py-3 px-2 text-right font-mono whitespace-nowrap">
+                          {t.status === "berhasil" ? (
+                            <span className={`font-bold ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                              {isPositive ? "+" : "-"}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                            </span>
+                          ) : (
+                            <span className="font-medium text-gray-400 dark:text-zinc-500">
+                              Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                            </span>
+                          )}
                         </td>
 
                         <td className="py-3 px-2 text-right">

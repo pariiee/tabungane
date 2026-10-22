@@ -230,15 +230,21 @@ export default function RiwayatPage() {
 
                       {/* Jumlah */}
                       <td className="py-3.5 px-4 sm:px-5 whitespace-nowrap">
-                        <span
-                          className={`font-mono font-bold text-xs sm:text-sm ${
-                            isPositive
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-gray-900 dark:text-zinc-100"
-                          }`}
-                        >
-                          {isPositive ? "+" : "-"}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
-                        </span>
+                        {t.status === "berhasil" ? (
+                          <span
+                            className={`font-mono font-bold text-xs sm:text-sm ${
+                              isPositive
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-gray-900 dark:text-zinc-100"
+                            }`}
+                          >
+                            {isPositive ? "+" : "-"}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                          </span>
+                        ) : (
+                          <span className="font-mono font-medium text-xs sm:text-sm text-gray-400 dark:text-zinc-500">
+                            Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                          </span>
+                        )}
                       </td>
 
                       {/* Category */}

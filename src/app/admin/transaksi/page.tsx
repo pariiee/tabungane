@@ -223,13 +223,19 @@ export default function AdminTransaksiPage() {
                         <div className="text-[11px] text-gray-400 dark:text-zinc-500 italic mt-0.5 truncate max-w-xs">{t.catatan}</div>
                       )}
                     </td>
-                    <td
-                      className={`py-3.5 px-4 font-bold text-xs whitespace-nowrap ${
-                        isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                      }`}
-                    >
-                      {isPositive ? "+" : ""}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
-                    </td>
+                    {t.status === "berhasil" ? (
+                      <td
+                        className={`py-3.5 px-4 font-bold text-xs whitespace-nowrap ${
+                          isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {isPositive ? "+" : "-"}Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                      </td>
+                    ) : (
+                      <td className="py-3.5 px-4 font-mono font-medium text-xs whitespace-nowrap text-gray-400 dark:text-zinc-500">
+                        Rp {Math.abs(t.jumlah).toLocaleString("id-ID")}
+                      </td>
+                    )}
                     <td className="py-3.5 px-4">
                       <span
                         className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
