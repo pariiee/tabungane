@@ -109,7 +109,7 @@ export default function LoginPage() {
             Sign in
           </h1>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Tabungane Sisfor · Portal Kas & Tabungan
+            Sakune Sisfor · Portal Kas & Tabungan
           </p>
         </div>
 

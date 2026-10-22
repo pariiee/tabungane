@@ -5,7 +5,7 @@ import ClientShell from "@/components/ClientShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "TABUNGANE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
+  title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
   description: "Web dompet digital kampus dan tabungan bersama per kelas dengan QRIS dan transparansi leaderboard progres.",
   icons: {
     icon: "/icon.svg",

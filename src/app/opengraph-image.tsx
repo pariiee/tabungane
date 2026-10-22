@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
 
-export const alt = "Tabungane Sisfor — Platform Finansial & Kas Mahasiswa Kampus";
+export const alt = "Sakune Sisfor — Platform Finansial & Kas Mahasiswa Kampus";
 export const size = {
   width: 1200,
   height: 630,
@@ -75,7 +75,7 @@ export default async function Image() {
                   letterSpacing: "0.05em",
                 }}
               >
-                TABUNGANE SISFOR
+                SAKUNE SISFOR
               </span>
               <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", fontFamily: "monospace" }}>
                 FAKULTAS ILMU KOMPUTER
@@ -164,7 +164,7 @@ export default async function Image() {
           </div>
 
           <div style={{ fontSize: "13px", fontFamily: "monospace", color: "rgba(255, 255, 255, 0.4)" }}>
-            tabungane.sisfor · 2026
+            sakune.sisfor · 2026
           </div>
         </div>
       </div>

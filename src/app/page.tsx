@@ -42,7 +42,7 @@ export default async function Home() {
               SYSTEM ACTIVE
             </span>
             <span className="hidden sm:inline opacity-30">|</span>
-            <span className="hidden sm:inline">TABUNGANE SISFOR v2.4</span>
+            <span className="hidden sm:inline">SAKUNE SISFOR v2.4</span>
             <span className="hidden md:inline opacity-30">|</span>
             <span className="hidden md:inline">IMMUTABLE LEDGER & QRIS ENGINE</span>
           </div>
@@ -399,7 +399,7 @@ export default async function Home() {
       <footer className="py-8 font-mono text-[11px] text-[#111215]/60 dark:text-white/50">
         <div className="max-w-[1280px] mx-auto px-6 md:px-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#111215] dark:text-white">TABUNGANE SISFOR</span>
+            <span className="font-bold text-[#111215] dark:text-white">SAKUNE SISFOR</span>
             <span className="opacity-30">|</span>
             <span>© 2026 PRODI SISTEM INFORMASI</span>
           </div>
