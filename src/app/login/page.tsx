@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wallet, Lock, User, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { Lock, Mail, ShieldCheck, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -86,91 +86,111 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-[#111113] p-8 rounded-2xl shadow-xs border border-gray-100 dark:border-zinc-800/80">
-        {/* Header */}
-        <div className="text-center">
-          <div className="mx-auto w-10 h-10 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl flex items-center justify-center font-bold text-base mb-4 shadow-xs">
-            S
+    <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] text-[#111215] dark:text-[#f4f3ef] flex items-center justify-center py-12 px-4 sm:px-6 relative selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black font-sans">
+      {/* Subtle graph grid background (matches screenshot) */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
+
+      {/* Main Sharp Login Card (0px border-radius, clean border lines, corner ticks) */}
+      <div className="relative max-w-[400px] w-full border border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#121316] p-8 sm:p-10 rounded-none shadow-sm space-y-6 z-10">
+        {/* Corner Ticks */}
+        <span className="tick -top-[5px] -left-[6px]" />
+        <span className="tick -top-[5px] -right-[5px]" />
+        <span className="tick -bottom-[5px] -left-[6px]" />
+        <span className="tick -bottom-[5px] -right-[5px]" />
+
+        {/* Brand Header */}
+        <div>
+          {/* Logo Icon */}
+          <div className="mb-4">
+            <img src="/icon.svg" alt="Logo" className="w-8 h-8 object-contain" />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-            SAKUNE <span className="text-emerald-600 dark:text-emerald-400">SISFOR</span>
-          </h2>
-          <p className="mt-1 text-xs text-gray-400 dark:text-zinc-500">
-            Dompet Digital Kampus & Event Tabungan Mahasiswa
+
+          <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
+            Sign in
+          </h1>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+            Tabungane Sisfor · Portal Kas & Tabungan
           </p>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg border border-rose-200/50 dark:border-rose-800/30">
+          <div className="flex items-center gap-2 p-3 text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 rounded-none">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Login Form */}
-        <form className="mt-6 space-y-4" onSubmit={handleLogin}>
+        <form className="space-y-4" onSubmit={handleLogin}>
+          {/* Field 1: Username or ID */}
           <div>
-            <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-              ID Pengguna atau Username
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 mb-1.5">
+              <Mail className="w-3.5 h-3.5 text-gray-500" />
+              <span>Username or Email</span>
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                <User className="w-4 h-4" />
-              </div>
-              <input
-                type="text"
-                required
-                value={nim}
-                onChange={(e) => setNim(e.target.value)}
-                placeholder="Masukkan ID akun atau username"
-                className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-              />
-            </div>
+            <input
+              type="text"
+              required
+              value={nim}
+              onChange={(e) => setNim(e.target.value)}
+              placeholder="username or you@email.com"
+              className="w-full h-10 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-black dark:text-white rounded-none focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+            />
           </div>
 
+          {/* Field 2: Password */}
           <div>
-            <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-              Kata Sandi
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 mb-1.5">
+              <Lock className="w-3.5 h-3.5 text-gray-500" />
+              <span>Password</span>
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                <Lock className="w-4 h-4" />
-              </div>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
-              />
-            </div>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full h-10 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-black dark:text-white rounded-none focus:outline-none focus:border-black dark:focus:border-white transition-colors font-mono"
+            />
           </div>
 
+          {/* Primary Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-10 flex items-center justify-center gap-2 rounded-lg text-xs font-medium text-white bg-gray-900 hover:bg-black dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 transition-colors shadow-xs disabled:opacity-50"
+            className="w-full h-10 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-xs font-semibold rounded-none tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50 mt-2 shadow-xs"
           >
-            {loading ? "Memproses..." : "Masuk ke Sistem"}
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-4 h-4" />
+            <span>{loading ? "Signing in..." : "Sign in"}</span>
           </button>
         </form>
 
-        {/* Quick Demo Fill Buttons */}
-        <div className="pt-4 border-t border-gray-100 dark:border-zinc-800/60">
-          <p className="text-[11px] text-gray-400 dark:text-zinc-500 text-center mb-2 font-medium">Uji Coba Cepat (Akun Bawaan):</p>
-          <div className="grid grid-cols-2 gap-2">
+        {/* Footer Links (matches screenshot) */}
+        <div className="pt-4 border-t border-gray-200 dark:border-zinc-800 text-center space-y-1.5 text-xs text-gray-500 dark:text-zinc-400">
+          <p>
+            Don&apos;t have an account?{" "}
+            <span className="underline cursor-default text-zinc-900 dark:text-zinc-200 font-medium">
+              Hubungi Admin
+            </span>
+          </p>
+          <p>
+            <span className="underline cursor-default">Forgot password?</span>
+          </p>
+        </div>
+
+        {/* Quick Demo Fill Buttons (Minimalist) */}
+        <div className="pt-2 text-[10px] text-gray-400 dark:text-zinc-500 text-center">
+          <span className="font-mono block mb-1">Uji Coba Cepat:</span>
+          <div className="flex justify-center gap-2">
             <button
               type="button"
               onClick={() => {
                 setNim("240101");
-                setPassword("password123");
+                setPassword("240101");
               }}
-              className="py-1.5 px-2 text-[11px] font-medium border border-gray-200 dark:border-zinc-800 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-600 dark:text-zinc-400 transition-colors text-center"
+              className="px-2 py-0.5 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white rounded-none font-mono text-[10px] text-gray-600 dark:text-zinc-400 cursor-pointer"
             >
-              Mahasiswa: 240101
+              Mhs: 240101
             </button>
             <button
               type="button"
@@ -178,7 +198,7 @@ export default function LoginPage() {
                 setNim("admin");
                 setPassword("admin123");
               }}
-              className="py-1.5 px-2 text-[11px] font-medium border border-gray-200 dark:border-zinc-800 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-600 dark:text-zinc-400 transition-colors text-center"
+              className="px-2 py-0.5 border border-gray-200 dark:border-zinc-800 hover:border-black dark:hover:border-white rounded-none font-mono text-[10px] text-gray-600 dark:text-zinc-400 cursor-pointer"
             >
               Admin: admin
             </button>
@@ -188,10 +208,10 @@ export default function LoginPage() {
 
       {/* Must Change Password Modal */}
       {mustChangePassword && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#121316] border border-gray-300 dark:border-zinc-800 max-w-md w-full p-6 space-y-4 rounded-none shadow-xl">
             <div className="flex items-center gap-3 text-amber-600">
-              <div className="p-2 bg-amber-50 dark:bg-amber-950/40 rounded-lg">
+              <div className="p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
@@ -201,40 +221,44 @@ export default function LoginPage() {
             </div>
 
             {changeError && (
-              <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-lg border border-rose-200/50 dark:border-rose-800/30">
+              <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 border border-rose-300 dark:border-rose-800">
                 {changeError}
               </div>
             )}
 
             <form onSubmit={handleChangePassword} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Password Baru (min 6 karakter)</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Password Baru (min 6 karakter)
+                </label>
                 <input
                   type="password"
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  className="w-full h-9 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 rounded-none focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Konfirmasi Password Baru</label>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Konfirmasi Password Baru
+                </label>
                 <input
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  className="w-full h-9 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 rounded-none focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={changing}
-                className="w-full h-9 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs transition-colors disabled:opacity-50"
+                className="w-full h-9 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-xs font-semibold rounded-none tracking-wide cursor-pointer transition-colors disabled:opacity-50"
               >
-                {changing ? "Menyimpan..." : "Simpan Password & Masuk"}
+                {changing ? "Menyimpan..." : "Simpan Kata Sandi Baru"}
               </button>
             </form>
           </div>

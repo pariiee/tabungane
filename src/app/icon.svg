@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+  <style>
+    .bg { fill: #FFFFFF; stroke: #E4E4E7; stroke-width: 4px; }
+    .glyph { fill: #0b0b0f; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0b0b0f; stroke: none; }
+      .glyph { fill: #FFFFFF; }
+    }
+  </style>
+  <rect class="bg" x="24" y="24" width="208" height="208" rx="52"/>
+  <g class="glyph">
+    <path d="M 176 96 L 154 74 L 102 74 L 80 96 L 80 114 L 116 132 L 116 110 L 98 101 L 98 96 L 150 96 L 162 108 Z"/>
+    <path d="M 140 124 L 140 146 L 158 155 L 158 160 L 106 160 L 94 148 L 80 160 L 102 182 L 154 182 L 176 160 L 176 142 Z"/>
+  </g>
+</svg>
