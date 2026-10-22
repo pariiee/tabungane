@@ -1,13 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "./globals.css";
 import ClientShell from "@/components/ClientShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f3ef" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e0f12" },
+  ],
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://sakune.sisforhub.web.id"),
   title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
   description: "Web dompet digital kampus dan tabungan bersama per kelas dengan QRIS dan transparansi leaderboard progres.",
+  alternates: {
+    canonical: "https://sakune.sisforhub.web.id",
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
     description: "In This Economy? Yuk Nabung. Portal kas dan tabungan mahasiswa transparan.",
@@ -26,6 +37,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@sakunesisfor",
+    creator: "@sakunesisfor",
     title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
     description: "In This Economy? Yuk Nabung. Portal kas dan tabungan mahasiswa transparan.",
     images: ["/opengraph-image"],
@@ -37,6 +50,14 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
+  description: "Web dompet digital kampus dan tabungan bersama per kelas dengan QRIS dan transparansi leaderboard progres.",
+  url: "https://sakune.sisforhub.web.id",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -44,6 +65,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="h-full" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 antialiased flex flex-col font-sans">
         {/* Garis tipis gelap setinggi 3px di paling atas halaman */}
         <div className="h-[3px] bg-zinc-900 dark:bg-zinc-100 w-full fixed top-0 left-0 z-50 pointer-events-none" />
