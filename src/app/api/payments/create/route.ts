@@ -81,7 +81,16 @@ export async function POST(req: Request) {
       INSERT INTO transaksi (
         id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan, dibuat_oleh, expired_at
       ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, ?, ?, ?)
-    `).run(trxId, user.id, membershipId, nominal, qrisRes.trxid, topupLabel, user.nama, qrisRes.expired_at);
+    `).run(
+      trxId,
+      user.id,
+      membershipId ?? null,
+      nominal,
+      qrisRes.trxid ?? null,
+      topupLabel,
+      user.nama,
+      qrisRes.expired_at ?? null
+    );
 
     return NextResponse.json({
       success: true,

@@ -17,7 +17,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
   // If real API key is configured, call official qriskuu REST API
   if (apiKey) {
     try {
-      const res = await fetch(`${QRISKUU_BASE_URL}/payments`, {
+      let res = await fetch(`${QRISKUU_BASE_URL}/payments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -28,18 +28,63 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
         }),
       });
 
+      // Handle DUPLICATE_PENDING: auto-cancel existing pending payment with same amount on gateway, then retry
+      if (res.status === 400) {
+        const errJson = await res.clone().json().catch(() => null);
+        if (errJson?.errors?.code === "DUPLICATE_PENDING") {
+          try {
+            const listRes = await fetch(`${QRISKUU_BASE_URL}/payments?status=pending`, {
+              headers: { "X-API-Key": apiKey },
+            });
+            const listData = await listRes.json();
+            const dups = (listData?.data || []).filter((d: any) => Number(d.amount) === Number(amount));
+            for (const d of dups) {
+              await fetch(`${QRISKUU_BASE_URL}/payments/${encodeURIComponent(d.id)}/cancel`, {
+                method: "POST",
+                headers: { "X-API-Key": apiKey },
+              });
+            }
+            // Retry create after clearing duplicate
+            res = await fetch(`${QRISKUU_BASE_URL}/payments`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-API-Key": apiKey,
+              },
+              body: JSON.stringify({ amount }),
+            });
+          } catch {}
+        }
+      }
+
       if (res.ok) {
-        const data = await res.json();
+        const json = await res.json();
+        const item = json.data || json;
+        const trxid = item.id || item.trxid;
+        if (!trxid) {
+          throw new Error("ID transaksi tidak ditemukan dari gateway pembayaran");
+        }
+
+        let expiredAt = item.expired_at;
+        if (typeof expiredAt === "number") {
+          expiredAt = new Date(expiredAt * 1000).toISOString();
+        } else if (!expiredAt) {
+          expiredAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+        }
+
         return {
-          trxid: data.id || data.trxid,
-          qr_url: data.qr_url,
-          qr_string: data.qr_string,
-          expired_at: data.expired_at || new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+          trxid,
+          qr_url: item.qr_url,
+          qr_string: item.qr_string,
+          expired_at: expiredAt,
           is_mock: false,
         };
       }
       console.warn("qriskuu API returned non-200, falling back to simulator:", await res.text());
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.message && !err.message.includes("fetch")) {
+        throw err;
+      }
       console.warn("qriskuu API call failed, falling back to simulator:", err);
     }
   }
