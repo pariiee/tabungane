@@ -25,6 +25,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
         },
         body: JSON.stringify({
           amount,
+          method: "shoppee",
         }),
       });
 
@@ -51,7 +52,10 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
                 "Content-Type": "application/json",
                 "X-API-Key": apiKey,
               },
-              body: JSON.stringify({ amount }),
+              body: JSON.stringify({
+                amount,
+                method: "shoppee",
+              }),
             });
           } catch {}
         }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, use } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
@@ -14,9 +14,9 @@ import {
   Zap,
 } from "lucide-react";
 
-export default function InvoicePage({ params }: { params: Promise<{ trxid: string }> }) {
-  const resolvedParams = use(params);
-  const trxid = resolvedParams.trxid;
+export default function InvoicePage() {
+  const routeParams = useParams();
+  const trxid = typeof routeParams?.trxid === "string" ? routeParams.trxid : Array.isArray(routeParams?.trxid) ? routeParams.trxid[0] : "";
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
