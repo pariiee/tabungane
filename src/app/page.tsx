@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import LandingDemo from "@/components/LandingDemo";
 import ArtcraftScrollChoreo from "@/components/ArtcraftScrollChoreo";
+import HeroVisualArt from "@/components/HeroVisualArt";
 import {
   Wallet,
   QrCode,
