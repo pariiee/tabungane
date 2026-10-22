@@ -27,67 +27,67 @@ export async function GET() {
       .prepare(
         `SELECT COALESCE(SUM(t.jumlah), 0) as total, COUNT(*) as count 
          FROM transaksi t
-         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-         JOIN users u ON kg.user_id = u.id
-         JOIN kelas k ON u.kelas_id = k.id
-         WHERE t.status = 'berhasil' AND date(datetime(t.created_at, '+7 hours')) = date(?) AND k.prodi_id = ?`
+         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+         LEFT JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'berhasil' AND date(datetime(t.created_at, '+7 hours')) = date(?) AND (k.prodi_id = ? OR u.prodi_id = ?)`
       )
-      .get(todayWib, prodiScope) as any;
+      .get(todayWib, prodiScope, prodiScope) as any;
 
     totalRow = db
       .prepare(
         `SELECT COALESCE(SUM(t.jumlah), 0) as total, COUNT(*) as count 
          FROM transaksi t
-         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-         JOIN users u ON kg.user_id = u.id
-         JOIN kelas k ON u.kelas_id = k.id
-         WHERE t.status = 'berhasil' AND k.prodi_id = ?`
+         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+         LEFT JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'berhasil' AND (k.prodi_id = ? OR u.prodi_id = ?)`
       )
-      .get(prodiScope) as any;
+      .get(prodiScope, prodiScope) as any;
 
     pendingRow = db
       .prepare(
         `SELECT COUNT(*) as count 
          FROM transaksi t
-         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-         JOIN users u ON kg.user_id = u.id
-         JOIN kelas k ON u.kelas_id = k.id
-         WHERE t.status = 'pending' AND k.prodi_id = ?`
+         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+         LEFT JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'pending' AND (k.prodi_id = ? OR u.prodi_id = ?)`
       )
-      .get(prodiScope) as any;
+      .get(prodiScope, prodiScope) as any;
 
     allTrxRow = db
       .prepare(
         `SELECT COUNT(*) as count 
          FROM transaksi t
-         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-         JOIN users u ON kg.user_id = u.id
-         JOIN kelas k ON u.kelas_id = k.id
-         WHERE k.prodi_id = ?`
+         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+         LEFT JOIN kelas k ON u.kelas_id = k.id
+         WHERE (k.prodi_id = ? OR u.prodi_id = ?)`
       )
-      .get(prodiScope) as any;
+      .get(prodiScope, prodiScope) as any;
 
     expiredRow = db
       .prepare(
         `SELECT COUNT(*) as count 
          FROM transaksi t
-         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-         JOIN users u ON kg.user_id = u.id
-         JOIN kelas k ON u.kelas_id = k.id
-         WHERE t.status = 'expired' AND k.prodi_id = ?`
+         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+         LEFT JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'expired' AND (k.prodi_id = ? OR u.prodi_id = ?)`
       )
-      .get(prodiScope) as any;
+      .get(prodiScope, prodiScope) as any;
 
     canceledRow = db
       .prepare(
         `SELECT COUNT(*) as count 
          FROM transaksi t
-         JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-         JOIN users u ON kg.user_id = u.id
-         JOIN kelas k ON u.kelas_id = k.id
-         WHERE t.status = 'canceled' AND k.prodi_id = ?`
+         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+         JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+         LEFT JOIN kelas k ON u.kelas_id = k.id
+         WHERE t.status = 'canceled' AND (k.prodi_id = ? OR u.prodi_id = ?)`
       )
-      .get(prodiScope) as any;
+      .get(prodiScope, prodiScope) as any;
 
     studentRow = db
       .prepare(
@@ -216,26 +216,26 @@ export async function GET() {
     recent = db
       .prepare(`
         SELECT t.id, t.qris_trx_id, t.jumlah, t.status, t.created_at, t.tipe,
-               u.nim, u.nama as nama_mahasiswa, g.nama as nama_grup
+               u.nim, u.nama as nama_mahasiswa, COALESCE(g.nama, 'Dompet Utama (Saku)') as nama_grup
         FROM transaksi t
-        JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-        JOIN users u ON kg.user_id = u.id
-        JOIN kelas k ON u.kelas_id = k.id
-        JOIN grup_tabungan g ON kg.grup_id = g.id
-        WHERE k.prodi_id = ?
+        LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+        LEFT JOIN grup_tabungan g ON kg.grup_id = g.id
+        LEFT JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
+        LEFT JOIN kelas k ON u.kelas_id = k.id
+        WHERE (k.prodi_id = ? OR u.prodi_id = ?)
         ORDER BY t.created_at DESC
         LIMIT 7
       `)
-      .all(prodiScope) as any[];
+      .all(prodiScope, prodiScope) as any[];
   } else {
     recent = db
       .prepare(`
         SELECT t.id, t.qris_trx_id, t.jumlah, t.status, t.created_at, t.tipe,
-               u.nim, u.nama as nama_mahasiswa, g.nama as nama_grup
+               u.nim, u.nama as nama_mahasiswa, COALESCE(g.nama, 'Dompet Utama (Saku)') as nama_grup
         FROM transaksi t
-        JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-        JOIN users u ON kg.user_id = u.id
-        JOIN grup_tabungan g ON kg.grup_id = g.id
+        LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
+        LEFT JOIN grup_tabungan g ON kg.grup_id = g.id
+        LEFT JOIN users u ON (t.user_id = u.id OR kg.user_id = u.id)
         ORDER BY t.created_at DESC
         LIMIT 7
       `)
