@@ -83,12 +83,12 @@ export default function InvoicePage({ params }: { params: Promise<{ trxid: strin
     };
   }, [paymentStatus]);
 
-  // Polling payment status every 3s
+  // Polling payment status every 15s to prevent rate limit / ban
   useEffect(() => {
     if (paymentStatus === "pending") {
       pollRef.current = setInterval(() => {
         checkStatus(false);
-      }, 3000);
+      }, 15000);
     }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
