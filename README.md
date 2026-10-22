@@ -1,51 +1,80 @@
-# TABUNGANE SISFOR
+# SAKUNE SISFOR
 
-Platform Web Tabungan Bersama Mahasiswa & Kas Kelas berbasis QRIS (qriskuu) dan Transparansi Leaderboard Progres.
+> Ekosistem Finansial & Kas Mahasiswa Kampus — Fakultas Ilmu Komputer, Prodi Sistem Informasi.
 
-## 🚀 Fitur MVP Selesai (PRD v0.1)
+Platform web dompet digital mahasiswa, sub-wallet serbaguna (*Kantong Sakune*), tabungan bersama per kelas, transfer antar-mahasiswa, dan automasi mutasi QRIS real-time yang transparan, aman, dan tanpa celah kebocoran data.
 
-- **M1 - Autentikasi & Keamanan:** Login NIM + Password, wajib ganti password di login pertama, hash password via `node:crypto` scrypt + timing-safe equal.
-- **M2 - Kelola Kelas & Mahasiswa:** CRUD Kelas, Tambah Mahasiswa, Impor data mahasiswa via CSV (`nim,nama,kelas`), Reset password mahasiswa dengan password sementara acak.
-- **M3 - Grup Tabungan:** Buat grup tabungan per kelas (target nominal + deadline), otomatis mendaftarkan seluruh mahasiswa aktif di kelas tersebut.
-- **M4 - Tambah Saldo Manual (Setoran Tunai):** Input setoran tunai mahasiswa oleh Admin dengan catatan wajib.
-- **M5 - Top Up QRIS (qriskuu API):** Nominal Rp1.000 - Rp1.000.000, hitung mundur 5 menit, live polling status per 3 detik ke server lokal, dev mode simulator.
-- **M6 - Dashboard Mahasiswa:** Ringkasan saldo per grup, bar progres, total dana kelas terkumpul, sisa waktu deadline.
-- **M7 - Leaderboard Grup:** Ranking berdasarkan persentase target. **Perlindungan privasi:** Nominal saldo mahasiswa lain disembunyikan di server dan klien, hanya persen yang terlihat publik.
-- **M8 - Riwayat Transaksi:** Riwayat mutasi mahasiswa & tabel lengkap transaksi admin dengan filter kelas/grup/status.
-- **M9 - Dashboard Super Admin:** KPI cards (Total Terkumpul, Top Up Hari Ini, Pending, Total Mahasiswa), grafik aktivitas 14 hari (native SVG chart), transaksi terbaru.
-- **M10 - Koreksi Saldo (Append-Only Ledger):** Transaksi pembalik (reversal) bernilai negatif menaut ke transaksi asal dengan alasan wajib. Data asal tidak pernah diubah.
-- **M11 - Audit Log:** Jejak rekaman aksi admin (waktu, admin, aksi, target, detail).
-- **M12 - Ekspor Laporan:** Download rekapitulasi data tabungan mahasiswa format CSV per grup.
+---
+
+## 🏛️ Arsitektur & Fitur Utama
+
+### 1. 4-Tier Hierarchical RBAC & Granular Permissions
+- **Super Admin:** Akses penuh universitas, audit log, konfigurasi gateway, dan manajemen admin.
+- **Dekan (Fakultas):** Memantau seluruh prodi, kelas, dan event di bawah fakultasnya.
+- **Kaprodi (Program Studi):** Mengelola struktur kelas, event prodi, dan agregat tabungan mahasiswa prodi.
+- **Admin Kelas (Bendahara):** Mengawasi mutasi tunai dan setoran mahasiswa khusus kelasnya sendiri.
+- **Granular Custom Permissions:** Toggle izin per-user tersimpan dalam JSON (`users.custom_permissions`) dengan historical changelog audit logging.
+
+### 2. Immutable Ledger & Finansial Safety
+- **Append-Only Ledger:** Saldo dihitung dari akumulasi riwayat transaksi (`ledger.ts`), data transaksi tidak pernah di-update atau di-delete.
+- **Koreksi Pembalik (Reversal):** Kesalahan input diselesaikan lewat transaksi pembalik bertanda minus yang menautkan `reversal_of_id`.
+- **Zero Data Leakage:** Leaderboard dan rekap publik hanya menyajikan persentase capaian; nominal saldo mahasiswa lain disensor total dari payload API.
+
+### 3. Kantong Sakune (Sub-Wallets) & P2P Transfer
+- **Sub-Kantong Mahasiswa:** Alokasi saldo fleksibel (Dana Kas, Event Kampus, Tabungan Pribadi, Kebutuhan Praktikum).
+- **Transfer P2P Internal:** Kirim saldo antar-mahasiswa dengan live search instan berbasis Nomor ID/NIM/Nama.
+- **Pengajuan Penarikan (Disbursement Queue):** Validasi pencairan dana mahasiswa ke rekening bank/e-wallet dengan persetujuan bertingkat.
+
+### 4. Gateway Pembayaran QRIS (QRISku API)
+- **Invoice QRIS Dinamis:** Generasi kode QR per transaksi, hitung mundur kedaluwarsa 5 menit, dan webhook idempotensi anti-duplikasi.
+- **Brutalist Invoice View:** Layout 2-kolom responsif, countdown timer waktu tersisa, tombol cek status instan, dan tautan bagikan via WhatsApp.
+- **Paid State & Auto-Redirect:** Tampilan bukti transaksi sukses minimalis dengan timer redirect otomatis 5 detik kembali ke Dashboard.
+- **Safe Polling (15s):** Polling berkala 15 detik untuk mencegah rate limit dan pemblokiran gateway.
+
+### 5. Desain Brutalist Monokrom & Swiss Scroll Choreography
+- **Editorial Bento Grid Landing Page:** Visual minimalis monokrom (#0e0f12), barcode identitas, hologram virtual card, dan animasi scroll Swiss (`.tick`, `data-draw-rule`, `data-reveal`).
+- **Sharp Brutalist Login:** Kartu sign-in 0px border radius, corner ticks teknikal, input nomor identitas & sandi dengan icon Lucide (tanpa emoji, tanpa dependensi pihak ketiga).
+- **Universal Error Overlay:** Halaman status HTTP (404, 500, dynamic error) tampil *full-page standalone* menutupi seluruh shell aplikasi.
+- **Dynamic Open Graph & Favicon:** Preview tautan media sosial 1200x630 via `next/og` (`/opengraph-image`) dan favicon kanonikal `icon.svg`.
 
 ---
 
 ## 💻 Akun Demo Siap Pakai
 
-1. **Super Admin:**
-   - **NIM / Username:** `admin`
-   - **Password:** `admin123`
-2. **Mahasiswa Sampel:**
-   - **NIM:** `240101`
-   - **Password:** `password123` (akan diminta ganti password di login pertama sesuai aturan PRD)
+| Role | Username / Nomor ID | Password | Cakupan Akses |
+|---|---|---|---|
+| **Super Admin** | `admin` | `admin123` | Seluruh Sistem |
+| **Admin Kelas** | `admin_if1` | `password123` | Khusus Kelas Terkait |
+| **Mahasiswa** | `240101` | `password123` | Dompet Mahasiswa |
+
+*(Akun mahasiswa baru diwajibkan memperbarui kata sandi saat pertama kali masuk)*
 
 ---
 
-## 🛠️ Cara Menjalankan
+## 🛠️ Menjalankan Proyek
 
 ```bash
-# Masuk ke direktori
-cd "C:\Users\gabut\Documents\BELAJAR CODING\tabungane SIsfor"
+# Clone repository
+git clone https://github.com/pariiee/tabungane.git
+cd tabungane
 
-# Jalankan mode development
+# Install dependencies
+npm install
+
+# Setup database & seed
+npm run build
+
+# Menjalankan development server
 npm run dev
 ```
 
-Buka browser di: `http://localhost:3000`
+Aplikasi dapat diakses melalui browser di `http://localhost:3000`.
 
 ---
 
-## 🧪 Self-Check Unit Test
+## 🧪 Validasi & Pengujian
 
+Verifikasi integritas ledger, enkripsi password, dan idempotensi webhook:
 ```bash
 node test_ledger.js
 ```
