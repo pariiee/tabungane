@@ -79,8 +79,8 @@ export async function POST(req: Request) {
     const trxId = crypto.randomUUID();
     db.prepare(`
       INSERT INTO transaksi (
-        id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, catatan, dibuat_oleh, expired_at, qr_url
-      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, ?, ?, ?, ?)
+        id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, channel, catatan, dibuat_oleh, expired_at, qr_url
+      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, 'ShopeePay', ?, ?, ?, ?)
     `).run(
       trxId,
       user.id,
