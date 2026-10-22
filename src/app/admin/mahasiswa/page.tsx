@@ -17,6 +17,7 @@ import {
   Pencil,
   Trash2,
   ShieldCheck,
+  Search,
   X
 } from "lucide-react";
 
@@ -27,8 +28,18 @@ export default function AdminMahasiswaPage() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter
+  // Filter & Search
   const [filterKelas, setFilterKelas] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredStudents = students.filter((s) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    const idMatch = String(s.nomor_id || s.nim || "").toLowerCase().includes(q);
+    const nameMatch = String(s.nama || "").toLowerCase().includes(q);
+    const usernameMatch = String(s.username || "").toLowerCase().includes(q);
+    return idMatch || nameMatch || usernameMatch;
+  });
 
   // Modal / Form Tambah Mahasiswa
   const [showAddModal, setShowAddModal] = useState(false);
@@ -428,24 +439,48 @@ export default function AdminMahasiswaPage() {
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex items-center gap-3">
-        <label className="text-xs font-medium text-gray-500 dark:text-zinc-400">Filter Kelas:</label>
-        <div className="w-56">
-          <CustomSelect
-            value={filterKelas}
-            onChange={setFilterKelas}
-            placeholder="Semua Kelas"
-            options={[
-              { value: "", label: "Semua Kelas" },
-              ...kelasList.map((k) => ({
-                value: k.id,
-                label: `${k.nama} (${k.tahun_ajaran})`,
-              })),
-            ]}
+      {/* Filter & Search Bar */}
+      <div className="bg-white dark:bg-[#111113] p-4 rounded-xl border border-gray-100 dark:border-zinc-800/80 shadow-xs flex flex-wrap items-center gap-3">
+        {/* Search Input */}
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari ID / NIM atau Nama Mahasiswa..."
+            className="w-full pl-9 pr-8 py-2 bg-gray-50/70 dark:bg-zinc-900/60 border border-gray-200/80 dark:border-zinc-800 text-xs rounded-xl focus:outline-hidden focus:ring-1 focus:ring-gray-400 dark:focus:ring-zinc-600 transition-all text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-        <span className="text-xs text-gray-400 dark:text-zinc-500 ml-auto">{students.length} Mahasiswa ditemukan</span>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <label className="text-xs font-medium text-gray-500 dark:text-zinc-400 shrink-0">Kelas:</label>
+          <div className="w-48 sm:w-56">
+            <CustomSelect
+              value={filterKelas}
+              onChange={setFilterKelas}
+              placeholder="Semua Kelas"
+              options={[
+                { value: "", label: "Semua Kelas" },
+                ...kelasList.map((k) => ({
+                  value: k.id,
+                  label: `${k.nama} (${k.tahun_ajaran})`,
+                })),
+              ]}
+            />
+          </div>
+        </div>
+        <span className="text-xs text-gray-400 dark:text-zinc-500 sm:ml-auto shrink-0">
+          {filteredStudents.length} Mahasiswa ditemukan
+        </span>
       </div>
 
       {/* Students Table */}
@@ -462,7 +497,7 @@ export default function AdminMahasiswaPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
-              {students.map((s) => (
+              {filteredStudents.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
                   <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-zinc-100">{s.nomor_id || s.nim}</td>
                   <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-zinc-100">
@@ -561,6 +596,13 @@ export default function AdminMahasiswaPage() {
                   </td>
                 </tr>
               ))}
+              {filteredStudents.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-10 text-center text-gray-400 dark:text-zinc-500 text-xs">
+                    {searchQuery ? `Tidak ada mahasiswa yang cocok dengan "${searchQuery}"` : "Belum ada data mahasiswa"}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
