@@ -30,6 +30,8 @@ export async function GET(
       return new Response(buffer, {
         headers: {
           "Content-Type": mime,
+          "X-Content-Type-Options": "nosniff",
+          "Content-Security-Policy": "default-src 'none'",
           "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
         },
       });

@@ -97,8 +97,8 @@ export default function AkunPage() {
     setPhotoError("");
     setPhotoSuccess("");
 
-    if (file.size > 500 * 1024) {
-      setPhotoError("Ukuran file foto maksimal 500 KB.");
+    if (file.size > 50 * 1024) {
+      setPhotoError("Ukuran file foto maksimal 50 KB.");
       e.target.value = "";
       return;
     }
