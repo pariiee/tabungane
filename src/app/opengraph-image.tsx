@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
 
-export const alt = "Sakune Sisfor — Platform Finansial & Kas Mahasiswa Kampus";
+export const alt = "SAKUNE — In This Economy? Yuk Nabung";
 export const size = {
   width: 1200,
   height: 630,
@@ -37,58 +37,46 @@ export default async function Image() {
           }}
         />
 
+        {/* Minimal Outer Border Frame */}
+        <div
+          style={{
+            position: "absolute",
+            inset: "24px",
+            border: "1px solid rgba(255, 255, 255, 0.12)",
+            pointerEvents: "none",
+          }}
+        />
+
         {/* Top Rail */}
         <div
           style={{
+            width: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             position: "relative",
             zIndex: 10,
+            padding: "0 20px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            {/* Logo Glyph from icon.svg */}
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                backgroundColor: "#ffffff",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <svg width="28" height="28" viewBox="0 0 256 256">
-                <g fill="#0b0b0f">
-                  <path d="M 176 96 L 154 74 L 102 74 L 80 96 L 80 114 L 116 132 L 116 110 L 98 101 L 98 96 L 150 96 L 162 108 Z" />
-                  <path d="M 140 124 L 140 146 L 158 155 L 158 160 L 106 160 L 94 148 L 80 160 L 102 182 L 154 182 L 176 160 L 176 142 Z" />
-                </g>
-              </svg>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span
-                style={{
-                  fontSize: "20px",
-                  fontWeight: 800,
-                  letterSpacing: "0.05em",
-                }}
-              >
-                SAKUNE SISFOR
-              </span>
-              <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", fontFamily: "monospace" }}>
-                FAKULTAS ILMU KOMPUTER
-              </span>
-            </div>
+          <div
+            style={{
+              fontSize: "12px",
+              fontFamily: "monospace",
+              letterSpacing: "0.2em",
+              color: "rgba(255, 255, 255, 0.4)",
+              textTransform: "uppercase",
+            }}
+          >
+            FAKULTAS ILMU KOMPUTER · SISTEM INFORMASI
           </div>
 
           <div
             style={{
               padding: "6px 14px",
               borderRadius: "999px",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(52, 211, 153, 0.3)",
+              backgroundColor: "rgba(16, 185, 129, 0.08)",
               fontSize: "12px",
               fontFamily: "monospace",
               color: "#34d399",
@@ -109,61 +97,118 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* Center Headline */}
+        {/* Center Main Identity (Logo beside SAKUNE, Tagline below) */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            alignItems: "center",
+            justifyContent: "center",
             position: "relative",
             zIndex: 10,
-            maxWidth: "900px",
+            gap: "24px",
           }}
         >
+          {/* Logo + SAKUNE Brandmark */}
           <div
             style={{
-              fontSize: "58px",
-              fontWeight: 800,
-              lineHeight: 1.1,
-              letterSpacing: "-0.03em",
               display: "flex",
-              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "26px",
             }}
           >
-            <span>Ekosistem Finansial Modern untuk Mahasiswa.</span>
+            {/* Crisp Official Logo */}
+            <div
+              style={{
+                width: "92px",
+                height: "92px",
+                backgroundColor: "#ffffff",
+                borderRadius: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              <svg width="56" height="56" viewBox="0 0 256 256">
+                <g fill="#0b0b0f">
+                  <path d="M 176 96 L 154 74 L 102 74 L 80 96 L 80 114 L 116 132 L 116 110 L 98 101 L 98 96 L 150 96 L 162 108 Z" />
+                  <path d="M 140 124 L 140 146 L 158 155 L 158 160 L 106 160 L 94 148 L 80 160 L 102 182 L 154 182 L 176 160 L 176 142 Z" />
+                </g>
+              </svg>
+            </div>
+
+            <span
+              style={{
+                fontSize: "88px",
+                fontWeight: 900,
+                letterSpacing: "-0.04em",
+                color: "#ffffff",
+                lineHeight: 1,
+              }}
+            >
+              SAKUNE
+            </span>
           </div>
+
+          {/* Subtitle Pill / Tagline */}
           <div
             style={{
-              fontSize: "22px",
-              color: "rgba(255, 255, 255, 0.65)",
-              lineHeight: 1.4,
-              fontWeight: 400,
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "10px 24px",
+              borderRadius: "8px",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              backgroundColor: "rgba(255, 255, 255, 0.04)",
             }}
           >
-            Kantong Sakune mandiri, kas kelas transparan, dan automasi mutasi QRIS real-time.
+            <span
+              style={{
+                fontSize: "18px",
+                fontFamily: "monospace",
+                letterSpacing: "0.14em",
+                color: "rgba(255, 255, 255, 0.85)",
+                fontWeight: 600,
+                textTransform: "uppercase",
+              }}
+            >
+              FINANCIAL FREEDOM · IN THIS ECONOMY? YUK NABUNG
+            </span>
           </div>
         </div>
 
-        {/* Bottom Feature Tags */}
+        {/* Bottom Technical HUD Footer */}
         <div
           style={{
+            width: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            borderTop: "1px solid rgba(255, 255, 255, 0.12)",
-            paddingTop: "24px",
             position: "relative",
             zIndex: 10,
+            padding: "0 20px",
+            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+            paddingTop: "16px",
           }}
         >
-          <div style={{ display: "flex", gap: "16px", fontFamily: "monospace", fontSize: "13px" }}>
-            <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>[IMMUTABLE LEDGER]</span>
-            <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>[KANTONG SAKUNE]</span>
-            <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>[4-TIER RBAC]</span>
-            <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>[ZERO DATA LEAK]</span>
+          <div
+            style={{
+              fontSize: "12px",
+              fontFamily: "monospace",
+              color: "rgba(255, 255, 255, 0.4)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            PORTAL KAS &amp; TABUNGAN MAHASISWA
           </div>
-
-          <div style={{ fontSize: "13px", fontFamily: "monospace", color: "rgba(255, 255, 255, 0.4)" }}>
+          <div
+            style={{
+              fontSize: "12px",
+              fontFamily: "monospace",
+              color: "rgba(255, 255, 255, 0.4)",
+            }}
+          >
             sakune.sisfor · 2026
           </div>
         </div>
