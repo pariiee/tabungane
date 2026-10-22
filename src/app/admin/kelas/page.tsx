@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
 import CustomSelect from "@/components/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
+import ErrorTemplate from "@/components/ErrorTemplate";
 import { GraduationCap, Plus, Trash2, Users, AlertCircle, CheckCircle2, RefreshCw, Building2 } from "lucide-react";
 
 export default function AdminKelasPage() {
@@ -89,6 +90,15 @@ export default function AdminKelasPage() {
       console.error(e);
     }
   };
+
+  if (!loading && currentUser?.role === "admin_kelas") {
+    return (
+      <ErrorTemplate
+        code="403"
+        customMessage="Admin Kelas tidak memiliki akses kelola struktur kelas perkuliahan. Anda terfokus mengawasi kelas Anda sendiri."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

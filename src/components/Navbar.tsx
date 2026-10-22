@@ -93,7 +93,9 @@ export default function Navbar() {
           { href: "/admin/prodi", label: "Program Studi", icon: Building2 },
         ]
       : []),
-    { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
+    ...(!isAdminKelas
+      ? [{ href: "/admin/kelas", label: "Kelas", icon: GraduationCap }]
+      : []),
     { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
     { href: "/admin/grup", label: "Event Sakune", icon: Layers },
     ...(isSuperAdmin
