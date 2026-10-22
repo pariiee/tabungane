@@ -5,11 +5,11 @@ import Navbar from "./Navbar";
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isStandalonePage = pathname === "/login" || pathname === "/";
 
-  if (isLoginPage) {
+  if (isStandalonePage) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 flex flex-col justify-center">
+      <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 flex flex-col">
         {children}
       </div>
     );

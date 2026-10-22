@@ -79,7 +79,7 @@ export default function Navbar() {
     router.push("/login");
   };
 
-  if (pathname === "/login") return null;
+  if (pathname === "/login" || pathname === "/") return null;
 
   const isOnAdminRoute = pathname.startsWith("/admin");
   const isSuperAdmin = user?.role === "super_admin";
