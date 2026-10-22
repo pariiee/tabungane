@@ -27,422 +27,409 @@ export default async function Home() {
   const isAdmin = isSuperAdmin || user?.role === "admin" || isAdminKelas;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0a0c] text-zinc-900 dark:text-zinc-100 selection:bg-zinc-900 selection:text-white dark:selection:bg-white dark:selection:text-zinc-950 font-sans">
-      {/* ─── TOP HUD TICKER BAR ─── */}
-      <div className="border-b border-gray-200 dark:border-zinc-800/80 bg-gray-50/80 dark:bg-[#0d0d10] text-[11px] font-mono tracking-tight text-gray-500 dark:text-zinc-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] text-[#111215] dark:text-[#f4f3ef] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black font-sans">
+      {/* ─── 1. TOP HUD TICKER BAR ─── */}
+      <div className="border-b border-[#111215]/15 dark:border-white/10 bg-[#eae8e3]/60 dark:bg-[#131418]/60 text-[11px] font-mono tracking-tight text-[#111215]/70 dark:text-white/60">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-10 h-9 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               SYSTEM ACTIVE
             </span>
-            <span className="hidden sm:inline text-gray-300 dark:text-zinc-700">|</span>
+            <span className="hidden sm:inline opacity-30">|</span>
             <span className="hidden sm:inline">TABUNGANE SISFOR v2.4</span>
-            <span className="hidden md:inline text-gray-300 dark:text-zinc-700">|</span>
-            <span className="hidden md:inline">IMMUTABLE LEDGER & QRIS AUTOMATION</span>
+            <span className="hidden md:inline opacity-30">|</span>
+            <span className="hidden md:inline">IMMUTABLE LEDGER & QRIS ENGINE</span>
           </div>
-          <div className="flex items-center gap-4 text-[10px] sm:text-[11px]">
+          <div className="flex items-center gap-3 text-[10px] sm:text-[11px]">
             <span>FAKULTAS ILMU KOMPUTER</span>
-            <span className="text-gray-300 dark:text-zinc-700">/</span>
-            <span>PROGRAM STUDI SISTEM INFORMASI</span>
+            <span className="opacity-30">/</span>
+            <span>PRODI SISTEM INFORMASI</span>
           </div>
         </div>
       </div>
 
-      {/* ─── SECTION 1: HERO DISPLAY (ARTCRAFT STYLE) ─── */}
-      <section className="relative overflow-hidden pt-12 pb-20 md:pt-24 md:pb-28 border-b border-gray-200 dark:border-zinc-800/80">
-        {/* Subtle grid background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+      {/* ─── 2. HERO DISPLAY SECTION ─── */}
+      <section className="relative overflow-hidden border-b border-[#111215]/15 dark:border-white/10">
+        <div className="max-w-[1280px] mx-auto border-x border-[#111215]/15 dark:border-white/10 px-6 py-14 md:px-10 md:py-20 relative">
+          {/* Subtle grid pattern background */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-4xl">
-            {/* HUD Category Tag */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/80 text-[11px] font-mono uppercase tracking-wider text-gray-600 dark:text-zinc-300 mb-6 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-black dark:bg-white" />
-              <span>Ekosistem Finansial Kampus Terpadu</span>
+          <div className="max-w-3xl relative z-10">
+            {/* HUD Eyebrow Tag */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-[#111215]/20 dark:border-white/15 bg-white/70 dark:bg-black/40 text-[10px] font-mono uppercase tracking-widest text-[#111215]/80 dark:text-white/80 mb-6 backdrop-blur-xs">
+              <span className="w-1.5 h-1.5 bg-black dark:bg-white" />
+              <span>Platform Finansial Mahasiswa & Kas Kelas</span>
             </div>
 
-            {/* Display Headline with Serif Italic Accent */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.08] text-zinc-950 dark:text-white">
+            {/* Display Title with Serif Italic Accent */}
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-[#111215] dark:text-white">
               Kelola kas & tabungan{" "}
-              <span className="font-serif italic font-normal text-zinc-500 dark:text-zinc-400">
+              <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
                 secara transparan.
               </span>
             </h1>
 
-            {/* Sub-description */}
-            <p className="mt-6 text-base sm:text-xl text-gray-600 dark:text-zinc-400 leading-relaxed max-w-2xl font-normal">
-              Platform modern mahasiswa untuk membagi alokasi tabungan dengan{" "}
-              <strong className="text-zinc-900 dark:text-zinc-200 font-medium">Kantong Sakune</strong> ala Bank Jago,
-              mengelola kas event kelas tanpa selisih, serta automasi setor QRIS real-time yang aman.
+            {/* Sub-headline */}
+            <p className="mt-6 text-sm sm:text-base md:text-lg text-[#111215]/75 dark:text-white/70 max-w-2xl leading-relaxed">
+              Bagi pos keuangan harianmu dengan <strong>Kantong Sakune</strong> (ala Bank Jago), pantau kas event kelas dengan target terukur, dan nikmati setor tunai atau QRIS otomatis berkecepatan tinggi.
             </p>
 
-            {/* Primary Action Buttons */}
+            {/* Actions */}
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {user ? (
                 <Link
                   href={isAdmin ? "/admin" : "/dashboard"}
-                  className="h-11 px-6 rounded-xl bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950 font-medium text-xs sm:text-sm hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-xs cursor-pointer"
+                  className="h-10 px-5 rounded-lg bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] font-medium text-xs sm:text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2"
                 >
-                  <span>{isAdmin ? "Buka Panel Admin" : "Buka Dashboard Saya"}</span>
+                  <span>{isAdmin ? "Buka Panel Admin" : "Buka Dashboard Mahasiswa"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="h-11 px-6 rounded-xl bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950 font-medium text-xs sm:text-sm hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-xs cursor-pointer"
+                    className="h-10 px-5 rounded-lg bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] font-medium text-xs sm:text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2"
                   >
                     <span>Masuk ke Akun</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <a
                     href="#fitur"
-                    className="h-11 px-5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs sm:text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    className="h-10 px-4 rounded-lg border border-[#111215]/20 dark:border-white/20 bg-white/60 dark:bg-black/30 text-xs sm:text-sm font-medium hover:bg-white dark:hover:bg-black/60 transition-colors inline-flex items-center gap-1.5"
                   >
-                    <span>Pelajari Fitur</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                    <span>Jelajahi Fitur</span>
+                    <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                   </a>
                 </>
               )}
               <Link
                 href="/leaderboard"
-                className="h-11 px-4 rounded-xl border border-dashed border-gray-300 dark:border-zinc-700 text-xs sm:text-sm font-medium text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="h-10 px-3.5 rounded-lg border border-dashed border-[#111215]/25 dark:border-white/20 text-xs sm:text-sm font-medium hover:text-black dark:hover:text-white transition-colors inline-flex items-center gap-1.5"
               >
                 <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                <span>Peringkat Kampus</span>
+                <span>Leaderboard Kampus</span>
               </Link>
             </div>
           </div>
 
-          {/* ─── LIVE TELEMETRY PREVIEW FRAME ─── */}
-          <div className="mt-14 pt-8 border-t border-gray-200 dark:border-zinc-800/80">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
-              <div className="p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/40">
-                <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 dark:text-zinc-500">
-                  Total Tabungan Terkumpul
-                </span>
-                <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1">
-                  Rp 148.500.000+
-                </p>
-                <div className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 font-medium">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>100% Tercatat Otomatis</span>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/40">
-                <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 dark:text-zinc-500">
-                  Kantong Sakune Aktif
-                </span>
-                <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1">
-                  Maks. 3 Kantong
-                </p>
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-zinc-400 mt-2 font-medium">
-                  <Wallet className="w-3 h-3 text-zinc-500" />
-                  <span>Sub-wallet Terpisah</span>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/40">
-                <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 dark:text-zinc-500">
-                  Kecepatan Konfirmasi QRIS
-                </span>
-                <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1">
-                  &lt; 3 Detik
-                </p>
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-zinc-400 mt-2 font-medium">
-                  <QrCode className="w-3 h-3 text-zinc-500" />
-                  <span>Webhook Idempoten</span>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-900/40">
-                <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-gray-400 dark:text-zinc-500">
-                  Hierarki Hak Akses
-                </span>
-                <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1">
-                  4-Tier RBAC
-                </p>
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-zinc-400 mt-2 font-medium">
-                  <ShieldCheck className="w-3 h-3 text-zinc-500" />
-                  <span>Dekan · Kaprodi · Admin Kelas</span>
-                </div>
-              </div>
-            </div>
+          {/* Interactive Virtual Card Showcase */}
+          <div className="mt-12 max-w-xl">
+            <LandingDemo />
           </div>
         </div>
       </section>
 
-      {/* ─── SECTION 2: THE BENTO GRID (KENDALI PENUH TANPA REKAYASA) ─── */}
-      <section id="fitur" className="py-20 md:py-28 border-b border-gray-200 dark:border-zinc-800/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
-            <div>
-              <div className="text-[11px] font-mono uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-2">
-                FITUR UTAMA SISTEM
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-zinc-950 dark:text-white">
-                Kendali presisi yang{" "}
-                <span className="font-serif italic font-normal text-zinc-500 dark:text-zinc-400">
-                  tidak bisa ditawar.
-                </span>
-              </h2>
+      {/* ─── 3. CONTINUOUS LIVE MARQUEE ANIMATION ─── */}
+      <div className="marquee border-b border-[#111215]/15 dark:border-white/10 bg-[#eae8e3]/70 dark:bg-[#131418]/70 py-2.5 font-mono text-[11px] uppercase tracking-wider text-[#111215]/80 dark:text-white/80 overflow-hidden">
+        <div className="marquee-track flex items-center">
+          {[
+            "Kantong Sakune Max 3",
+            "Double-Entry Ledger",
+            "Auto Reconcile QRIS",
+            "Scoping 4-Tier RBAC",
+            "Podium 3D Leaderboard",
+            "Audit Trail Forensik",
+            "Tarik Saldo E-Wallet",
+            "Transfer P2P Tanpa Biaya",
+            "Isolasi Jurusan & Prodi",
+          ].map((item, idx) => (
+            <span key={`mq1-${idx}`} className="flex items-center whitespace-nowrap px-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-3" />
+              {item}
+            </span>
+          ))}
+          {[
+            "Kantong Sakune Max 3",
+            "Double-Entry Ledger",
+            "Auto Reconcile QRIS",
+            "Scoping 4-Tier RBAC",
+            "Podium 3D Leaderboard",
+            "Audit Trail Forensik",
+            "Tarik Saldo E-Wallet",
+            "Transfer P2P Tanpa Biaya",
+            "Isolasi Jurusan & Prodi",
+          ].map((item, idx) => (
+            <span key={`mq2-${idx}`} className="flex items-center whitespace-nowrap px-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-3" />
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── 4. SECTION FITUR UTAMA (ARTCRAFT BENTO GRID COMPACT) ─── */}
+      <section id="fitur" className="border-b border-[#111215]/15 dark:border-white/10">
+        <div className="max-w-[1280px] mx-auto border-x border-[#111215]/15 dark:border-white/10">
+          {/* Sticky Eyebrow Section Bar */}
+          <div className="sticky top-0 z-30 border-b border-[#111215]/15 dark:border-white/10 bg-[#f4f3ef]/80 dark:bg-[#0e0f12]/80 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-4 px-6 py-3 md:px-10">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#111215]/70 dark:text-white/60">
+                <span className="text-[#111215]/40 dark:text-white/40">01</span>
+                <span className="mx-2 opacity-30">/</span>
+                Fitur Ekosistem Kampus
+              </p>
+              <p className="font-mono text-[11px] opacity-40 hidden sm:block">
+                Live Data · Terhubung ke Server Sisfor
+              </p>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 max-w-md">
-              Dirancang khusus untuk memecahkan kerumitan pembukuan kas kelas, transparansi iuran kegiatan, dan pengelolaan uang saku mahasiswa.
+          </div>
+
+          {/* Section Heading */}
+          <div className="px-6 py-10 md:px-10 md:py-14">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
+              Kendali presisi yang{" "}
+              <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
+                tidak bisa ditawar.
+              </span>
+            </h2>
+            <p className="mt-3 text-xs sm:text-sm text-[#111215]/70 dark:text-white/60 max-w-xl">
+              Setiap komponen dirancang proporsional, ringkas, dan fokus pada kecepatan pencatatan tanpa kompleksitas berlebihan.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Bento Card 1: Kantong Sakune */}
-            <div className="md:col-span-2 p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100">
-                    <Wallet className="w-5 h-5" />
+          {/* Compact 2-Column Grid with 1px border lines */}
+          <div className="grid gap-px border-t border-[#111215]/15 dark:border-white/10 bg-[#111215]/15 dark:bg-white/10 md:grid-cols-2">
+            {/* Card 1: Kantong Sakune */}
+            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
+                <span>Sub-Wallet Keuangan</span>
+                <span>01</span>
+              </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                <div className="grid grid-cols-3 gap-2.5">
+                  <div className="p-3 rounded-xl bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] aspect-square flex flex-col justify-between">
+                    <span className="text-[9px] font-mono uppercase tracking-wider opacity-60">Utama</span>
+                    <div>
+                      <div className="font-bold text-sm">Rp 350k</div>
+                      <div className="text-[8px] opacity-70">Dompet Asli</div>
+                    </div>
+                    <span className="text-[8px] font-mono px-1 py-0.5 rounded bg-white/20 dark:bg-black/10 w-fit">Top Up</span>
                   </div>
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300">
-                    MAKS. 3 KANTONG
-                  </span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  Kantong Sakune (Bank Jago Style)
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-2 max-w-xl">
-                  Bagi pos keuangan harianmu dengan mudah. Satu <strong>Kantong Utama</strong> permanen sebagai penampung saldo dan top up QRIS, ditambah hingga 2 kantong kustom dengan 6 pilihan warna palet.
-                </p>
-              </div>
-
-              {/* Visual Mock of Kantong Cards */}
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950 aspect-square flex flex-col justify-between">
-                  <div className="text-[10px] font-mono uppercase tracking-wider opacity-70">Kantong Utama</div>
-                  <div>
-                    <div className="text-lg font-bold">Rp 350.000</div>
-                    <div className="text-[10px] opacity-75 mt-0.5">Saldo Siap Pakai</div>
+                  <div className="p-3 rounded-xl border border-emerald-300/60 dark:border-emerald-800/60 bg-emerald-500/10 aspect-square flex flex-col justify-between">
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Skripsi</span>
+                    <div>
+                      <div className="font-bold text-sm text-[#111215] dark:text-white">Rp 500k</div>
+                      <div className="text-[8px] opacity-60">Tabungan Riset</div>
+                    </div>
+                    <span className="text-[8px] font-mono text-emerald-600 dark:text-emerald-400">Pindah Saldo</span>
                   </div>
-                  <div className="flex gap-1 text-[9px] font-mono">
-                    <span className="px-1.5 py-0.5 rounded bg-white/20 dark:bg-black/10">TOP UP</span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/20 dark:bg-black/10">TARIK</span>
+                  <div className="p-3 rounded-xl border border-blue-300/60 dark:border-blue-800/60 bg-blue-500/10 aspect-square flex flex-col justify-between">
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-blue-700 dark:text-blue-400">Study Tour</span>
+                    <div>
+                      <div className="font-bold text-sm text-[#111215] dark:text-white">Rp 250k</div>
+                      <div className="text-[8px] opacity-60">Target Rp 500k</div>
+                    </div>
+                    <span className="text-[8px] font-mono text-blue-600 dark:text-blue-400">50% Selesai</span>
                   </div>
                 </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#111215] dark:text-white">
+                    Kantong Sakune (Bank Jago Style)
+                  </h3>
+                  <p className="mt-1 text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                    Satu Kantong Utama permanen sebagai saldo saku & penerima QRIS, plus 2 kantong kustom dengan 6 pilihan palet warna untuk memilah pos tabungan secara mandiri.
+                  </p>
+                </div>
+              </div>
+            </article>
 
-                <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-emerald-50/50 dark:bg-emerald-950/20 aspect-square flex flex-col justify-between">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Dana Skripsi</div>
-                  <div>
-                    <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Rp 500.000</div>
-                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">Pos Penelitian</div>
+            {/* Card 2: Tarik Saldo Dompet */}
+            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
+                <span>Pencairan Dompet</span>
+                <span>02</span>
+              </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                <div className="p-4 rounded-xl border border-[#111215]/10 dark:border-white/10 bg-white/70 dark:bg-black/30 space-y-2 text-xs font-mono">
+                  <div className="flex justify-between items-center">
+                    <span className="opacity-60">Min. Penarikan:</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Rp 10.000</span>
                   </div>
-                  <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400">Pindah Saldo Instan</span>
-                </div>
-
-                <div className="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-blue-50/50 dark:bg-blue-950/20 aspect-square flex flex-col justify-between">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-blue-700 dark:text-blue-400">Kas Study Tour</div>
-                  <div>
-                    <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Rp 250.000</div>
-                    <div className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">Target Rp 500k</div>
+                  <div className="flex justify-between items-center">
+                    <span className="opacity-60">Dukungan Bank:</span>
+                    <span>BCA, Mandiri, BRI, BNI</span>
                   </div>
-                  <span className="text-[9px] font-mono text-blue-600 dark:text-blue-400">50% Terkumpul</span>
+                  <div className="flex justify-between items-center">
+                    <span className="opacity-60">Dukungan E-Wallet:</span>
+                    <span>DANA, GoPay, OVO, Shopee</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="opacity-60">Alur Keamanan:</span>
+                    <span className="text-zinc-600 dark:text-zinc-300">Persetujuan Admin / Hold Saldo</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#111215] dark:text-white">
+                    Pencairan Saldo ke Rekening & E-Wallet
+                  </h3>
+                  <p className="mt-1 text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                    Uang saku di Dompet Utama dapat dicairkan langsung ke rekening bank atau e-wallet kapan saja melalui formulir pengajuan penarikan resmi tanpa ribet.
+                  </p>
                 </div>
               </div>
-            </div>
+            </article>
 
-            {/* Bento Card 2: Penarikan Saldo Dompet */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 mb-4">
-                  <CreditCard className="w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  Tarik Saldo ke Rekening / E-Wallet
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-2">
-                  Saldo saku di Dompet Utama dapat dicairkan langsung ke rekening BCA, Mandiri, BRI, DANA, GoPay, atau OVO mulai dari Rp 10.000 dengan alur verifikasi resmi.
-                </p>
+            {/* Card 3: Kas & Event Kelas */}
+            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
+                <span>Event Kas Bersama</span>
+                <span>03</span>
               </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                <div className="p-4 rounded-xl border border-[#111215]/10 dark:border-white/10 bg-white/70 dark:bg-black/30 space-y-2.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-bold">Study Tour Sistem Informasi 2026</span>
+                    <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">Rp 37.500.000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: "75%" }} />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-mono opacity-60">
+                    <span>Target: Rp 50.000.000</span>
+                    <span>75% Terkumpul · Sisa 14 Hari</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#111215] dark:text-white">
+                    Event Sakune & Kas Kelas Transparan
+                  </h3>
+                  <p className="mt-1 text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                    Buka tabungan bersama kelas dengan batas waktu countdown, alokasi instan dari dompet utama, dan rekapitulasi otomatis tanpa ada selisih kas.
+                  </p>
+                </div>
+              </div>
+            </article>
 
-              <div className="mt-6 p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800/80 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-gray-500">
-                  <span>Minimum Penarikan</span>
-                  <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">Rp 10.000</span>
+            {/* Card 4: 4-Tier RBAC & Isolasi Wilayah */}
+            <article className="bg-[#f4f3ef] dark:bg-[#0e0f12] flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-[#111215]/10 dark:border-white/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[#111215]/60 dark:text-white/50">
+                <span>Hierarki RBAC</span>
+                <span>04</span>
+              </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2.5 rounded-lg border border-[#111215]/10 dark:border-white/10 bg-white/70 dark:bg-black/30">
+                    <span className="font-bold block text-zinc-900 dark:text-zinc-100">DEKAN FAKULTAS</span>
+                    <span className="text-[10px] opacity-60">Menaungi Semua Jurusan</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg border border-[#111215]/10 dark:border-white/10 bg-white/70 dark:bg-black/30">
+                    <span className="font-bold block text-zinc-900 dark:text-zinc-100">KAPRODI</span>
+                    <span className="text-[10px] opacity-60">Scope Program Studi</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg border border-[#111215]/10 dark:border-white/10 bg-white/70 dark:bg-black/30">
+                    <span className="font-bold block text-zinc-900 dark:text-zinc-100">ADMINYA KELAS</span>
+                    <span className="text-[10px] opacity-60">Kelola 1 Kelas & Setor Kas</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg border border-[#111215]/10 dark:border-white/10 bg-white/70 dark:bg-black/30">
+                    <span className="font-bold block text-zinc-900 dark:text-zinc-100">MAHASISWA</span>
+                    <span className="text-[10px] opacity-60">Portal Saldo & Mutasi</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-gray-500">
-                  <span>Alur Verifikasi</span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400">Persetujuan Bendahara</span>
+                <div>
+                  <h3 className="text-lg font-bold text-[#111215] dark:text-white">
+                    Isolasi Hak Akses & Scoping Wilayah
+                  </h3>
+                  <p className="mt-1 text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                    Setiap tingkatan peran hanya dapat mengakses data yang berhak ia kelola. Admin Kelas hanya mengawasi kelasnya tanpa bisa mengubah prodi atau kelas lain.
+                  </p>
                 </div>
-                <div className="flex justify-between items-center text-gray-500">
-                  <span>Sisa Saldo Terkunci</span>
-                  <span className="font-mono text-zinc-400">Otomatis Hold</span>
-                </div>
               </div>
-            </div>
-
-            {/* Bento Card 3: Kas & Event Sakune Kelas */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 mb-4">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  Event Sakune & Kas Bersama
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-2">
-                  Kumpulkan dana kegiatan study tour, kas bulanan kelas, atau jaket angkatan secara terbuka dengan target nominal dan countdown deadline otomatis.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between text-xs text-gray-500">
-                <span>Transparansi Kas</span>
-                <span className="font-mono font-bold text-zinc-900 dark:text-zinc-200">100% Real-time</span>
-              </div>
-            </div>
-
-            {/* Bento Card 4: Transfer Antar Mahasiswa P2P */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 mb-4">
-                  <Users className="w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  Transfer Instan P2P Mahasiswa
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-2">
-                  Kirim uang saku ke teman sekelas cukup dengan ketik ID Pengguna atau nama mahasiswa. Dilengkapi live auto-complete rekomendasi siswa dan minimal transfer Rp 1.000.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between text-xs text-gray-500">
-                <span>Biaya Transaksi P2P</span>
-                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">Gratis (Rp 0)</span>
-              </div>
-            </div>
-
-            {/* Bento Card 5: Delegasi 4-Tier & Scoping Prodi */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 mb-4">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  Isolasi Wilayah & Multi-Tier RBAC
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-2">
-                  Kaprodi hanya mengawasi Prodinya, Dekan menaungi seluruh Jurusan, dan Adminya Kelas mengurus kelasnya sendiri. Data terlindungi dari akses silang.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between text-xs text-gray-500">
-                <span>Model Otorisasi</span>
-                <span className="font-mono font-bold text-zinc-900 dark:text-zinc-200">Strict Scoping</span>
-              </div>
-            </div>
+            </article>
           </div>
         </div>
       </section>
 
-      {/* ─── SECTION 3: INTEGRITY & ARCHITECTURAL VALUES ─── */}
-      <section className="py-20 md:py-28 border-b border-gray-200 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-[#0d0d10]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mb-14">
-            <div className="text-[11px] font-mono uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-2">
-              KEAMANAN & ARSITEKTUR
+      {/* ─── 5. SECTION ARSITEKTUR & INTEGRITAS ─── */}
+      <section className="border-b border-[#111215]/15 dark:border-white/10">
+        <div className="max-w-[1280px] mx-auto border-x border-[#111215]/15 dark:border-white/10">
+          <div className="sticky top-0 z-30 border-b border-[#111215]/15 dark:border-white/10 bg-[#f4f3ef]/80 dark:bg-[#0e0f12]/80 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-4 px-6 py-3 md:px-10">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#111215]/70 dark:text-white/60">
+                <span className="text-[#111215]/40 dark:text-white/40">02</span>
+                <span className="mx-2 opacity-30">/</span>
+                Keamanan & Arsitektur
+              </p>
+              <p className="font-mono text-[11px] opacity-40 hidden sm:block">
+                Double-Entry Ledger Standard
+              </p>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-zinc-950 dark:text-white">
+          </div>
+
+          <div className="px-6 py-10 md:px-10 md:py-14 max-w-3xl">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
               Transparansi penuh,{" "}
-              <span className="font-serif italic font-normal text-zinc-500 dark:text-zinc-400">
+              <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
                 tanpa celah manipulasi.
               </span>
             </h2>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 mt-4 leading-relaxed">
-              Kami membangun Tabungane Sisfor di atas prinsip integritas buku besar akuntansi (ledger-first), memastikan setiap rupiah yang masuk memiliki jejak digital yang tidak dapat disunting.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
-              <div className="font-mono text-xs text-gray-400 dark:text-zinc-500 mb-2">01 / ARSITEKTUR</div>
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Immutable Ledger Buku Besar</h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 mt-2 leading-relaxed">
-                Pencatatan saldo hanya menggunakan transaksi append-only. Tidak ada query update saldo siluman — koreksi hanya dapat dilakukan melalui jurnal pembalik otomatis.
+          <div className="grid gap-px border-t border-[#111215]/15 dark:border-white/10 bg-[#111215]/15 dark:bg-white/10 md:grid-cols-3">
+            <div className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-widest opacity-40">01 / ARSITEKTUR</span>
+              <h3 className="font-bold text-sm text-[#111215] dark:text-white">Immutable Double Ledger</h3>
+              <p className="text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                Pencatatan saldo hanya menggunakan transaksi append-only. Koreksi saldo dilakukan melalui jurnal pembalik otomatis.
               </p>
             </div>
-
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
-              <div className="font-mono text-xs text-gray-400 dark:text-zinc-500 mb-2">02 / PRIVASI</div>
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Kanonikal ID & Masking PII</h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 mt-2 leading-relaxed">
-                Seluruh identitas dinormalisasi menjadi ID Pengguna seragam. Password hash tidak pernah dibocorkan ke jaringan, dan mahasiswa bebas menyembunyikan saldo dari leaderboard publik.
+            <div className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-widest opacity-40">02 / FORENSIK</span>
+              <h3 className="font-bold text-sm text-[#111215] dark:text-white">Audit Log Per-Aksi</h3>
+              <p className="text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                Setiap mutasi saldo manual, reset kata sandi, dan perubahan hak akses granular dicatat permanen dalam riwayat audit kampus.
               </p>
             </div>
-
-            <div className="p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
-              <div className="font-mono text-xs text-gray-400 dark:text-zinc-500 mb-2">03 / AUDIT</div>
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Audit Trail Forensik</h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 mt-2 leading-relaxed">
-                Setiap mutasi saldo manual, reset kata sandi, perubahan kelas, hingga pemberian izin khusus dicatat detail di histori log audit yang siap diekspor ke format CSV / rekap resmi.
+            <div className="bg-[#f4f3ef] dark:bg-[#0e0f12] p-6 space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-widest opacity-40">03 / PRIVASI</span>
+              <h3 className="font-bold text-sm text-[#111215] dark:text-white">Kanonikal ID & Sensor Saldo</h3>
+              <p className="text-xs text-[#111215]/70 dark:text-white/60 leading-relaxed">
+                Normalisasi nomor identitas menjadi ID Pengguna seragam, disertai opsi sensor saldo publik pada leaderboard.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── SECTION 4: CALL TO ACTION (START CRAFTING STYLE) ─── */}
-      <section className="py-20 md:py-32 relative overflow-hidden">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 text-xs font-mono text-gray-600 dark:text-zinc-400 mb-6">
-            <span>SISTEM INFORMASI KEUANGAN MAHASISWA</span>
+      {/* ─── 6. CALL TO ACTION & FOOTER ─── */}
+      <section className="border-b border-[#111215]/15 dark:border-white/10 py-16 md:py-24">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-10 text-center">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-[#111215]/20 dark:border-white/15 bg-white/70 dark:bg-black/40 text-[10px] font-mono uppercase tracking-widest text-[#111215]/80 dark:text-white/80 mb-4">
+            <span>SISTEM INFORMASI TABUNGAN KAMPUS</span>
           </div>
-
-          <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-zinc-950 dark:text-white leading-tight">
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#111215] dark:text-white">
             Mulai bangun kebiasaan menabung{" "}
-            <span className="font-serif italic font-normal text-zinc-500 dark:text-zinc-400">
+            <span className="font-serif italic font-normal text-[#111215]/60 dark:text-white/60">
               hari ini.
             </span>
           </h2>
-
-          <p className="mt-6 text-sm sm:text-base text-gray-600 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed">
-            Bergabunglah dengan ratusan mahasiswa lainnya yang telah mengelola kas kelas dan keuangan pribadi secara cerdas dan transparan di Tabungane Sisfor.
+          <p className="mt-4 text-xs sm:text-sm text-[#111215]/70 dark:text-white/60 max-w-md mx-auto">
+            Bergabunglah dengan ratusan mahasiswa lainnya dalam ekosistem kas kelas yang transparan dan tertib administrasi.
           </p>
-
-          <div className="mt-10 flex flex-wrap justify-center items-center gap-3">
+          <div className="mt-8 flex justify-center gap-3">
             <Link
               href={user ? (isAdmin ? "/admin" : "/dashboard") : "/login"}
-              className="h-12 px-8 rounded-xl bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950 font-medium text-sm hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-sm cursor-pointer"
+              className="h-10 px-6 rounded-lg bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] font-medium text-xs sm:text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2"
             >
               <span>{user ? "Masuk ke Dashboard" : "Masuk dengan ID Pengguna"}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/leaderboard"
-              className="h-12 px-6 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-            >
-              <Trophy className="w-4 h-4 text-amber-500" />
-              <span>Lihat Leaderboard Kampus</span>
-            </Link>
           </div>
         </div>
       </section>
 
-      {/* ─── ARCHITECTURAL FOOTER ─── */}
-      <footer className="border-t border-gray-200 dark:border-zinc-800/80 bg-white dark:bg-[#0a0a0c] text-xs py-10 font-mono">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 dark:text-zinc-500">
+      {/* ─── FOOTER ─── */}
+      <footer className="py-8 font-mono text-[11px] text-[#111215]/60 dark:text-white/50">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-zinc-950 dark:bg-white flex items-center justify-center text-white dark:text-zinc-950 font-bold text-[10px]">
-              T
-            </div>
-            <span className="font-sans font-bold text-zinc-900 dark:text-zinc-100">TABUNGANE SISFOR</span>
-            <span className="text-gray-300 dark:text-zinc-700">|</span>
-            <span>© 2026 PROGRAM STUDI SISTEM INFORMASI</span>
+            <span className="font-bold text-[#111215] dark:text-white">TABUNGANE SISFOR</span>
+            <span className="opacity-30">|</span>
+            <span>© 2026 PRODI SISTEM INFORMASI</span>
           </div>
-
-          <div className="flex items-center gap-6 text-[11px]">
-            <Link href="/topup" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-              Top Up QRIS
-            </Link>
-            <Link href="/leaderboard" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-              Leaderboard
-            </Link>
-            <Link href="/login" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-              Masuk Portal
-            </Link>
+          <div className="flex items-center gap-5">
+            <Link href="/topup" className="hover:underline">Top Up QRIS</Link>
+            <Link href="/leaderboard" className="hover:underline">Leaderboard</Link>
+            <Link href="/login" className="hover:underline">Masuk Portal</Link>
           </div>
         </div>
       </footer>
