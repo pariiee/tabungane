@@ -13,10 +13,10 @@ export async function POST(req: Request) {
 
     const { grup_id, amount } = await req.json();
 
-    // PRD rule: min 100, max 1000000
+    // PRD rule: min 1000, max 1000000
     const nominal = parseInt(amount, 10);
-    if (isNaN(nominal) || nominal < 100 || nominal > 1000000) {
-      return NextResponse.json({ error: "Nominal harus antara Rp100 dan Rp1.000.000" }, { status: 400 });
+    if (isNaN(nominal) || nominal < 1000 || nominal > 1000000) {
+      return NextResponse.json({ error: "Nominal harus antara Rp1.000 dan Rp1.000.000" }, { status: 400 });
     }
 
     const isWallet = !grup_id || grup_id === "wallet";
@@ -45,31 +45,28 @@ export async function POST(req: Request) {
       membershipId = membership.id;
     }
 
-    // PRD rule: cancel previous pending QR for this user across all their memberships & wallet
-    const pendingTrxs = db.prepare(`
-      SELECT t.id, t.qris_trx_id 
+    // Guard: Mahasiswa yang punya invoice pending tidak boleh buat invoice baru
+    const existingPending = db.prepare(`
+      SELECT t.id, t.qris_trx_id, t.jumlah, t.expired_at 
       FROM transaksi t
       WHERE t.user_id = ? AND t.status = 'pending' AND t.tipe = 'topup_qris'
-    `).all(user.id) as any[];
+      ORDER BY t.created_at DESC
+      LIMIT 1
+    `).get(user.id) as any;
 
-    for (const p of pendingTrxs) {
-      if (p.qris_trx_id) {
-        try {
-          const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
-          if (apiKey) {
-            const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
-            await fetch(`${baseUrl}/payments/${encodeURIComponent(p.qris_trx_id)}/cancel`, {
-              method: "POST",
-              headers: {
-                "X-API-Key": apiKey,
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-              },
-              signal: AbortSignal.timeout(3000),
-            });
-          }
-        } catch {}
+    if (existingPending) {
+      if (existingPending.expired_at && new Date(existingPending.expired_at) < new Date()) {
+        db.prepare("UPDATE transaksi SET status = 'expired' WHERE id = ?").run(existingPending.id);
+      } else {
+        return NextResponse.json(
+          {
+            error: "Anda masih memiliki tagihan QRIS yang belum diselesaikan. Silakan bayar atau batalkan tagihan sebelumnya terlebih dahulu.",
+            pending_trxid: existingPending.qris_trx_id || existingPending.id,
+            pending_amount: existingPending.jumlah,
+          },
+          { status: 400 }
+        );
       }
-      db.prepare("UPDATE transaksi SET status = 'canceled' WHERE id = ?").run(p.id);
     }
 
     // Call QRIS generator

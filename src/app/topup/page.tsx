@@ -35,8 +35,8 @@ type Trx = {
   nama_grup?: string;
 };
 
-const PRESETS = [100, 1000, 10000, 25000, 50000, 100000];
-const MIN = 100;
+const PRESETS = [1000, 5000, 10000, 25000, 50000, 100000];
+const MIN = 1000;
 const MAX = 1000000;
 
 const rp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
@@ -121,6 +121,7 @@ export default function TopUpPage() {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pendingTrxId, setPendingTrxId] = useState<string | null>(null);
 
   const dlgRef = useRef<HTMLDialogElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -162,6 +163,7 @@ export default function TopUpPage() {
     e.preventDefault();
     if (!valid || loading) return;
     setError("");
+    setPendingTrxId(null);
     setLoading(true);
     try {
       const res = await fetch("/api/payments/create", {
@@ -170,7 +172,12 @@ export default function TopUpPage() {
         body: JSON.stringify({ grup_id: dest === "wallet" ? null : dest, amount: n }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal membuat kode QRIS");
+      if (!res.ok) {
+        if (data.pending_trxid) {
+          setPendingTrxId(data.pending_trxid);
+        }
+        throw new Error(data.error || "Gagal membuat kode QRIS");
+      }
       router.push(`/invoice/${data.trxid}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat kode QRIS");
@@ -289,9 +296,19 @@ export default function TopUpPage() {
           </div>
 
           {error && (
-            <div role="alert" className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-400">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
+            <div role="alert" className="mt-4 flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-400">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+              {pendingTrxId && (
+                <Link
+                  href={`/invoice/${pendingTrxId}`}
+                  className="mt-1 inline-flex items-center justify-center gap-1.5 self-start px-3 py-1.5 rounded-lg bg-rose-600 text-white font-medium text-[11px] hover:bg-rose-700 transition-colors shadow-xs"
+                >
+                  <span>Buka Tagihan Pending &rarr;</span>
+                </Link>
+              )}
             </div>
           )}
 

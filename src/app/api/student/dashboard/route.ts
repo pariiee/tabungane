@@ -119,6 +119,30 @@ export async function GET() {
     `)
     .all(user.id, user.id);
 
+  // Check pending topup_qris for this student
+  const pendingInvoice = db.prepare(`
+    SELECT t.id, t.qris_trx_id, t.jumlah, t.expired_at, t.created_at, t.catatan
+    FROM transaksi t
+    WHERE t.user_id = ? AND t.status = 'pending' AND t.tipe = 'topup_qris'
+    ORDER BY t.created_at DESC
+    LIMIT 1
+  `).get(user.id) as any;
+
+  let activePending = null;
+  if (pendingInvoice) {
+    if (pendingInvoice.expired_at && new Date(pendingInvoice.expired_at) < new Date()) {
+      db.prepare("UPDATE transaksi SET status = 'expired' WHERE id = ?").run(pendingInvoice.id);
+    } else {
+      activePending = {
+        id: pendingInvoice.id,
+        trxid: pendingInvoice.qris_trx_id || pendingInvoice.id,
+        jumlah: pendingInvoice.jumlah,
+        catatan: pendingInvoice.catatan,
+        expired_at: pendingInvoice.expired_at,
+      };
+    }
+  }
+
   return NextResponse.json({
     user: {
       id: user.id,
@@ -141,5 +165,6 @@ export async function GET() {
     chart: chartDays,
     recent,
     groups: formattedGroups,
+    pending_payment: activePending,
   });
 }

@@ -481,8 +481,41 @@ export default function StudentDashboardPage() {
   const dateMid = chart[Math.floor(chart.length / 2)]?.shortDate || "01/07";
   const dateEnd = chart[chart.length - 1]?.shortDate || "01/14";
 
+  const pendingPayment = data?.pending_payment;
+
   return (
     <div className="space-y-6">
+      {/* Pending Payment Alert Banner */}
+      {pendingPayment && (
+        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/70 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                  Tagihan Top Up Belum Diselesaikan
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 uppercase">
+                  Pending
+                </span>
+              </div>
+              <p className="text-xs text-amber-800 dark:text-amber-300/90 mt-0.5">
+                Anda memiliki tagihan QRIS aktif sebesar <strong className="font-mono">Rp {pendingPayment.jumlah?.toLocaleString("id-ID")}</strong>. Silakan bayar atau batalkan terlebih dahulu.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/invoice/${pendingPayment.trxid || pendingPayment.id}`}
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded-lg transition-colors shadow-xs active:scale-95"
+          >
+            <span>Bayar Tagihan</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

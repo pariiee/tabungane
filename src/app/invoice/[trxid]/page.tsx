@@ -3,31 +3,28 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import {
   RefreshCw,
   Clock,
   Check,
   AlertCircle,
-  Moon,
-  Sun,
-  Zap,
+  XCircle,
+  Link2Off,
 } from "lucide-react";
 
 export default function InvoicePage() {
   const routeParams = useParams();
   const trxid = typeof routeParams?.trxid === "string" ? routeParams.trxid : Array.isArray(routeParams?.trxid) ? routeParams.trxid[0] : "";
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
 
   const [payment, setPayment] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState<number>(300);
-  const [paymentStatus, setPaymentStatus] = useState<"pending" | "berhasil" | "expired">("pending");
+  const [paymentStatus, setPaymentStatus] = useState<"pending" | "berhasil" | "expired" | "canceled">("pending");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [simulating, setSimulating] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [error, setError] = useState("");
-  const [redirectCount, setRedirectCount] = useState(5);
+  const [redirectCount, setRedirectCount] = useState(3);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -35,6 +32,7 @@ export default function InvoicePage() {
 
   // Fetch status helper
   const checkStatus = async (isManual = false) => {
+    if (!trxid) return;
     if (isManual) setRefreshing(true);
     try {
       const res = await fetch(`/api/payments/${trxid}/status`);
@@ -44,11 +42,17 @@ export default function InvoicePage() {
           setError(data.error);
         } else {
           setPayment(data);
-          if (data.status === "berhasil" || data.status === "paid") {
+          const rawStatus = String(data.status || "").toLowerCase();
+          if (rawStatus === "berhasil" || rawStatus === "paid") {
             setPaymentStatus("berhasil");
-          } else if (data.status === "expired") {
+          } else if (rawStatus === "canceled") {
+            setPaymentStatus("canceled");
+          } else if (rawStatus === "expired") {
             setPaymentStatus("expired");
+          } else {
+            setPaymentStatus("pending");
           }
+
           if (data.expired_at) {
             const diff = Math.max(0, Math.floor((new Date(data.expired_at).getTime() - Date.now()) / 1000));
             setTimeLeft(diff);
@@ -90,7 +94,7 @@ export default function InvoicePage() {
     };
   }, [paymentStatus]);
 
-  // Polling payment status every 10s
+  // Fast polling payment status every 10s
   useEffect(() => {
     if (paymentStatus === "pending") {
       pollRef.current = setInterval(() => {
@@ -102,9 +106,10 @@ export default function InvoicePage() {
     };
   }, [trxid, paymentStatus]);
 
-  // Auto-redirect countdown on success / paid
+  // Auto-redirect countdown on success, canceled, or expired (3s delay)
   useEffect(() => {
-    if (paymentStatus === "berhasil") {
+    if (paymentStatus === "berhasil" || paymentStatus === "canceled" || paymentStatus === "expired") {
+      setRedirectCount(3);
       redirectRef.current = setInterval(() => {
         setRedirectCount((prev) => {
           if (prev <= 1) {
@@ -121,24 +126,25 @@ export default function InvoicePage() {
     };
   }, [paymentStatus, router]);
 
-  // Sandbox simulation trigger
-  const handleSimulatePayment = async () => {
-    setSimulating(true);
+  // Cancel payment action
+  const handleCancelPayment = async () => {
+    if (!confirm("Apakah Anda yakin ingin membatalkan tagihan top up ini?")) return;
+    setCanceling(true);
     try {
-      const res = await fetch(`/api/payments/${trxid}/status?simulate_pay=1`);
+      const res = await fetch(`/api/payments/${trxid}/cancel`, {
+        method: "POST",
+      });
       const data = await res.json();
-      if (data.status === "berhasil") {
-        setPaymentStatus("berhasil");
-        setPayment((prev: any) => ({
-          ...prev,
-          status: "berhasil",
-          paid_at: data.paid_at || new Date().toISOString(),
-        }));
+      if (res.ok && (data.success || data.status === "canceled")) {
+        setPaymentStatus("canceled");
+        setPayment((prev: any) => ({ ...prev, status: "canceled" }));
+      } else {
+        alert(data.error || "Gagal membatalkan tagihan");
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      alert(e.message || "Gagal membatalkan tagihan");
     } finally {
-      setSimulating(false);
+      setCanceling(false);
     }
   };
 
@@ -167,7 +173,7 @@ export default function InvoicePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] flex items-center justify-center p-4">
+      <div className="py-24 flex items-center justify-center p-4">
         <div className="text-center space-y-3 font-mono text-xs text-gray-400">
           <RefreshCw className="w-5 h-5 animate-spin mx-auto text-black dark:text-white" />
           <p>Memuat rincian invoice...</p>
@@ -178,16 +184,16 @@ export default function InvoicePage() {
 
   if (error || !payment) {
     return (
-      <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] flex items-center justify-center p-4">
-        <div className="border border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#121316] p-8 max-w-sm w-full text-center space-y-4 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+      <div className="max-w-md mx-auto py-16 px-4">
+        <div className="border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#121316] p-8 text-center space-y-4 rounded-2xl shadow-xs">
+          <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
             <AlertCircle className="w-5 h-5" />
           </div>
-          <h2 className="text-sm font-bold text-black dark:text-white">Invoice Tidak Ditemukan</h2>
-          <p className="text-xs text-gray-500">{error || "Transaksi tidak valid atau telah kedaluwarsa."}</p>
+          <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">Invoice Tidak Ditemukan</h2>
+          <p className="text-xs text-gray-500 dark:text-zinc-400">{error || "Transaksi tidak valid atau telah kedaluwarsa."}</p>
           <Link
             href="/dashboard"
-            className="h-9 px-4 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black rounded-none text-xs font-semibold inline-flex items-center justify-center w-full"
+            className="h-9 px-4 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black rounded-xl text-xs font-semibold inline-flex items-center justify-center w-full transition-colors"
           >
             Kembali ke Dashboard
           </Link>
@@ -196,67 +202,33 @@ export default function InvoicePage() {
     );
   }
 
-  const shareText = `Invoice Pembayaran SAKUNE SISFOR (ID: ${trxid}, Total: Rp${(payment.amount || 0).toLocaleString("id-ID")})`;
-  const shareWhatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
-    `${shareText} - Lihat invoice: ${typeof window !== "undefined" ? window.location.href : ""}`
-  )}`;
-
   return (
-    <div className="min-h-screen bg-[#f4f3ef] dark:bg-[#0e0f12] text-[#111215] dark:text-[#f4f3ef] flex items-center justify-center p-4 sm:p-6 relative font-sans selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
-      {/* Subtle graph grid background (matches screenshot) */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
+    <div className="max-w-2xl mx-auto py-6 sm:py-8 px-4 font-sans text-gray-900 dark:text-zinc-100">
+      {/* Main Invoice Card */}
+      <div className="border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#121316] p-6 sm:p-8 rounded-2xl shadow-xs space-y-6">
 
-      {/* Main Container Card (Exact styling from screenshot) */}
-      <div className="relative max-w-2xl w-full border border-gray-300 dark:border-zinc-800 bg-white dark:bg-[#121316] p-6 sm:p-8 rounded-none shadow-sm z-10 space-y-6">
-        {/* Technical Corner Ticks */}
-        <span className="tick -top-[5px] -left-[6px]" />
-        <span className="tick -top-[5px] -right-[5px]" />
-        <span className="tick -bottom-[5px] -left-[6px]" />
-        <span className="tick -bottom-[5px] -right-[5px]" />
-
-        {/* ─── 1. CARD HEADER ─── */}
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            {/* Merchant Logo */}
-            <div className="w-7 h-7 flex items-center justify-center shrink-0">
-              <img src="/icon.svg" alt="Sakune Logo" className="w-7 h-7 object-contain" />
-            </div>
-            <span className="font-bold text-sm tracking-wider text-black dark:text-white uppercase">
-              SAKUNE SISFOR
-            </span>
-          </div>
-
-          {/* Dark Mode Toggle Button */}
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-8 h-8 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-gray-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
-            title="Ganti Mode Tampilan"
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-          </button>
-        </div>
-
-        {/* ─── 2. INVOICE CONTENT: PENDING vs PAID ─── */}
-        {paymentStatus === "berhasil" ? (
-          /* ─── A. PAID / SUCCESS STATE (Matches screenshot 3) ─── */
+        {/* ─── CASE A: CANCELED / EXPIRED (Exact layout as Screenshot 2) ─── */}
+        {paymentStatus === "canceled" || paymentStatus === "expired" ? (
           <div className="space-y-6 text-center">
-            {/* Center Checkmark Box */}
-            <div className="w-12 h-12 bg-black text-white dark:bg-white dark:text-black flex items-center justify-center mx-auto rounded-none">
-              <Check className="w-7 h-7 stroke-[3]" />
+            {/* Square Gray Icon Box */}
+            <div className="w-14 h-14 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 flex items-center justify-center mx-auto rounded-xl">
+              <Link2Off className="w-7 h-7 stroke-[2]" />
             </div>
 
             {/* Title & Subtitle */}
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black dark:text-white">
-                Payment successful
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                {paymentStatus === "canceled" ? "Payment canceled" : "Payment expired"}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-                Thank you, your payment has been received.
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                {paymentStatus === "canceled"
+                  ? "Transaksi ini telah dibatalkan."
+                  : "Batas waktu pembayaran tagihan telah berakhir."}
               </p>
             </div>
 
-            {/* Auto-redirect Banner */}
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-mono text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
+            {/* 3-Second Auto Redirect Banner */}
+            <div className="p-3 bg-gray-50 dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-800 text-xs font-mono text-gray-600 dark:text-zinc-300 flex items-center justify-between rounded-xl">
               <span>Mengalihkan ke Dashboard dalam <strong>{redirectCount}</strong> detik...</span>
               <button
                 onClick={() => router.push("/dashboard")}
@@ -266,53 +238,114 @@ export default function InvoicePage() {
               </button>
             </div>
 
-            {/* Transaction Details (Table-like Key-Value List) */}
-            <div className="text-left pt-2">
+            {/* Divider */}
+            <hr className="border-gray-100 dark:border-zinc-800" />
+
+            {/* Transaction Details (Key-Value List) */}
+            <div className="text-left pt-1">
               <div className="text-[10px] font-mono tracking-widest uppercase text-gray-400 dark:text-zinc-500 mb-3 font-semibold">
-                D E T A I L &nbsp; T R A N S A K S I
+                DETAIL TRANSAKSI
               </div>
-              <div className="border border-gray-200 dark:border-zinc-800 divide-y divide-gray-100 dark:divide-zinc-800/80 text-xs font-mono">
-                <div className="flex justify-between py-2.5 px-3">
-                  <span className="text-gray-500">Transaction ID:</span>
-                  <span className="font-bold text-black dark:text-white">{trxid}</span>
+              <div className="border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-zinc-800/80 text-xs font-mono">
+                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                  <span className="text-gray-500 dark:text-zinc-400">Transaction ID:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100">{trxid}</span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3">
-                  <span className="text-gray-500">Total:</span>
-                  <span className="font-bold text-black dark:text-white">Rp{payment.amount?.toLocaleString("id-ID")}</span>
+                <div className="flex justify-between py-2.5 px-3.5">
+                  <span className="text-gray-500 dark:text-zinc-400">Total:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100">Rp{payment.amount?.toLocaleString("id-ID")}</span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3">
-                  <span className="text-gray-500">Status:</span>
-                  <span className="font-bold text-black dark:text-white">paid</span>
+                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                  <span className="text-gray-500 dark:text-zinc-400">Status:</span>
+                  <span className={`font-bold uppercase ${paymentStatus === "canceled" ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    {paymentStatus}
+                  </span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3">
-                  <span className="text-gray-500">Created:</span>
+                <div className="flex justify-between py-2.5 px-3.5">
+                  <span className="text-gray-500 dark:text-zinc-400">Created:</span>
                   <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.created_at)}</span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3">
-                  <span className="text-gray-500">Paid:</span>
-                  <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.paid_at || new Date().toISOString())}</span>
+              </div>
+            </div>
+          </div>
+        ) : paymentStatus === "berhasil" ? (
+          /* ─── CASE B: SUCCESS / PAID STATE ─── */
+          <div className="space-y-6 text-center">
+            {/* Center Checkmark Box */}
+            <div className="w-14 h-14 bg-emerald-600 text-white flex items-center justify-center mx-auto rounded-xl shadow-xs">
+              <Check className="w-8 h-8 stroke-[3]" />
+            </div>
+
+            {/* Title & Subtitle */}
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                Payment successful
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                Terima kasih, pembayaran Anda telah berhasil kami terima.
+              </p>
+            </div>
+
+            {/* Auto-redirect Banner */}
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-mono text-emerald-700 dark:text-emerald-300 flex items-center justify-between rounded-xl">
+              <span>Mengalihkan ke Dashboard dalam <strong>{redirectCount}</strong> detik...</span>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="font-bold underline cursor-pointer hover:opacity-80"
+              >
+                Kembali Sekarang &rarr;
+              </button>
+            </div>
+
+            {/* Divider */}
+            <hr className="border-gray-100 dark:border-zinc-800" />
+
+            {/* Transaction Details */}
+            <div className="text-left pt-1">
+              <div className="text-[10px] font-mono tracking-widest uppercase text-gray-400 dark:text-zinc-500 mb-3 font-semibold">
+                DETAIL TRANSAKSI
+              </div>
+              <div className="border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-zinc-800/80 text-xs font-mono">
+                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                  <span className="text-gray-500 dark:text-zinc-400">Transaction ID:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100">{trxid}</span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3">
-                  <span className="text-gray-500">Reference:</span>
-                  <span className="text-gray-700 dark:text-zinc-300 truncate max-w-[200px]">
-                    {payment.ref_transaksi_id || `TRX-${trxid.slice(0, 12)}`}
-                  </span>
+                <div className="flex justify-between py-2.5 px-3.5">
+                  <span className="text-gray-500 dark:text-zinc-400">Total:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100">Rp{payment.amount?.toLocaleString("id-ID")}</span>
+                </div>
+                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                  <span className="text-gray-500 dark:text-zinc-400">Status:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">berhasil</span>
+                </div>
+                <div className="flex justify-between py-2.5 px-3.5">
+                  <span className="text-gray-500 dark:text-zinc-400">Created:</span>
+                  <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.created_at)}</span>
+                </div>
+                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                  <span className="text-gray-500 dark:text-zinc-400">Paid:</span>
+                  <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.paid_at || new Date().toISOString())}</span>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          /* ─── B. PENDING STATE (Matches screenshot 1 & 2) ─── */
+          /* ─── CASE C: PENDING STATE (Payment Waiting) ─── */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {/* Left Column: Total & QR Code */}
             <div className="space-y-4 text-center md:text-left">
               {/* Big Total */}
-              <div className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-black dark:text-white">
-                Rp{payment.amount?.toLocaleString("id-ID")}
+              <div>
+                <span className="text-[11px] font-mono uppercase text-gray-400 dark:text-zinc-500 font-semibold tracking-wider block mb-1">
+                  TOTAL TAGIHAN
+                </span>
+                <div className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-gray-900 dark:text-zinc-100">
+                  Rp{payment.amount?.toLocaleString("id-ID")}
+                </div>
               </div>
 
               {/* QR Code Box */}
-              <div className="inline-block p-4 border border-gray-200 dark:border-zinc-800 bg-white rounded-none shadow-xs">
+              <div className="inline-block p-4 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-white rounded-xl shadow-xs">
                 <img
                   src={
                     payment.qr_url ||
@@ -334,19 +367,13 @@ export default function InvoicePage() {
               </div>
 
               {/* Countdown Timer */}
-              {paymentStatus === "pending" ? (
-                <div className="flex items-center justify-center md:justify-start gap-1.5 text-xs font-mono">
-                  <Clock className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="text-gray-500 dark:text-zinc-400 text-[11px] uppercase tracking-wider">WAKTU TERSISA</span>
-                  <span className="font-bold text-amber-600 dark:text-amber-500 text-sm ml-1">
-                    {timeFormatted}
-                  </span>
-                </div>
-              ) : (
-                <div className="text-xs font-mono text-rose-600 font-bold">
-                  KODE PEMBAYARAN KEDALUWARSA
-                </div>
-              )}
+              <div className="flex items-center justify-center md:justify-start gap-1.5 text-xs font-mono">
+                <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-zinc-500" />
+                <span className="text-gray-500 dark:text-zinc-400 text-[11px] uppercase tracking-wider">WAKTU TERSISA</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400 text-sm ml-1 font-mono">
+                  {timeFormatted}
+                </span>
+              </div>
             </div>
 
             {/* Right Column: Rincian Pembayaran & Actions */}
@@ -355,80 +382,64 @@ export default function InvoicePage() {
                 <span className="text-[11px] font-mono tracking-wider uppercase text-gray-400 dark:text-zinc-500 font-semibold">
                   RINCIAN PEMBAYARAN
                 </span>
-                <span className="px-2 py-0.5 border border-gray-300 dark:border-zinc-700 text-[10px] font-mono uppercase text-gray-700 dark:text-zinc-300">
-                  {payment.channel || "QRIS"}
+                <span className="px-2 py-0.5 border border-gray-300 dark:border-zinc-700 rounded-md text-[10px] font-mono uppercase text-gray-700 dark:text-zinc-300 font-bold">
+                  {payment.channel || "SHOPEEPAY"}
                 </span>
               </div>
 
               {/* Transaction Key-Values */}
               <div className="space-y-2 text-xs font-mono">
                 <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500">Transaction ID:</span>
-                  <span className="font-bold text-black dark:text-white">{trxid}</span>
+                  <span className="text-gray-500 dark:text-zinc-400">Transaction ID:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100">{trxid}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500">Total:</span>
-                  <span className="font-bold text-black dark:text-white">Rp{payment.amount?.toLocaleString("id-ID")}</span>
+                  <span className="text-gray-500 dark:text-zinc-400">Total:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100">Rp{payment.amount?.toLocaleString("id-ID")}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500">Status:</span>
-                  <span className="font-bold text-amber-600 dark:text-amber-500">
+                  <span className="text-gray-500 dark:text-zinc-400">Status:</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400 uppercase">
                     {paymentStatus}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500">Created:</span>
+                  <span className="text-gray-500 dark:text-zinc-400">Created:</span>
                   <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.created_at)}</span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2.5 pt-2">
                 {/* Check Status Button */}
                 <button
                   type="button"
                   onClick={() => checkStatus(true)}
                   disabled={refreshing}
-                  className="w-full h-10 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-xs font-semibold rounded-none tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  className="w-full h-10 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-xs font-semibold rounded-xl tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs active:scale-95"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
                   <span>Check payment status</span>
                 </button>
 
-                {/* WhatsApp Share Button */}
-                <a
-                  href={shareWhatsAppUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full h-10 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 text-xs font-semibold rounded-none tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
-                  <span className="text-emerald-500 text-base">💬</span>
-                  <span>Share via WhatsApp</span>
-                </a>
-              </div>
-
-              {/* Optional Sandbox Simulation */}
-              <div className="pt-2 text-center">
+                {/* Batalkan Topup Button */}
                 <button
                   type="button"
-                  disabled={simulating}
-                  onClick={handleSimulatePayment}
-                  className="text-[10px] font-mono text-gray-400 hover:text-black dark:hover:text-white underline cursor-pointer inline-flex items-center gap-1"
+                  onClick={handleCancelPayment}
+                  disabled={canceling}
+                  className="w-full h-10 border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100/60 dark:hover:bg-rose-950/40 text-xs font-semibold rounded-xl tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-colors active:scale-95"
                 >
-                  <Zap className="w-3 h-3 text-amber-500" />
-                  <span>[Sandbox] Simulasikan Pembayaran Sukses</span>
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>{canceling ? "Membatalkan..." : "Batalkan Topup"}</span>
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ─── 3. CARD FOOTER ─── */}
-        <div className="pt-4 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-[11px] font-mono text-gray-400 dark:text-zinc-500">
-          <Link href="/topup" className="hover:underline">
-            &larr; Batalkan / Kembali
-          </Link>
-          <span>Powered by qriskuu</span>
+        {/* ─── CARD FOOTER ─── */}
+        <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 text-center text-[11px] font-mono text-gray-400 dark:text-zinc-500">
+          <span>Powered by NGECODE AJA</span>
         </div>
       </div>
     </div>
