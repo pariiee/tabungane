@@ -35,8 +35,8 @@ type Trx = {
   nama_grup?: string;
 };
 
-const PRESETS = [10000, 25000, 50000, 100000];
-const MIN = 1000;
+const PRESETS = [100, 1000, 10000, 25000, 50000, 100000];
+const MIN = 100;
 const MAX = 1000000;
 
 const rp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;

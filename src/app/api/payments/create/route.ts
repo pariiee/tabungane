@@ -13,10 +13,10 @@ export async function POST(req: Request) {
 
     const { grup_id, amount } = await req.json();
 
-    // PRD rule: min 1000, max 1000000
+    // PRD rule: min 100, max 1000000
     const nominal = parseInt(amount, 10);
-    if (isNaN(nominal) || nominal < 1000 || nominal > 1000000) {
-      return NextResponse.json({ error: "Nominal harus antara Rp1.000 dan Rp1.000.000" }, { status: 400 });
+    if (isNaN(nominal) || nominal < 100 || nominal > 1000000) {
+      return NextResponse.json({ error: "Nominal harus antara Rp100 dan Rp1.000.000" }, { status: 400 });
     }
 
     const isWallet = !grup_id || grup_id === "wallet";
