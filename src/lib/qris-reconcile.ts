@@ -12,7 +12,7 @@ export async function runQrisReconcileJob() {
          WHERE status = 'pending' 
            AND tipe = 'topup_qris' 
            AND qris_trx_id IS NOT NULL 
-           AND created_at <= datetime('now', '-60 seconds')
+           AND created_at <= datetime('now', '-5 seconds')
          ORDER BY created_at ASC 
          LIMIT 20`
       )
@@ -66,15 +66,15 @@ export function startQrisReconcileDaemon() {
   }
   globalForCron.qrisJobStarted = true;
 
-  console.log("[RECONCILE] QRIS fallback status checker started (interval: 90s)");
+  console.log("[RECONCILE] QRIS fallback status checker started (interval: 15s)");
 
-  // Run initially after 10s warmup
+  // Run initially after 3s warmup
   setTimeout(() => {
     runQrisReconcileJob();
-  }, 10000);
+  }, 3000);
 
-  // Repeat every 90 seconds
+  // Repeat every 15 seconds
   globalForCron.qrisInterval = setInterval(() => {
     runQrisReconcileJob();
-  }, 90000);
+  }, 15000);
 }
