@@ -26,9 +26,14 @@ export async function GET(
   // First: Fallback sync with gateway if pending or expired
   if ((trx.status === "pending" || trx.status === "expired") && trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
     try {
+      const apiKey = process.env.QRISKUU_API_KEY || "";
       const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
       const qRes = await fetch(`${baseUrl}/payments/${encodeURIComponent(trx.qris_trx_id)}/status`, {
-        signal: AbortSignal.timeout(4000),
+        headers: {
+          ...(apiKey ? { "X-API-Key": apiKey } : {}),
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(8000),
       });
       if (qRes.ok) {
         const qJson = await qRes.json();

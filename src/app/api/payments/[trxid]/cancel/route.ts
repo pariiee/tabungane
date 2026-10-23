@@ -39,12 +39,37 @@ export async function POST(
       );
     }
 
-    // 1. Cancel on QRISku gateway if it's a real gateway transaction
+    // 1. Guard: Check if payment was actually completed on QRISku before canceling
     if (trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
       try {
         const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
         const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
         if (apiKey) {
+          const statusRes = await fetch(`${baseUrl}/payments/${encodeURIComponent(trx.qris_trx_id)}/status`, {
+            headers: { "X-API-Key": apiKey, Accept: "application/json" },
+            signal: AbortSignal.timeout(5000),
+          });
+          if (statusRes.ok) {
+            const statusJson = await statusRes.json();
+            const statusData = statusJson.data || statusJson;
+            const remoteStatus = String(statusData.status || "").toLowerCase();
+            if (remoteStatus === "paid" || remoteStatus === "berhasil") {
+              const { creditPayment } = require("@/lib/ledger");
+              creditPayment(
+                trx.qris_trx_id,
+                `cancel-check-${trx.qris_trx_id}-${Date.now()}`,
+                JSON.stringify(statusJson),
+                statusData.amount ? Number(statusData.amount) : trx.jumlah
+              );
+              return NextResponse.json({
+                success: true,
+                message: "Pembayaran telah berhasil terverifikasi!",
+                status: "berhasil",
+              });
+            }
+          }
+
+          // If not paid, call cancel on gateway
           await fetch(`${baseUrl}/payments/${encodeURIComponent(trx.qris_trx_id)}/cancel`, {
             method: "POST",
             headers: {

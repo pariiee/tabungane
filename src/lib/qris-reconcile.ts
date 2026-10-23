@@ -25,8 +25,13 @@ export async function runQrisReconcileJob() {
       if (!trxid) continue;
 
       try {
+        const apiKey = process.env.QRISKUU_API_KEY || "";
         const res = await fetch(`${QRISKUU_BASE_URL}/payments/${encodeURIComponent(trxid)}/status`, {
-          signal: AbortSignal.timeout(5000),
+          headers: {
+            ...(apiKey ? { "X-API-Key": apiKey } : {}),
+            Accept: "application/json",
+          },
+          signal: AbortSignal.timeout(8000),
         });
 
         if (res.ok) {
