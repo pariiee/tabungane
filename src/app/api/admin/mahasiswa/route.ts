@@ -17,7 +17,12 @@ export async function GET(req: Request) {
 
   let query = `
     SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.custom_permissions, u.must_change_password, u.aktif, u.created_at,
-           k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi, p.fakultas_id, f.nama as nama_fakultas
+           k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi, p.fakultas_id, f.nama as nama_fakultas,
+           COALESCE((
+             SELECT SUM(t.jumlah)
+             FROM transaksi t
+             WHERE t.user_id = u.id AND t.keanggotaan_id IS NULL AND t.status = 'berhasil'
+           ), 0) as saldo_dompet
     FROM users u
     LEFT JOIN kelas k ON u.kelas_id = k.id
     LEFT JOIN prodi p ON (k.prodi_id = p.id OR u.prodi_id = p.id)

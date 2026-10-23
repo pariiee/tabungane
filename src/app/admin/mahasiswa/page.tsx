@@ -492,6 +492,7 @@ export default function AdminMahasiswaPage() {
                 <th className="py-3 px-4">ID</th>
                 <th className="py-3 px-4">Nama Lengkap</th>
                 <th className="py-3 px-4">Kelas</th>
+                <th className="py-3 px-4">Saldo Saku</th>
                 <th className="py-3 px-4">Status Password</th>
                 <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
@@ -513,6 +514,11 @@ export default function AdminMahasiswaPage() {
                   <td className="py-3.5 px-4 text-xs">
                     <span className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium px-2 py-0.5 rounded-full text-[10px]">
                       {s.nama_kelas || "Tanpa Kelas"}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 font-mono whitespace-nowrap">
+                    <span className={`text-xs ${Number(s.saldo_dompet || 0) > 0 ? "font-bold text-emerald-600 dark:text-emerald-400" : "font-medium text-gray-400 dark:text-zinc-500"}`}>
+                      Rp {Number(s.saldo_dompet || 0).toLocaleString("id-ID")}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-xs">
@@ -598,7 +604,7 @@ export default function AdminMahasiswaPage() {
               ))}
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-gray-400 dark:text-zinc-500 text-xs">
+                  <td colSpan={6} className="py-10 text-center text-gray-400 dark:text-zinc-500 text-xs">
                     {searchQuery ? `Tidak ada mahasiswa yang cocok dengan "${searchQuery}"` : "Belum ada data mahasiswa"}
                   </td>
                 </tr>
