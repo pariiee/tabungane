@@ -67,6 +67,23 @@ export default function RootLayout({
     <html lang="id" className="h-full" suppressHydrationWarning>
       <head>
         <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('error', function(e) {
+                var msg = (e && (e.message || (e.error && e.error.message))) || '';
+                if (typeof msg === 'string' && (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('ChunkLoadError') !== -1 || msg.indexOf('dynamically imported') !== -1)) {
+                  var last = sessionStorage.getItem('chunk_reload');
+                  var now = Date.now();
+                  if (!last || now - parseInt(last, 10) > 10000) {
+                    sessionStorage.setItem('chunk_reload', String(now));
+                    window.location.reload();
+                  }
+                }
+              });
+            `,
+          }}
+        />
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />

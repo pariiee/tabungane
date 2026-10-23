@@ -10,22 +10,60 @@ export default function GlobalErrorPage({
   error: Error & { digest?: string; status?: number; statusCode?: number };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("[APPLICATION RUNTIME ERROR]:", error);
-  }, [error]);
+  const rawMsg = String(error?.message || "");
 
-  // Deteksi kode status (400, 401, 403, 419, 429, 502, 503, dll) jika ada di error
+  useEffect(() => {
+    // Auto-reload silently if it's a ChunkLoadError from a new deployment
+    const isChunkError =
+      rawMsg.includes("Loading chunk") ||
+      rawMsg.includes("Failed to fetch dynamically imported module") ||
+      error?.name === "ChunkLoadError";
+
+    if (isChunkError && typeof window !== "undefined") {
+      const lastReload = sessionStorage.getItem("chunk_reload_ts");
+      const now = Date.now();
+      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+        sessionStorage.setItem("chunk_reload_ts", String(now));
+        window.location.reload();
+        return;
+      }
+    }
+
+    console.error("[APPLICATION RUNTIME ERROR]:", rawMsg);
+  }, [error, rawMsg]);
+
+  // Sanitize message: never leak paths, chunks, or internal details to users
+  const isSensitive =
+    rawMsg.includes("Loading chunk") ||
+    rawMsg.includes("_next") ||
+    rawMsg.includes(".js") ||
+    rawMsg.includes("ENOENT") ||
+    rawMsg.includes("Cannot find") ||
+    rawMsg.includes("http://") ||
+    rawMsg.includes("https://") ||
+    rawMsg.includes("Invariant");
+
+  const safeMessage = isSensitive
+    ? "Sistem sedang diperbarui atau mengalami kendala pemuatan aset. Silakan segarkan halaman untuk memuat versi terbaru."
+    : error?.message || undefined;
+
   const codeMatch =
     (error as any)?.status ||
     (error as any)?.statusCode ||
-    error?.message?.match(/\b(4\d\d(?:\.\d+)?|5\d\d)\b/)?.[0] ||
+    rawMsg.match(/\b(4\d\d(?:\.\d+)?|5\d\d)\b/)?.[0] ||
     "500";
 
   return (
     <ErrorTemplate
       code={String(codeMatch)}
-      customMessage={error?.message || undefined}
-      onReset={reset}
+      customMessage={safeMessage}
+      onReset={() => {
+        if (typeof window !== "undefined") {
+          window.location.reload();
+        } else {
+          reset();
+        }
+      }}
     />
   );
 }
