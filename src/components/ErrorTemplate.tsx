@@ -97,8 +97,9 @@ export default function ErrorTemplate({
           <button
             type="button"
             onClick={() => {
-              if (onReset) onReset();
-              else window.location.reload();
+              if (typeof window !== "undefined") {
+                window.location.reload();
+              }
             }}
             className="w-full sm:flex-1 h-9.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95"
           >
