@@ -6,21 +6,22 @@ import Link from "next/link";
 import { LeaderboardSkeleton } from "@/components/Skeletons";
 import {
   Crown,
-  Wallet,
-  ArrowDownLeft,
   EyeOff,
+  Clock,
+  Calendar,
+  Trophy
 } from "lucide-react";
 
 export default function LeaderboardPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"saldo" | "topup">("saldo");
+  const [period, setPeriod] = useState<"today" | "month" | "year">("month");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [myStanding, setMyStanding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadData = async (activeTab = tab) => {
+  const loadData = async (activePeriod = period) => {
     try {
-      const res = await fetch(`/api/leaderboard?tab=${activeTab}`);
+      const res = await fetch(`/api/leaderboard?period=${activePeriod}`);
       if (res.status === 401) {
         router.push("/login");
         return;
@@ -36,8 +37,8 @@ export default function LeaderboardPage() {
   };
 
   useEffect(() => {
-    loadData(tab);
-  }, [tab]);
+    loadData(period);
+  }, [period]);
 
   // Always extract Top 3
   const rank1 = leaderboard[0] || null;
@@ -156,44 +157,59 @@ export default function LeaderboardPage() {
       <div className="flex flex-col items-center text-center space-y-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black dark:text-white">
-            Leaderboard
+            Top Penabung
           </h1>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-            Peringkat pencapaian tabungan mahasiswa.
+            Peringkat keaktifan menabung dan setoran kas mahasiswa.
           </p>
         </div>
 
-        {/* 2 Tabs: Top Saldo / Top Setoran */}
+        {/* 3 Tabs: Hari Ini / Bulan Ini / Tahun Ini */}
         <div className="inline-flex items-center p-1 rounded-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xs">
           <button
             type="button"
             onClick={() => {
-              setTab("saldo");
+              setPeriod("today");
               setLoading(true);
             }}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              tab === "saldo"
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              period === "today"
                 ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
                 : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
             }`}
           >
-            <Wallet className="w-3.5 h-3.5" />
-            <span>Top Saldo</span>
+            <Clock className="w-3.5 h-3.5" />
+            <span>Hari Ini</span>
           </button>
           <button
             type="button"
             onClick={() => {
-              setTab("topup");
+              setPeriod("month");
               setLoading(true);
             }}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              tab === "topup"
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              period === "month"
                 ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
                 : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
             }`}
           >
-            <ArrowDownLeft className="w-3.5 h-3.5" />
-            <span>Top Setoran</span>
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Bulan Ini</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPeriod("year");
+              setLoading(true);
+            }}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              period === "year"
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                : "text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5" />
+            <span>Tahun Ini</span>
           </button>
         </div>
       </div>
