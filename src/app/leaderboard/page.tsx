@@ -63,6 +63,25 @@ export default function LeaderboardPage() {
     badgeColor: string,
     isFirst = false
   ) => {
+    if (!item) {
+      return (
+        <div className="w-[31%] flex flex-col items-center opacity-30 select-none">
+          <div className="flex flex-col items-center mb-2.5 w-full">
+            <div className="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 dark:border-zinc-700 flex items-center justify-center text-xs text-gray-400 mb-2 font-mono">
+              -
+            </div>
+            <span className="text-[11px] text-gray-400 font-medium">Belum Terisi</span>
+          </div>
+          <div
+            className="w-full bg-gray-100 dark:bg-zinc-800/40 border-t border-dashed border-gray-300 dark:border-zinc-700 flex items-center justify-center"
+            style={{ height: `${heightPx}px` }}
+          >
+            <span className="text-2xl font-black text-gray-400/30">{rankNum}</span>
+          </div>
+        </div>
+      );
+    }
+
     const isMe = item?.is_me;
     const progressPct = item ? item.progress_pct : 0;
 
@@ -216,6 +235,30 @@ export default function LeaderboardPage() {
 
       {loading ? (
         <LeaderboardSkeleton />
+      ) : leaderboard.length === 0 ? (
+        <div className="max-w-md mx-auto my-8 p-8 rounded-2xl bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 text-center space-y-4 shadow-xs">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gray-100 dark:bg-zinc-850 flex items-center justify-center text-gray-400 dark:text-zinc-500">
+            <Trophy className="w-7 h-7" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-bold text-sm text-gray-900 dark:text-zinc-100">
+              Belum Ada Penabung
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed max-w-xs mx-auto">
+              {period === "today"
+                ? "Belum ada transaksi tabungan hari ini. Jadilah mahasiswa pertama yang menabung hari ini!"
+                : period === "month"
+                ? "Belum ada transaksi tabungan yang tercatat di bulan ini."
+                : "Belum ada transaksi tabungan yang tercatat di tahun ini."}
+            </p>
+          </div>
+          <Link
+            href="/topup"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold shadow-xs transition-transform active:scale-95"
+          >
+            <span>Mulai Nabung Sekarang</span>
+          </Link>
+        </div>
       ) : (
         <>
           {/* 1. 3D Podium Showcase (Selalu 3 Kolom: 2, 1, 3) */}

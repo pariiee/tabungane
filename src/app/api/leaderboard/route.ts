@@ -24,27 +24,30 @@ export async function GET(req: Request) {
     dateFilter = "AND STRFTIME('%Y-%m', COALESCE(t.paid_at, t.created_at), 'localtime') = STRFTIME('%Y-%m', 'now', 'localtime')";
   }
 
-  // Top 10 Penabung: Akumulasi uang masuk (topup QRIS / setoran) berhasil dalam periode
+  // Top 10 Penabung: Hanya mahasiswa yang memiliki setoran > 0 dalam periode
   const query = `
-    SELECT 
-      u.id as user_id,
-      COALESCE(u.nomor_id, u.nim) as nomor_id,
-      u.nim,
-      u.nama,
-      u.foto_url,
-      COALESCE(k.nama, 'Tanpa Kelas') as nama_kelas,
-      COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo,
-      COALESCE((
-        SELECT SUM(t.jumlah)
-        FROM transaksi t
-        WHERE t.user_id = u.id AND t.status = 'berhasil' 
-          AND (t.tipe = 'topup_qris' OR t.tipe = 'manual_add' OR t.tipe = 'setoran_tunai')
-          ${dateFilter}
-      ), 0) as total_value
-    FROM users u
-    LEFT JOIN kelas k ON u.kelas_id = k.id
-    WHERE u.role IN ('mahasiswa', 'admin_kelas') AND u.aktif = 1
-    ORDER BY total_value DESC, u.nama ASC
+    SELECT * FROM (
+      SELECT 
+        u.id as user_id,
+        COALESCE(u.nomor_id, u.nim) as nomor_id,
+        u.nim,
+        u.nama,
+        u.foto_url,
+        COALESCE(k.nama, 'Tanpa Kelas') as nama_kelas,
+        COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo,
+        COALESCE((
+          SELECT SUM(t.jumlah)
+          FROM transaksi t
+          WHERE t.user_id = u.id AND t.status = 'berhasil' 
+            AND (t.tipe = 'topup_qris' OR t.tipe = 'manual_add' OR t.tipe = 'setoran_tunai')
+            ${dateFilter}
+        ), 0) as total_value
+      FROM users u
+      LEFT JOIN kelas k ON u.kelas_id = k.id
+      WHERE u.role IN ('mahasiswa', 'admin_kelas') AND u.aktif = 1
+    )
+    WHERE total_value > 0
+    ORDER BY total_value DESC, nama ASC
     LIMIT 10
   `;
 
