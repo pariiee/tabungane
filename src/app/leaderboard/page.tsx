@@ -17,6 +17,7 @@ export default function LeaderboardPage() {
   const [period, setPeriod] = useState<"today" | "month" | "year">("month");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [myStanding, setMyStanding] = useState<any>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   const loadData = async (activePeriod = period) => {
@@ -29,6 +30,7 @@ export default function LeaderboardPage() {
       const data = await res.json();
       setLeaderboard(data.leaderboard || []);
       setMyStanding(data.my_standing || null);
+      setCurrentUserRole(data.current_user_role || "");
     } catch (e) {
       console.error(e);
     } finally {
@@ -245,19 +247,31 @@ export default function LeaderboardPage() {
               Belum Ada Penabung
             </h3>
             <p className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed max-w-xs mx-auto">
-              {period === "today"
+              {currentUserRole === "admin" || currentUserRole === "super_admin"
+                ? `Belum ada transaksi tabungan dari mahasiswa untuk periode ${period === "today" ? "hari ini" : period === "month" ? "bulan ini" : "tahun ini"}.`
+                : period === "today"
                 ? "Belum ada transaksi tabungan hari ini. Jadilah mahasiswa pertama yang menabung hari ini!"
                 : period === "month"
                 ? "Belum ada transaksi tabungan yang tercatat di bulan ini."
                 : "Belum ada transaksi tabungan yang tercatat di tahun ini."}
             </p>
           </div>
-          <Link
-            href="/topup"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold shadow-xs transition-transform active:scale-95"
-          >
-            <span>Mulai Nabung Sekarang</span>
-          </Link>
+          {/* Tombol Mulai Nabung hanya untuk Mahasiswa / bukan Admin */}
+          {currentUserRole !== "admin" && currentUserRole !== "super_admin" ? (
+            <Link
+              href="/topup"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold shadow-xs transition-transform active:scale-95"
+            >
+              <span>Mulai Nabung Sekarang</span>
+            </Link>
+          ) : (
+            <Link
+              href="/admin/transaksi"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 transition-colors shadow-xs"
+            >
+              <span>Pantau Transaksi</span>
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -282,7 +296,7 @@ export default function LeaderboardPage() {
               <span className="font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 text-[10px]">
                 Peringkat 4 - 10
               </span>
-              {myStanding && (
+              {myStanding && currentUserRole !== "admin" && currentUserRole !== "super_admin" && (
                 <span className="text-[11px] text-gray-400 dark:text-zinc-500">
                   Posisi Kamu:{" "}
                   <strong className="text-black dark:text-white font-bold">

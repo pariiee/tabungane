@@ -11,6 +11,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (user.role === "admin" || user.role === "super_admin") {
+      return NextResponse.json({ error: "Fitur top up hanya diperuntukkan bagi mahasiswa." }, { status: 403 });
+    }
+
     const { grup_id, amount } = await req.json();
 
     // PRD rule: min 1000, max 1000000

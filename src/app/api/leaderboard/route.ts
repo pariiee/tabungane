@@ -90,6 +90,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     period,
     leaderboard,
+    current_user_role: user.role,
     my_standing: {
       rank: myRankIndex !== -1 ? leaderboard[myRankIndex].rank : "-",
       total_students: totalStudents?.total || 0,

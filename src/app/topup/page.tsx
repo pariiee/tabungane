@@ -127,6 +127,16 @@ export default function TopUpPage() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Admin / Super Admin dilarang mengakses halaman top up
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.user?.role === "admin" || d?.user?.role === "super_admin") {
+          router.replace("/admin");
+        }
+      })
+      .catch(() => {});
+
     fetch("/api/student/dashboard")
       .then((r) => r.json())
       .then((d) => {
@@ -139,7 +149,7 @@ export default function TopUpPage() {
       .then((r) => r.json())
       .then((d) => setHistory(d.data || []))
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   const selected = groups.find((g) => g.grup_id === dest);
   const n = amountRaw === "" ? NaN : parseInt(amountRaw, 10);
