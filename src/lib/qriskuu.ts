@@ -20,13 +20,14 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
       let res = await fetch(`${QRISKUU_BASE_URL}/payments`, {
         method: "POST",
         headers: {
+          Accept: "application/json",
           "Content-Type": "application/json",
           "X-API-Key": apiKey,
         },
         body: JSON.stringify({
           amount,
-          method: "shoppee",
-          customer_name: note || "Mahasiswa",
+          method: "shoppe",
+          ...(note ? { customer_name: note } : {}),
         }),
       });
 
@@ -50,13 +51,14 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
             res = await fetch(`${QRISKUU_BASE_URL}/payments`, {
               method: "POST",
               headers: {
+                Accept: "application/json",
                 "Content-Type": "application/json",
                 "X-API-Key": apiKey,
               },
               body: JSON.stringify({
                 amount,
-                method: "shoppee",
-                customer_name: note || "Mahasiswa",
+                method: "shoppe",
+                ...(note ? { customer_name: note } : {}),
               }),
             });
           } catch {}
