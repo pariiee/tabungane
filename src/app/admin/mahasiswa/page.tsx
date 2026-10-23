@@ -18,7 +18,8 @@ import {
   Trash2,
   ShieldCheck,
   Search,
-  X
+  X,
+  MoreVertical
 } from "lucide-react";
 
 export default function AdminMahasiswaPage() {
@@ -27,6 +28,9 @@ export default function AdminMahasiswaPage() {
   const [kelasList, setKelasList] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Mobile Action Menu Target
+  const [actionMenuTarget, setActionMenuTarget] = useState<any>(null);
 
   // Filter & Search
   const [filterKelas, setFilterKelas] = useState("");
@@ -536,69 +540,83 @@ export default function AdminMahasiswaPage() {
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                    {/* Aksi Saldo: Muncul jika memiliki izin manage_saldo */}
-                    {canUserDo(currentUser, "manage_saldo") && (
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    {/* Mobile: Tombol Titik Tiga (Buka Popup Aksi) */}
+                    <div className="md:hidden inline-block">
                       <button
-                        onClick={() => handleOpenSaldo(s)}
-                        className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                        title="Kelola Saldo (Setoran Tunai / Pengurangan)"
+                        onClick={() => setActionMenuTarget(s)}
+                        className="p-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 active:scale-95 transition-all cursor-pointer"
+                        title="Pilihan Aksi"
                       >
-                        <Wallet className="w-3 h-3" />
-                        <span>Saldo</span>
+                        <MoreVertical className="w-4 h-4" />
                       </button>
-                    )}
+                    </div>
 
-                    {/* Promosi / Demote Admin Kelas: Hanya Super Admin & Kaprodi */}
-                    {(isSuperAdmin || isKaprodi) && (
-                      <button
-                        onClick={() => setRoleToggleTarget(s)}
-                        className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
-                          s.role === "admin_kelas"
-                            ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
-                            : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
-                        }`}
-                        title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
-                      >
-                        <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                        <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
-                      </button>
-                    )}
+                    {/* Desktop: Tombol Inline */}
+                    <div className="hidden md:inline-flex items-center gap-1.5">
+                      {/* Aksi Saldo: Muncul jika memiliki izin manage_saldo */}
+                      {canUserDo(currentUser, "manage_saldo") && (
+                        <button
+                          onClick={() => handleOpenSaldo(s)}
+                          className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Kelola Saldo (Setoran Tunai / Pengurangan)"
+                        >
+                          <Wallet className="w-3 h-3" />
+                          <span>Saldo</span>
+                        </button>
+                      )}
 
-                    {/* Edit Mahasiswa: Muncul jika memiliki izin edit_mahasiswa */}
-                    {canUserDo(currentUser, "edit_mahasiswa") && (
-                      <button
-                        onClick={() => handleOpenEdit(s)}
-                        className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                        title="Edit Data Mahasiswa"
-                      >
-                        <Pencil className="w-3 h-3" />
-                        <span>Edit</span>
-                      </button>
-                    )}
+                      {/* Promosi / Demote Admin Kelas: Hanya Super Admin & Kaprodi */}
+                      {(isSuperAdmin || isKaprodi) && (
+                        <button
+                          onClick={() => setRoleToggleTarget(s)}
+                          className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
+                            s.role === "admin_kelas"
+                              ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
+                              : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
+                          }`}
+                          title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
+                        >
+                          <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                          <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
+                        </button>
+                      )}
 
-                    {/* Reset Password: Muncul jika memiliki izin reset_mahasiswa */}
-                    {canUserDo(currentUser, "reset_mahasiswa") && (
-                      <button
-                        onClick={() => setResetTarget(s)}
-                        className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                        title="Reset Password & Username ke ID"
-                      >
-                        <KeyRound className="w-3 h-3" />
-                        <span>Reset</span>
-                      </button>
-                    )}
+                      {/* Edit Mahasiswa: Muncul jika memiliki izin edit_mahasiswa */}
+                      {canUserDo(currentUser, "edit_mahasiswa") && (
+                        <button
+                          onClick={() => handleOpenEdit(s)}
+                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Edit Data Mahasiswa"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                      )}
 
-                    {/* Hapus Mahasiswa: Hanya Super Admin atau yang memiliki izin hapus_mahasiswa */}
-                    {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
-                      <button
-                        onClick={() => setDeleteTarget(s)}
-                        className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                        title="Hapus / Nonaktifkan Mahasiswa"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
+                      {/* Reset Password: Muncul jika memiliki izin reset_mahasiswa */}
+                      {canUserDo(currentUser, "reset_mahasiswa") && (
+                        <button
+                          onClick={() => setResetTarget(s)}
+                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Reset Password & Username ke ID"
+                        >
+                          <KeyRound className="w-3 h-3" />
+                          <span>Reset</span>
+                        </button>
+                      )}
+
+                      {/* Hapus Mahasiswa: Hanya Super Admin atau yang memiliki izin hapus_mahasiswa */}
+                      {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
+                        <button
+                          onClick={() => setDeleteTarget(s)}
+                          className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="Hapus / Nonaktifkan Mahasiswa"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -613,6 +631,124 @@ export default function AdminMahasiswaPage() {
           </table>
         </div>
       </div>
+
+      {/* Mobile Action Popup / Bottom Sheet */}
+      {actionMenuTarget && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          onClick={() => setActionMenuTarget(null)}
+        >
+          <div
+            className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-2 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/80">
+              <div className="min-w-0 pr-2">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-zinc-100 truncate">
+                  {actionMenuTarget.nama}
+                </h3>
+                <p className="text-[11px] font-mono text-gray-500 dark:text-zinc-400 mt-0.5">
+                  {actionMenuTarget.nomor_id || actionMenuTarget.nim} · {actionMenuTarget.nama_kelas || "Tanpa Kelas"}
+                </p>
+                <p className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold mt-1">
+                  Saldo Saku: Rp {Number(actionMenuTarget.saldo_dompet || 0).toLocaleString("id-ID")}
+                </p>
+              </div>
+              <button
+                onClick={() => setActionMenuTarget(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {canUserDo(currentUser, "manage_saldo") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = actionMenuTarget;
+                    setActionMenuTarget(null);
+                    handleOpenSaldo(target);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 transition-colors cursor-pointer"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>Kelola Saldo Saku</span>
+                </button>
+              )}
+
+              {(isSuperAdmin || isKaprodi) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = actionMenuTarget;
+                    setActionMenuTarget(null);
+                    setRoleToggleTarget(target);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/70 dark:border-zinc-800 transition-colors cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-500" />
+                  <span>{actionMenuTarget.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Jadikan Admin Kelas"}</span>
+                </button>
+              )}
+
+              {canUserDo(currentUser, "edit_mahasiswa") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = actionMenuTarget;
+                    setActionMenuTarget(null);
+                    handleOpenEdit(target);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/70 dark:border-zinc-800 transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-4 h-4 text-gray-500" />
+                  <span>Edit Data Mahasiswa</span>
+                </button>
+              )}
+
+              {canUserDo(currentUser, "reset_mahasiswa") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = actionMenuTarget;
+                    setActionMenuTarget(null);
+                    setResetTarget(target);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/70 dark:border-zinc-800 transition-colors cursor-pointer"
+                >
+                  <KeyRound className="w-4 h-4 text-gray-500" />
+                  <span>Reset Password & Akun</span>
+                </button>
+              )}
+
+              {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = actionMenuTarget;
+                    setActionMenuTarget(null);
+                    setDeleteTarget(target);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Hapus Mahasiswa</span>
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActionMenuTarget(null)}
+              className="w-full py-2.5 rounded-xl text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal Tambah Mahasiswa */}
       {showAddModal && (
