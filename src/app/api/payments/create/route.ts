@@ -78,6 +78,7 @@ export async function POST(req: Request) {
     const qrisRes = await createQrisPayment(nominal, topupLabel);
 
     const trxId = crypto.randomUUID();
+    const finalAmount = qrisRes.amount || nominal;
     db.prepare(`
       INSERT INTO transaksi (
         id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, channel, catatan, dibuat_oleh, expired_at, qr_url
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
       trxId,
       user.id,
       membershipId ?? null,
-      nominal,
+      finalAmount,
       qrisRes.trxid ?? null,
       topupLabel,
       user.nama,
@@ -99,7 +100,7 @@ export async function POST(req: Request) {
       trxid: qrisRes.trxid,
       qr_url: qrisRes.qr_url,
       expired_at: qrisRes.expired_at,
-      amount: qrisRes.amount || nominal,
+      amount: finalAmount,
       base_amount: nominal,
       fee: qrisRes.fee || 0,
     });

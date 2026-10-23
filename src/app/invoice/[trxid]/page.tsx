@@ -390,23 +390,23 @@ export default function InvoicePage() {
 
               {/* Transaction Key-Values */}
               <div className="space-y-2 text-xs font-mono">
-                <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500 dark:text-zinc-400">Transaction ID:</span>
-                  <span className="font-bold text-gray-900 dark:text-zinc-100">{trxid}</span>
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-zinc-800/60 gap-2">
+                  <span className="text-gray-500 dark:text-zinc-400 shrink-0">Transaction ID:</span>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100 truncate text-right">{payment?.qris_trx_id || trxid}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500 dark:text-zinc-400">Total:</span>
-                  <span className="font-bold text-gray-900 dark:text-zinc-100">Rp{payment.amount?.toLocaleString("id-ID")}</span>
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-zinc-800/60 gap-2">
+                  <span className="text-gray-500 dark:text-zinc-400 shrink-0">Total Tagihan:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm font-mono text-right">Rp{payment?.amount?.toLocaleString("id-ID")}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500 dark:text-zinc-400">Status:</span>
-                  <span className="font-bold text-amber-600 dark:text-amber-400 uppercase">
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-zinc-800/60 gap-2">
+                  <span className="text-gray-500 dark:text-zinc-400 shrink-0">Status:</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400 uppercase text-right">
                     {paymentStatus}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-gray-100 dark:border-zinc-800/60">
-                  <span className="text-gray-500 dark:text-zinc-400">Created:</span>
-                  <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.created_at)}</span>
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-zinc-800/60 gap-2">
+                  <span className="text-gray-500 dark:text-zinc-400 shrink-0">Created:</span>
+                  <span className="text-gray-700 dark:text-zinc-300 text-right">{formatDate(payment?.created_at)}</span>
                 </div>
               </div>
 
