@@ -493,49 +493,49 @@ export default function AdminMahasiswaPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
-                <th className="py-3 px-4">ID</th>
-                <th className="py-3 px-4">Nama Lengkap</th>
-                <th className="py-3 px-4">Kelas</th>
-                <th className="py-3 px-4">Saldo Saku</th>
-                <th className="py-3 px-4">Status Password</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
+                <th className="py-3 px-4 whitespace-nowrap">ID</th>
+                <th className="py-3 px-4 whitespace-nowrap">Nama Lengkap</th>
+                <th className="py-3 px-4 whitespace-nowrap">Kelas</th>
+                <th className="py-3 px-4 whitespace-nowrap">Saldo Saku</th>
+                <th className="py-3 px-4 whitespace-nowrap">Status Password</th>
+                <th className="py-3 px-4 whitespace-nowrap text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
               {filteredStudents.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-zinc-100">{s.nomor_id || s.nim}</td>
-                  <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-zinc-100">
+                  <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-zinc-100 whitespace-nowrap">{s.nomor_id || s.nim}</td>
+                  <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-zinc-100 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       <span>{s.nama}</span>
                       {s.role === "admin_kelas" && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/40">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase whitespace-nowrap bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/40">
                           Adminya Kelas
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-xs">
-                    <span className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium px-2 py-0.5 rounded-full text-[10px]">
+                  <td className="py-3.5 px-4 text-xs whitespace-nowrap">
+                    <span className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-medium px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap inline-block">
                       {s.nama_kelas || "Tanpa Kelas"}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 font-mono whitespace-nowrap">
-                    <span className={`text-xs ${Number(s.saldo_dompet || 0) > 0 ? "font-bold text-emerald-600 dark:text-emerald-400" : "font-medium text-gray-400 dark:text-zinc-500"}`}>
+                    <span className={`text-xs whitespace-nowrap inline-block ${Number(s.saldo_dompet || 0) > 0 ? "font-bold text-emerald-600 dark:text-emerald-400" : "font-medium text-gray-400 dark:text-zinc-500"}`}>
                       Rp {Number(s.saldo_dompet || 0).toLocaleString("id-ID")}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-xs">
+                  <td className="py-3.5 px-4 text-xs whitespace-nowrap">
                     {s.aktif === 0 ? (
-                      <span className="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30">
                         Nonaktif
                       </span>
                     ) : s.must_change_password ? (
-                      <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30">
                         Wajib Ganti
                       </span>
                     ) : (
-                      <span className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30">
                         Aktif
                       </span>
                     )}
@@ -632,16 +632,17 @@ export default function AdminMahasiswaPage() {
         </div>
       </div>
 
-      {/* Mobile Action Popup / Bottom Sheet */}
+      {/* Mobile Action Popup: Centered 2x2 Grid */}
       {actionMenuTarget && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setActionMenuTarget(null)}
         >
           <div
-            className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-2 duration-200"
+            className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header Info Mahasiswa */}
             <div className="flex items-start justify-between pb-3 border-b border-gray-100 dark:border-zinc-800/80">
               <div className="min-w-0 pr-2">
                 <h3 className="font-bold text-sm text-gray-900 dark:text-zinc-100 truncate">
@@ -655,14 +656,17 @@ export default function AdminMahasiswaPage() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setActionMenuTarget(null)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 rounded-lg"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-2">
+            {/* Kotak-kotak 2x2 Grid Aksi */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* 1. Kelola Saldo Saku */}
               {canUserDo(currentUser, "manage_saldo") && (
                 <button
                   type="button"
@@ -671,13 +675,16 @@ export default function AdminMahasiswaPage() {
                     setActionMenuTarget(null);
                     handleOpenSaldo(target);
                   }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center text-center p-3.5 rounded-xl border border-emerald-200/70 dark:border-emerald-900/40 bg-emerald-50/70 hover:bg-emerald-100/70 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 gap-2 cursor-pointer transition-all active:scale-95 shadow-xs"
                 >
-                  <Wallet className="w-4 h-4" />
-                  <span>Kelola Saldo Saku</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center">
+                    <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <span className="font-bold text-xs leading-tight">Kelola Saldo</span>
                 </button>
               )}
 
+              {/* 2. Admin Kelas / Turunkan Role */}
               {(isSuperAdmin || isKaprodi) && (
                 <button
                   type="button"
@@ -686,13 +693,18 @@ export default function AdminMahasiswaPage() {
                     setActionMenuTarget(null);
                     setRoleToggleTarget(target);
                   }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/70 dark:border-zinc-800 transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center text-center p-3.5 rounded-xl border border-amber-200/70 dark:border-amber-900/40 bg-amber-50/70 hover:bg-amber-100/70 dark:bg-amber-950/30 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-200 gap-2 cursor-pointer transition-all active:scale-95 shadow-xs"
                 >
-                  <ShieldCheck className="w-4 h-4 text-amber-500" />
-                  <span>{actionMenuTarget.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Jadikan Admin Kelas"}</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <span className="font-bold text-xs leading-tight">
+                    {actionMenuTarget.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}
+                  </span>
                 </button>
               )}
 
+              {/* 3. Edit Data Mahasiswa */}
               {canUserDo(currentUser, "edit_mahasiswa") && (
                 <button
                   type="button"
@@ -701,13 +713,16 @@ export default function AdminMahasiswaPage() {
                     setActionMenuTarget(null);
                     handleOpenEdit(target);
                   }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/70 dark:border-zinc-800 transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center text-center p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/80 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 gap-2 cursor-pointer transition-all active:scale-95 shadow-xs"
                 >
-                  <Pencil className="w-4 h-4 text-gray-500" />
-                  <span>Edit Data Mahasiswa</span>
+                  <div className="w-8 h-8 rounded-lg bg-gray-200/70 dark:bg-zinc-800 flex items-center justify-center">
+                    <Pencil className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
+                  </div>
+                  <span className="font-bold text-xs leading-tight">Edit Data</span>
                 </button>
               )}
 
+              {/* 4. Reset Password & Akun */}
               {canUserDo(currentUser, "reset_mahasiswa") && (
                 <button
                   type="button"
@@ -716,28 +731,31 @@ export default function AdminMahasiswaPage() {
                     setActionMenuTarget(null);
                     setResetTarget(target);
                   }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200/70 dark:border-zinc-800 transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center text-center p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/80 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 gap-2 cursor-pointer transition-all active:scale-95 shadow-xs"
                 >
-                  <KeyRound className="w-4 h-4 text-gray-500" />
-                  <span>Reset Password & Akun</span>
-                </button>
-              )}
-
-              {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const target = actionMenuTarget;
-                    setActionMenuTarget(null);
-                    setDeleteTarget(target);
-                  }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Hapus Mahasiswa</span>
+                  <div className="w-8 h-8 rounded-lg bg-gray-200/70 dark:bg-zinc-800 flex items-center justify-center">
+                    <KeyRound className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
+                  </div>
+                  <span className="font-bold text-xs leading-tight">Reset Akun</span>
                 </button>
               )}
             </div>
+
+            {/* 5. Hapus Mahasiswa (Danger row) */}
+            {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
+              <button
+                type="button"
+                onClick={() => {
+                  const target = actionMenuTarget;
+                  setActionMenuTarget(null);
+                  setDeleteTarget(target);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40 transition-colors cursor-pointer active:scale-95 shadow-xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus Mahasiswa</span>
+              </button>
+            )}
 
             <button
               type="button"
