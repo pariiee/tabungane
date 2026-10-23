@@ -99,7 +99,9 @@ export async function POST(req: Request) {
       trxid: qrisRes.trxid,
       qr_url: qrisRes.qr_url,
       expired_at: qrisRes.expired_at,
-      amount: nominal,
+      amount: qrisRes.amount || nominal,
+      base_amount: nominal,
+      fee: qrisRes.fee || 0,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Gagal membuat QRIS" }, { status: 500 });

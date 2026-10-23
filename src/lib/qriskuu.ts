@@ -8,11 +8,17 @@ export interface CreatePaymentResponse {
   qr_url: string;
   qr_string?: string;
   expired_at: string;
+  amount?: number;
+  base_amount?: number;
+  fee?: number;
   is_mock?: boolean;
 }
 
 export async function createQrisPayment(amount: number, note: string): Promise<CreatePaymentResponse> {
   const apiKey = getSetting("qriskuu_api_key") || process.env.QRISKUU_API_KEY || "";
+
+  // Kode unik acak 1-10 rupiah agar mutasi ShopeePay/bank terbaca instan tanpa clash/delay
+  const uniqueFee = Math.floor(Math.random() * 10) + 1;
 
   // If real API key is configured, call official qriskuu REST API
   if (apiKey) {
@@ -26,6 +32,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
         },
         body: JSON.stringify({
           amount,
+          fee: uniqueFee,
           method: "shoppee",
           customer_name: note || "Mahasiswa",
         }),
@@ -57,6 +64,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
               },
               body: JSON.stringify({
                 amount,
+                fee: uniqueFee,
                 method: "shoppee",
                 customer_name: note || "Mahasiswa",
               }),
@@ -85,6 +93,9 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
           qr_url: item.qr_url,
           qr_string: item.qr_string,
           expired_at: expiredAt,
+          amount: Number(item.amount || (amount + uniqueFee)),
+          base_amount: amount,
+          fee: uniqueFee,
           is_mock: false,
         };
       }
