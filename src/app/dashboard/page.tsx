@@ -161,8 +161,7 @@ export default function StudentDashboardPage() {
     setBayarIuranGrup(g);
     setBayarIuranMethod("saldo");
     setBayarIuranMsg(null);
-    const sisa = Math.max(0, (g.target_per_mahasiswa || 0) - (g.saldo_saya || 0));
-    setBayarIuranAmount(sisa > 0 ? String(sisa) : "10000");
+    setBayarIuranAmount("");
   };
 
   const handleBayarIuranFromSaldo = async (e: React.FormEvent) => {
@@ -2240,30 +2239,6 @@ export default function StudentDashboardPage() {
                     onChange={(e) => setBayarIuranAmount(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-mono text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                   />
-                </div>
-
-                {/* Quick Presets */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {[10000, 20000, 50000].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setBayarIuranAmount(String(preset))}
-                      className="px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[11px] font-mono text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer"
-                    >
-                      +{preset.toLocaleString("id-ID")}
-                    </button>
-                  ))}
-                  {/* Tombol Pas Sisa Target */}
-                  {Math.max(0, (bayarIuranGrup.target_per_mahasiswa || 0) - (bayarIuranGrup.saldo_saya || 0)) > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setBayarIuranAmount(String(Math.max(0, (bayarIuranGrup.target_per_mahasiswa || 0) - (bayarIuranGrup.saldo_saya || 0))))}
-                      className="px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 text-[11px] font-mono text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 cursor-pointer"
-                    >
-                      Lunas Pas Sisa Target
-                    </button>
-                  )}
                 </div>
 
                 {/* Warning jika saldo tidak cukup */}
