@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   const dompetBalance = getWalletBalance(userId);
 
   const kantongList = db.prepare(`
-    SELECT id, nama, saldo, warna, icon
+    SELECT id, nama, saldo, warna
     FROM kantong
     WHERE user_id = ?
     ORDER BY created_at ASC

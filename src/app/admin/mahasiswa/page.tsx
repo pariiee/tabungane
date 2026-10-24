@@ -945,7 +945,7 @@ export default function AdminMahasiswaPage() {
                     options={[
                       {
                         value: "dompet_utama",
-                        label: `Kantong Utama (Dompet) — Rp ${(destinasiList?.dompet?.saldo || 0).toLocaleString("id-ID")}`,
+                        label: `Kantong Utama (Dompet) — Rp ${(destinasiList?.dompet?.saldo ?? selectedStudent?.saldo_dompet ?? 0).toLocaleString("id-ID")}`,
                       },
                       ...(destinasiList?.kantong || []).map((k) => ({
                         value: k.id,
