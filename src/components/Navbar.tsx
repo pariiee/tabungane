@@ -27,6 +27,7 @@ import {
   Building2,
   ShieldCheck,
   Landmark,
+  BookOpen,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -126,6 +127,7 @@ export default function Navbar() {
       ]
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/catatan", label: "Buku Kas", icon: BookOpen },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
         { href: "/topup", label: "Top Up", icon: QrCode },
         { href: "/riwayat", label: "Riwayat", icon: History },
@@ -155,6 +157,7 @@ export default function Navbar() {
       ]
     : [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/catatan", label: "Buku Kas", icon: BookOpen },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
         { href: "/topup", label: "Top Up", icon: QrCode },
         { href: "/riwayat", label: "Riwayat", icon: History },

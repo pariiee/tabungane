@@ -184,6 +184,21 @@ try {
     CREATE INDEX IF NOT EXISTS idx_pengajuan_penarikan_user ON pengajuan_penarikan(user_id);
     CREATE INDEX IF NOT EXISTS idx_pengajuan_penarikan_status ON pengajuan_penarikan(status);
 
+    -- Catatan Keuangan Harian Mahasiswa (Buku Kas Offline / Manual Tracker)
+    CREATE TABLE IF NOT EXISTS catatan_harian (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      tipe TEXT NOT NULL, -- 'masuk' | 'keluar'
+      nominal INTEGER NOT NULL,
+      kategori TEXT NOT NULL DEFAULT 'Lainnya',
+      catatan TEXT,
+      tanggal DATE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_catatan_harian_user ON catatan_harian(user_id, tanggal);
+
     -- Ensure explicit UNIQUE indexes for strict constraint enforcement
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);
