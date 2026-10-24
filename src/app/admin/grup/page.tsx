@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import CustomSelect from "@/components/CustomSelect";
-import { Layers, Plus, Calendar, Target, Users, Wallet, ArrowRight, AlertCircle, CheckCircle2, RefreshCw, X } from "lucide-react";
+import { Layers, Plus, Calendar, Target, Users, Wallet, ArrowRight, AlertCircle, CheckCircle2, RefreshCw, X, Pencil } from "lucide-react";
 
 export default function AdminGrupPage() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -19,6 +19,57 @@ export default function AdminGrupPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Form Edit Event
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [editNama, setEditNama] = useState("");
+  const [editTarget, setEditTarget] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
+  const [editStatus, setEditStatus] = useState("aktif");
+  const [editing, setEditing] = useState(false);
+
+  const handleOpenEdit = (g: any) => {
+    setSelectedGroup(g);
+    setEditNama(g.nama || "");
+    setEditTarget(String(g.target_per_mahasiswa || 0));
+    setEditDeadline(g.deadline || "");
+    setEditStatus(g.status || "aktif");
+    setShowEditModal(true);
+  };
+
+  const handleUpdateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedGroup) return;
+    setError("");
+    setSuccess("");
+    setEditing(true);
+
+    try {
+      const res = await fetch("/api/admin/grup", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedGroup.id,
+          nama: editNama,
+          target_per_mahasiswa: parseInt(editTarget, 10),
+          deadline: editDeadline,
+          status: editStatus,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengedit event");
+
+      setSuccess(`Event "${editNama}" berhasil diperbarui!`);
+      setShowEditModal(false);
+      loadData();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setEditing(false);
+    }
+  };
 
   const loadData = () => {
     fetch("/api/admin/grup")
@@ -165,15 +216,26 @@ export default function AdminGrupPage() {
                 href={`/grup/${g.id}`}
                 className="text-xs font-medium text-gray-700 dark:text-zinc-300 hover:text-black dark:hover:text-white flex items-center gap-1 transition-colors"
               >
-                <span>Lihat Leaderboard</span>
+                <span>Leaderboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-              <Link
-                href={`/admin/laporan?grup_id=${g.id}`}
-                className="text-xs text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 underline"
-              >
-                Laporan CSV
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(g)}
+                  className="px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                  title="Edit Event"
+                >
+                  <Pencil className="w-3 h-3" />
+                  <span>Edit</span>
+                </button>
+                <Link
+                  href={`/admin/laporan?grup_id=${g.id}`}
+                  className="text-xs text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 underline"
+                >
+                  Laporan
+                </Link>
+              </div>
             </div>
           </div>
         ))}
@@ -266,6 +328,92 @@ export default function AdminGrupPage() {
                   className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs"
                 >
                   {submitting ? "Membuat..." : "Simpan Event"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Event */}
+      {showEditModal && selectedGroup && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 dark:text-zinc-100 text-sm">Edit Event Sakune</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-black dark:hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateGroup} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Nama Event
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editNama}
+                  onChange={(e) => setEditNama(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Target Iuran per Mahasiswa (Rp)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1000"
+                  value={editTarget}
+                  onChange={(e) => setEditTarget(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Tenggat Waktu (Deadline)
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={editDeadline}
+                  onChange={(e) => setEditDeadline(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Status Event
+                </label>
+                <CustomSelect
+                  value={editStatus}
+                  onChange={setEditStatus}
+                  options={[
+                    { value: "aktif", label: "Aktif (Menerima Setoran)" },
+                    { value: "selesai", label: "Selesai (Ditutup)" },
+                  ]}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={editing}
+                  className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-lg text-xs font-medium shadow-xs cursor-pointer"
+                >
+                  {editing ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
               </div>
             </form>

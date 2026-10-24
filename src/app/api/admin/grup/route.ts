@@ -100,3 +100,87 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ success: true, id: grupId, total_enrolled: totalEnrolled });
 }
+
+export async function PUT(req: Request) {
+  const user = await getCurrentUser();
+  if (!isAdminUser(user)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id, nama, target_per_mahasiswa, deadline, status } = await req.json();
+  if (!id || !nama || !target_per_mahasiswa || !deadline) {
+    return NextResponse.json({ error: "ID, Nama event, target, dan deadline wajib diisi" }, { status: 400 });
+  }
+
+  const target = parseInt(target_per_mahasiswa, 10);
+  if (isNaN(target) || target <= 0) {
+    return NextResponse.json({ error: "Target harus angka positif" }, { status: 400 });
+  }
+
+  const existing = db.prepare("SELECT * FROM grup_tabungan WHERE id = ?").get(id) as any;
+  if (!existing) {
+    return NextResponse.json({ error: "Event tidak ditemukan" }, { status: 404 });
+  }
+
+  if (user.role === "admin" && existing.kelas_id) {
+    if (!canAccessKelas(user, existing.kelas_id)) {
+      return NextResponse.json({ error: "Anda tidak berhak mengedit event kelas ini" }, { status: 403 });
+    }
+  }
+
+  db.prepare(`
+    UPDATE grup_tabungan 
+    SET nama = ?, target_per_mahasiswa = ?, deadline = ?, status = COALESCE(?, status)
+    WHERE id = ?
+  `).run(nama, target, deadline, status || existing.status, id);
+
+  logAudit(user.id, "EDIT_EVENT", id, `Event diubah: ${nama}, Target: ${target}, Deadline: ${deadline}`);
+
+  return NextResponse.json({ success: true, message: "Event berhasil diperbarui" });
+}
+
+export async function DELETE(req: Request) {
+  const user = await getCurrentUser();
+  if (!isAdminUser(user)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "ID event wajib disertakan" }, { status: 400 });
+  }
+
+  const existing = db.prepare("SELECT * FROM grup_tabungan WHERE id = ?").get(id) as any;
+  if (!existing) {
+    return NextResponse.json({ error: "Event tidak ditemukan" }, { status: 404 });
+  }
+
+  if (user.role === "admin" && existing.kelas_id) {
+    if (!canAccessKelas(user, existing.kelas_id)) {
+      return NextResponse.json({ error: "Anda tidak berhak menghapus event kelas ini" }, { status: 403 });
+    }
+  }
+
+  // Check if there are successful transactions in this event
+  const transCount = db.prepare(`
+    SELECT COUNT(*) as count 
+    FROM transaksi t 
+    JOIN keanggotaan kg ON t.keanggotaan_id = kg.id 
+    WHERE kg.grup_id = ? AND t.status = 'berhasil'
+  `).get(id) as any;
+
+  if (transCount?.count > 0) {
+    return NextResponse.json(
+      { error: "Event ini sudah memiliki transaksi kas masuk yang berhasil dan tidak dapat dihapus demi audit keuangan." },
+      { status: 400 }
+    );
+  }
+
+  db.prepare("DELETE FROM keanggotaan WHERE grup_id = ?").run(id);
+  db.prepare("DELETE FROM grup_tabungan WHERE id = ?").run(id);
+
+  logAudit(user.id, "HAPUS_EVENT", id, `Event dihapus: ${existing.nama}`);
+
+  return NextResponse.json({ success: true, message: "Event berhasil dihapus" });
+}
