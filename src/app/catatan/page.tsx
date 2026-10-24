@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
 import {
   BookOpen,
   Plus,
@@ -156,11 +155,8 @@ export default function CatatanHarianPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 pb-24 md:pb-12">
-      <Navbar />
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-        {/* Header Section */}
+    <div className="space-y-6">
+      {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -356,7 +352,6 @@ export default function CatatanHarianPage() {
             })}
           </div>
         )}
-      </main>
 
       {/* ─── MODAL INPUT CATATAN BARU ─── */}
       {showModal && (
