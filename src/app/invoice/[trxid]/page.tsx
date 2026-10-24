@@ -24,7 +24,8 @@ export default function InvoicePage() {
   const [refreshing, setRefreshing] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const [error, setError] = useState("");
-  const [redirectCount, setRedirectCount] = useState(3);
+  const [redirectCount, setRedirectCount] = useState(10);
+  const [cancelCooldown, setCancelCooldown] = useState(10);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -70,6 +71,22 @@ export default function InvoicePage() {
     }
   };
 
+  // Cooldown 10s timer untuk tombol batalkan topup
+  useEffect(() => {
+    if (paymentStatus === "pending") {
+      const cdTimer = setInterval(() => {
+        setCancelCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(cdTimer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(cdTimer);
+    }
+  }, [paymentStatus]);
+
   // Initial load
   useEffect(() => {
     checkStatus(false);
@@ -106,11 +123,10 @@ export default function InvoicePage() {
     };
   }, [trxid, paymentStatus]);
 
-  // Auto-redirect countdown on success (3s) or canceled/expired (10s)
+  // Auto-redirect countdown ONLY on canceled/expired (10s), NOT on success!
   useEffect(() => {
-    if (paymentStatus === "berhasil" || paymentStatus === "canceled" || paymentStatus === "expired") {
-      const initialSeconds = (paymentStatus === "canceled" || paymentStatus === "expired") ? 10 : 3;
-      setRedirectCount(initialSeconds);
+    if (paymentStatus === "canceled" || paymentStatus === "expired") {
+      setRedirectCount(10);
       redirectRef.current = setInterval(() => {
         setRedirectCount((prev) => {
           if (prev <= 1) {
@@ -127,10 +143,11 @@ export default function InvoicePage() {
     };
   }, [paymentStatus, router]);
 
-  // Cancel payment action
+  // Cancel payment action (tanpa browser native confirm)
   const handleCancelPayment = async () => {
-    if (!confirm("Apakah Anda yakin ingin membatalkan tagihan top up ini?")) return;
+    if (cancelCooldown > 0 || canceling) return;
     setCanceling(true);
+    setError("");
     try {
       const res = await fetch(`/api/payments/${trxid}/cancel`, {
         method: "POST",
@@ -140,10 +157,10 @@ export default function InvoicePage() {
         setPaymentStatus("canceled");
         setPayment((prev: any) => ({ ...prev, status: "canceled" }));
       } else {
-        alert(data.error || "Gagal membatalkan tagihan");
+        setError(data.error || "Gagal membatalkan tagihan");
       }
     } catch (e: any) {
-      alert(e.message || "Gagal membatalkan tagihan");
+      setError(e.message || "Gagal membatalkan tagihan");
     } finally {
       setCanceling(false);
     }
@@ -287,17 +304,6 @@ export default function InvoicePage() {
               </p>
             </div>
 
-            {/* Auto-redirect Banner */}
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-mono text-emerald-700 dark:text-emerald-300 flex items-center justify-between rounded-xl">
-              <span>Mengalihkan ke Dashboard dalam <strong>{redirectCount}</strong> detik...</span>
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="font-bold underline cursor-pointer hover:opacity-80"
-              >
-                Kembali Sekarang &rarr;
-              </button>
-            </div>
-
             {/* Divider */}
             <hr className="border-gray-100 dark:border-zinc-800" />
 
@@ -327,6 +333,16 @@ export default function InvoicePage() {
                   <span className="text-gray-500 dark:text-zinc-400">Paid:</span>
                   <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.paid_at || new Date().toISOString())}</span>
                 </div>
+              </div>
+
+              {/* Action Button: Kembali ke Dashboard */}
+              <div className="pt-4">
+                <Link
+                  href="/dashboard"
+                  className="w-full h-10 rounded-xl bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs active:scale-95"
+                >
+                  <span>Kembali ke Dashboard</span>
+                </Link>
               </div>
             </div>
           </div>
@@ -423,15 +439,25 @@ export default function InvoicePage() {
                   <span>Check payment status</span>
                 </button>
 
-                {/* Batalkan Topup Button */}
+                {/* Batalkan Topup Button with 10s Cooldown */}
                 <button
                   type="button"
                   onClick={handleCancelPayment}
-                  disabled={canceling}
-                  className="w-full h-10 border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100/60 dark:hover:bg-rose-950/40 text-xs font-semibold rounded-xl tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-colors active:scale-95"
+                  disabled={canceling || cancelCooldown > 0}
+                  className={`w-full h-10 border text-xs font-semibold rounded-xl tracking-wide flex items-center justify-center gap-2 transition-all ${
+                    cancelCooldown > 0 || canceling
+                      ? "border-gray-200 dark:border-zinc-800 bg-gray-100 dark:bg-zinc-900 text-gray-400 dark:text-zinc-600 cursor-not-allowed opacity-70"
+                      : "border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100/60 dark:hover:bg-rose-950/40 cursor-pointer active:scale-95"
+                  }`}
                 >
                   <XCircle className="w-3.5 h-3.5" />
-                  <span>{canceling ? "Membatalkan..." : "Batalkan Topup"}</span>
+                  <span>
+                    {canceling
+                      ? "Membatalkan..."
+                      : cancelCooldown > 0
+                      ? `Batalkan Topup (${cancelCooldown}s)`
+                      : "Batalkan Topup"}
+                  </span>
                 </button>
               </div>
             </div>

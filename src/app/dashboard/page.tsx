@@ -150,6 +150,67 @@ export default function StudentDashboardPage() {
   // Target Hapus Kantong
   const [deletePocketTarget, setDeletePocketTarget] = useState<any | null>(null);
 
+  // Modal Bayar Iuran Event
+  const [bayarIuranGrup, setBayarIuranGrup] = useState<any | null>(null);
+  const [bayarIuranMethod, setBayarIuranMethod] = useState<"saldo" | "qris">("saldo");
+  const [bayarIuranAmount, setBayarIuranAmount] = useState("");
+  const [bayarIuranLoading, setBayarIuranLoading] = useState(false);
+  const [bayarIuranMsg, setBayarIuranMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const handleOpenBayarIuran = (g: any) => {
+    setBayarIuranGrup(g);
+    setBayarIuranMethod("saldo");
+    setBayarIuranMsg(null);
+    const sisa = Math.max(0, (g.target_per_mahasiswa || 0) - (g.saldo_saya || 0));
+    setBayarIuranAmount(sisa > 0 ? String(sisa) : "10000");
+  };
+
+  const handleBayarIuranFromSaldo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bayarIuranGrup) return;
+    const nominal = parseInt(bayarIuranAmount, 10);
+    if (isNaN(nominal) || nominal <= 0) {
+      setBayarIuranMsg({ type: "error", text: "Masukkan nominal pembayaran yang valid." });
+      return;
+    }
+    if (nominal > saldoDompet) {
+      setBayarIuranMsg({ type: "error", text: `Saldo dompet tidak mencukupi (Tersedia: Rp ${saldoDompet.toLocaleString("id-ID")}).` });
+      return;
+    }
+
+    setBayarIuranLoading(true);
+    setBayarIuranMsg(null);
+
+    try {
+      const res = await fetch("/api/student/wallet/allocate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grup_id: bayarIuranGrup.grup_id,
+          amount: nominal,
+          catatan: `Iuran event ${bayarIuranGrup.nama_grup}`,
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal memproses pembayaran iuran.");
+
+      setBayarIuranMsg({
+        type: "success",
+        text: `Berhasil membayar iuran sebesar Rp ${nominal.toLocaleString("id-ID")} dari Dompet Saku!`,
+      });
+      loadData();
+      setTimeout(() => {
+        setBayarIuranGrup(null);
+        setBayarIuranMsg(null);
+        setBayarIuranAmount("");
+      }, 1500);
+    } catch (err: any) {
+      setBayarIuranMsg({ type: "error", text: err.message || "Gagal memproses pembayaran iuran." });
+    } finally {
+      setBayarIuranLoading(false);
+    }
+  };
+
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
     try {
@@ -993,13 +1054,14 @@ export default function StudentDashboardPage() {
                       <Trophy className="w-3 h-3 text-amber-500" />
                       <span>Leaderboard</span>
                     </Link>
-                    <Link
-                      href={`/topup?grup_id=${g.grup_id}`}
-                      className="flex-1 h-8 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs"
+                    <button
+                      type="button"
+                      onClick={() => handleOpenBayarIuran(g)}
+                      className="flex-1 h-8 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-[11px] font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                     >
                       <QrCode className="w-3.5 h-3.5" />
                       <span>Bayar Iuran</span>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               );
@@ -2069,6 +2131,221 @@ export default function StudentDashboardPage() {
             >
               Mengerti
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL BAYAR IURAN EVENT (Saldo vs QRIS) ─── */}
+      {bayarIuranGrup && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
+                  <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Bayar Iuran: {bayarIuranGrup.nama_grup}</span>
+                </h3>
+                <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">
+                  Pilih metode pembayaran iuran kas event.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setBayarIuranGrup(null);
+                  setBayarIuranMsg(null);
+                }}
+                className="w-7 h-7 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-zinc-100 inline-flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Notification message */}
+            {bayarIuranMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
+                  bayarIuranMsg.type === "success"
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
+                    : "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800"
+                }`}
+              >
+                {bayarIuranMsg.type === "success" ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                <span>{bayarIuranMsg.text}</span>
+              </div>
+            )}
+
+            {/* Tab Pilihan Metode */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-zinc-900 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setBayarIuranMethod("saldo")}
+                className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  bayarIuranMethod === "saldo"
+                    ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-xs"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+                }`}
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                <span>Potong Saldo Utama</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBayarIuranMethod("qris")}
+                className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  bayarIuranMethod === "qris"
+                    ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-xs"
+                    : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+                }`}
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>Top Up QRIS Instan</span>
+              </button>
+            </div>
+
+            {/* TAB CONTENT 1: POTONG SALDO UTAMA */}
+            {bayarIuranMethod === "saldo" && (
+              <form onSubmit={handleBayarIuranFromSaldo} className="space-y-3.5">
+                {/* Info Saldo Tersedia */}
+                <div className="p-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/40 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                      <Wallet className="w-3.5 h-3.5" />
+                      <span>Saldo Dompet Tersedia</span>
+                    </span>
+                    <span className="font-bold font-mono text-gray-900 dark:text-zinc-100">
+                      Rp {saldoDompet.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200/60 dark:border-zinc-800/60">
+                    <span className="text-gray-500 dark:text-zinc-400">Sisa Target Iuran Anda</span>
+                    <span className="font-medium font-mono text-emerald-600 dark:text-emerald-400">
+                      Rp {Math.max(0, (bayarIuranGrup.target_per_mahasiswa || 0) - (bayarIuranGrup.saldo_saya || 0)).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Input Nominal */}
+                <div>
+                  <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
+                    Nominal yang Ingin Dipotong (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    min="1000"
+                    required
+                    placeholder="Contoh: 10000"
+                    value={bayarIuranAmount}
+                    onChange={(e) => setBayarIuranAmount(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-mono text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[10000, 20000, 50000].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setBayarIuranAmount(String(preset))}
+                      className="px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[11px] font-mono text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer"
+                    >
+                      +{preset.toLocaleString("id-ID")}
+                    </button>
+                  ))}
+                  {/* Tombol Pas Sisa Target */}
+                  {Math.max(0, (bayarIuranGrup.target_per_mahasiswa || 0) - (bayarIuranGrup.saldo_saya || 0)) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setBayarIuranAmount(String(Math.max(0, (bayarIuranGrup.target_per_mahasiswa || 0) - (bayarIuranGrup.saldo_saya || 0))))}
+                      className="px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 text-[11px] font-mono text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 cursor-pointer"
+                    >
+                      Lunas Pas Sisa Target
+                    </button>
+                  )}
+                </div>
+
+                {/* Warning jika saldo tidak cukup */}
+                {parseInt(bayarIuranAmount || "0", 10) > saldoDompet && (
+                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-700 dark:text-amber-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <span>
+                      Saldo Dompet Utama Anda (Rp {saldoDompet.toLocaleString("id-ID")}) tidak mencukupi untuk memotong Rp {parseInt(bayarIuranAmount || "0", 10).toLocaleString("id-ID")}. Silakan isi saldo atau gunakan opsi QRIS.
+                    </span>
+                  </div>
+                )}
+
+                {/* Form Buttons */}
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBayarIuranGrup(null);
+                      setBayarIuranMsg(null);
+                    }}
+                    className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      bayarIuranLoading ||
+                      !bayarIuranAmount ||
+                      parseInt(bayarIuranAmount, 10) <= 0 ||
+                      parseInt(bayarIuranAmount, 10) > saldoDompet
+                    }
+                    className="h-9 px-4 bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                  >
+                    {bayarIuranLoading
+                      ? "Memproses..."
+                      : parseInt(bayarIuranAmount || "0", 10) > saldoDompet
+                      ? "Saldo Tidak Cukup"
+                      : `Potong Saldo (Rp ${parseInt(bayarIuranAmount || "0", 10).toLocaleString("id-ID")})`}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TAB CONTENT 2: TOP UP QRIS INSTAN */}
+            {bayarIuranMethod === "qris" && (
+              <div className="space-y-4 pt-1">
+                <div className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/40 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-xl bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 flex items-center justify-center mx-auto shadow-xs">
+                    <QrCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
+                      Scan QRIS Semua Bank & E-Wallet
+                    </h4>
+                    <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
+                      Bayar langsung menggunakan BCA, BRI, Mandiri, BNI, ShopeePay, GoPay, atau DANA. Dana akan otomatis tercatat ke event ini.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-gray-100 dark:border-zinc-800 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBayarIuranGrup(null);
+                      setBayarIuranMsg(null);
+                    }}
+                    className="h-9 px-3.5 border border-gray-200 dark:border-zinc-800 rounded-xl text-xs font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                  <Link
+                    href={`/topup?grup_id=${bayarIuranGrup.grup_id}`}
+                    className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <span>Lanjut Buat Tagihan QRIS</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
