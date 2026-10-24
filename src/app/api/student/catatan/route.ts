@@ -40,15 +40,44 @@ export async function GET(req: Request) {
 
   const sisa = totalMasuk - totalKeluar;
 
+  // Cek target bulanan jika ada filter bulan
+  let targetTabungan = 0;
+  if (bulan) {
+    const targetRow = db.prepare("SELECT target_tabungan FROM catatan_target WHERE user_id = ? AND bulan = ?").get(user.id, bulan) as any;
+    targetTabungan = targetRow?.target_tabungan || 0;
+  }
+
   return NextResponse.json({
     data: list,
     summary: {
       total_masuk: totalMasuk,
       total_keluar: totalKeluar,
       sisa_saldo: sisa,
+      target_tabungan: targetTabungan,
       count: list.length,
     },
   });
+}
+
+export async function PUT(req: Request) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const body = await req.json();
+    const bulan = (body.bulan || new Date().toISOString().slice(0, 7)).trim();
+    const target = Math.max(0, parseInt(body.target_tabungan, 10) || 0);
+
+    db.prepare(`
+      INSERT INTO catatan_target (user_id, bulan, target_tabungan)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_id, bulan) DO UPDATE SET target_tabungan = excluded.target_tabungan
+    `).run(user.id, bulan, target);
+
+    return NextResponse.json({ success: true, bulan, target_tabungan: target });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Gagal memperbarui target" }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {

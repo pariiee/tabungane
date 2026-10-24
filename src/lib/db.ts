@@ -199,6 +199,15 @@ try {
 
     CREATE INDEX IF NOT EXISTS idx_catatan_harian_user ON catatan_harian(user_id, tanggal);
 
+    -- Target Tabungan Bulanan Mahasiswa
+    CREATE TABLE IF NOT EXISTS catatan_target (
+      user_id TEXT NOT NULL,
+      bulan TEXT NOT NULL,
+      target_tabungan INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, bulan),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
     -- Ensure explicit UNIQUE indexes for strict constraint enforcement
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);
