@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Clock,
   Check,
+  CheckCircle2,
   AlertCircle,
   XCircle,
   Link2Off,
@@ -287,11 +288,11 @@ export default function InvoicePage() {
             </div>
           </div>
         ) : paymentStatus === "berhasil" ? (
-          /* ─── CASE B: SUCCESS / PAID STATE ─── */
-          <div className="space-y-6 text-center">
-            {/* Center Checkmark Box */}
-            <div className="w-14 h-14 bg-emerald-600 text-white flex items-center justify-center mx-auto rounded-xl shadow-xs">
-              <Check className="w-8 h-8 stroke-[3]" />
+          /* ─── CASE B: SUCCESS / PAID STATE (Sesuai Desain Receipt QRISku) ─── */
+          <div className="space-y-5 text-center">
+            {/* Center Checkmark Box (Kotak hitam dengan centang putih) */}
+            <div className="w-12 h-12 bg-black dark:bg-white text-white dark:text-black flex items-center justify-center mx-auto rounded-xl shadow-xs">
+              <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
             </div>
 
             {/* Title & Subtitle */}
@@ -300,43 +301,55 @@ export default function InvoicePage() {
                 Payment successful
               </h2>
               <p className="text-xs text-gray-500 dark:text-zinc-400">
-                Terima kasih, pembayaran Anda telah berhasil kami terima.
+                Thank you, your payment has been received.
               </p>
             </div>
 
             {/* Divider */}
-            <hr className="border-gray-100 dark:border-zinc-800" />
+            <hr className="border-gray-200/80 dark:border-zinc-800/80 my-2" />
 
             {/* Transaction Details */}
-            <div className="text-left pt-1">
-              <div className="text-[10px] font-mono tracking-widest uppercase text-gray-400 dark:text-zinc-500 mb-3 font-semibold">
+            <div className="text-left">
+              <div className="text-[11px] font-mono tracking-wider uppercase text-gray-400 dark:text-zinc-500 mb-2 font-semibold">
                 DETAIL TRANSAKSI
               </div>
-              <div className="border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-zinc-800/80 text-xs font-mono">
-                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+              <div className="divide-y divide-gray-100 dark:divide-zinc-800/80 text-xs">
+                <div className="flex justify-between items-center py-2.5">
                   <span className="text-gray-500 dark:text-zinc-400">Transaction ID:</span>
-                  <span className="font-bold text-gray-900 dark:text-zinc-100">{trxid}</span>
+                  <span className="font-mono font-medium text-gray-900 dark:text-zinc-100">{payment.id || trxid}</span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3.5">
+                <div className="flex justify-between items-center py-2.5">
                   <span className="text-gray-500 dark:text-zinc-400">Total:</span>
-                  <span className="font-bold text-gray-900 dark:text-zinc-100">Rp{payment.amount?.toLocaleString("id-ID")}</span>
+                  <span className="font-mono font-bold text-gray-900 dark:text-zinc-100">
+                    Rp{(payment.amount || 0).toLocaleString("id-ID")}
+                  </span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                <div className="flex justify-between items-center py-2.5">
                   <span className="text-gray-500 dark:text-zinc-400">Status:</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">berhasil</span>
+                  <span className="font-mono text-gray-900 dark:text-zinc-100 lowercase">
+                    {payment.status === "berhasil" ? "paid" : (payment.status || "paid")}
+                  </span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3.5">
+                <div className="flex justify-between items-center py-2.5">
                   <span className="text-gray-500 dark:text-zinc-400">Created:</span>
-                  <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.created_at)}</span>
+                  <span className="font-mono text-gray-700 dark:text-zinc-300">{formatDate(payment.created_at)}</span>
                 </div>
-                <div className="flex justify-between py-2.5 px-3.5 bg-gray-50/50 dark:bg-zinc-900/30">
+                <div className="flex justify-between items-center py-2.5">
                   <span className="text-gray-500 dark:text-zinc-400">Paid:</span>
-                  <span className="text-gray-700 dark:text-zinc-300">{formatDate(payment.paid_at || new Date().toISOString())}</span>
+                  <span className="font-mono text-gray-700 dark:text-zinc-300">{formatDate(payment.paid_at || payment.updated_at || new Date().toISOString())}</span>
                 </div>
+                {(payment.payment_reference_id || payment.reference || payment.trxid) && (
+                  <div className="flex justify-between items-start py-2.5 gap-2">
+                    <span className="text-gray-500 dark:text-zinc-400 shrink-0">Reference:</span>
+                    <span className="font-mono text-[11px] text-gray-700 dark:text-zinc-300 text-right break-all">
+                      {payment.payment_reference_id || payment.reference || payment.trxid}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Action Button: Kembali ke Dashboard */}
-              <div className="pt-4">
+              <div className="pt-5">
                 <Link
                   href="/dashboard"
                   className="w-full h-10 rounded-xl bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs active:scale-95"
