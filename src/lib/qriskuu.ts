@@ -32,8 +32,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
         },
         body: JSON.stringify({
           amount,
-          fee: uniqueFee,
-          method: "shoppee",
+          method: "gopay",
           customer_name: note || "Mahasiswa",
         }),
       });
@@ -64,8 +63,7 @@ export async function createQrisPayment(amount: number, note: string): Promise<C
               },
               body: JSON.stringify({
                 amount,
-                fee: uniqueFee,
-                method: "shoppee",
+                method: "gopay",
                 customer_name: note || "Mahasiswa",
               }),
             });

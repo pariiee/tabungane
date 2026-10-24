@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     db.prepare(`
       INSERT INTO transaksi (
         id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, channel, catatan, dibuat_oleh, expired_at, qr_url
-      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, 'ShopeePay', ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, 'GoPay', ?, ?, ?, ?)
     `).run(
       trxId,
       user.id,
