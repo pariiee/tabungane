@@ -204,9 +204,16 @@ try {
       user_id TEXT NOT NULL,
       bulan TEXT NOT NULL,
       target_tabungan INTEGER NOT NULL DEFAULT 0,
+      nama TEXT DEFAULT 'Target Tabungan',
       PRIMARY KEY (user_id, bulan),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    try {
+      db.prepare("ALTER TABLE catatan_target ADD COLUMN nama TEXT DEFAULT 'Target Tabungan'").run();
+    } catch {
+      // Column already exists
+    }
 
     -- Ensure explicit UNIQUE indexes for strict constraint enforcement
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;

@@ -69,11 +69,19 @@ const KATEGORI_PEMASUKAN = [
 
 export default function CatatanHarianPage() {
   const [list, setList] = useState<any[]>([]);
-  const [summary, setSummary] = useState({
+  const [summary, setSummary] = useState<{
+    total_masuk: number;
+    total_keluar: number;
+    sisa_saldo: number;
+    target_tabungan: number;
+    target_nama?: string;
+    count: number;
+  }>({
     total_masuk: 0,
     total_keluar: 0,
     sisa_saldo: 0,
     target_tabungan: 0,
+    target_nama: "Target Tabungan",
     count: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -100,6 +108,12 @@ export default function CatatanHarianPage() {
 
   // Modal Target Tabungan State
   const [showTargetModal, setShowTargetModal] = useState(false);
+  const [targetNamaInput, setTargetNamaInput] = useState("Target Tabungan");
+  const [targetBulanType, setTargetBulanType] = useState<"global" | "bulan">("bulan");
+  const [targetBulanCustom, setTargetBulanCustom] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
   const [targetInput, setTargetInput] = useState("");
   const [savingTarget, setSavingTarget] = useState(false);
   const [targetError, setTargetError] = useState("");
@@ -204,13 +218,14 @@ export default function CatatanHarianPage() {
     setTargetError("");
 
     try {
-      const targetBulan = filterBulan || new Date().toISOString().slice(0, 7);
+      const targetBulan = targetBulanType === "global" ? "global" : (targetBulanCustom || "global");
       const res = await fetch("/api/student/catatan", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bulan: targetBulan,
           target_tabungan: targetVal,
+          nama: targetNamaInput || "Target Tabungan",
         }),
       });
       const d = await res.json();
@@ -290,74 +305,80 @@ export default function CatatanHarianPage() {
           </div>
         </div>
 
-        {/* ─── KARTU TARGET TABUNGAN BULANAN (JIKA ADA FILTER BULAN) ─── */}
-        {filterBulan && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xs space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <Target className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
-                    <span>Target Tabungan {getFilterLabel()}</span>
-                    {targetNominal > 0 && (
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300">
-                        {progressPct}% Tercapai
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 dark:text-zinc-500">
-                    {targetNominal > 0
-                      ? "Target uang saku yang ingin Anda sisihkan bulan ini."
-                      : "Tentukan target nominal uang saku yang ingin disisihkan bulan ini."}
-                  </p>
-                </div>
+        {/* ─── KARTU TARGET TABUNGAN (BEBAS & FLEKSIBEL) ─── */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xs space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <Target className="w-4 h-4" />
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setTargetInput(targetNominal > 0 ? String(targetNominal) : "");
-                  setTargetError("");
-                  setShowTargetModal(true);
-                }}
-                className="h-8 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Pencil className="w-3 h-3" />
-                <span>{targetNominal > 0 ? "Ubah Target" : "Pasang Target"}</span>
-              </button>
+              <div>
+                <h3 className="text-xs font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 flex-wrap">
+                  <span>{summary.target_nama || "Target Tabungan"}</span>
+                  {filterBulan && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 font-normal">
+                      {getFilterLabel()}
+                    </span>
+                  )}
+                  {targetNominal > 0 && (
+                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                      {progressPct}% Tercapai
+                    </span>
+                  )}
+                </h3>
+                <p className="text-[11px] text-gray-400 dark:text-zinc-500">
+                  {targetNominal > 0
+                    ? `Target tabungan mandiri: Rp ${targetNominal.toLocaleString("id-ID")}`
+                    : "Tentukan target nominal uang yang ingin Anda kumpulkan/sisihkan."}
+                </p>
+              </div>
             </div>
 
-            {targetNominal > 0 && (
-              <div className="space-y-1.5 pt-1">
-                {/* Progress Bar */}
-                <div className="w-full h-2.5 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-
-                {/* Progress Stats */}
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-gray-500 dark:text-zinc-400">
-                    Tersisa/Terkumpul:{" "}
-                    <strong className="text-emerald-600 dark:text-emerald-400">
-                      Rp {summary.sisa_saldo.toLocaleString("id-ID")}
-                    </strong>
-                  </span>
-                  <span className="text-gray-500 dark:text-zinc-400">
-                    Target:{" "}
-                    <strong className="text-gray-900 dark:text-zinc-100">
-                      Rp {targetNominal.toLocaleString("id-ID")}
-                    </strong>
-                  </span>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                setTargetNamaInput(summary.target_nama || "Target Tabungan");
+                setTargetInput(targetNominal > 0 ? String(targetNominal) : "");
+                setTargetBulanType(filterBulan ? "bulan" : "global");
+                setTargetBulanCustom(filterBulan || new Date().toISOString().slice(0, 7));
+                setTargetError("");
+                setShowTargetModal(true);
+              }}
+              className="h-8 px-3 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3 h-3" />
+              <span>{targetNominal > 0 ? "Ubah Target" : "Atur Target"}</span>
+            </button>
           </div>
-        )}
+
+          {targetNominal > 0 && (
+            <div className="space-y-1.5 pt-1">
+              {/* Progress Bar */}
+              <div className="w-full h-2.5 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+
+              {/* Progress Stats */}
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-gray-500 dark:text-zinc-400">
+                  Tersisa/Terkumpul:{" "}
+                  <strong className="text-emerald-600 dark:text-emerald-400">
+                    Rp {summary.sisa_saldo.toLocaleString("id-ID")}
+                  </strong>
+                </span>
+                <span className="text-gray-500 dark:text-zinc-400">
+                  Target:{" "}
+                  <strong className="text-gray-900 dark:text-zinc-100">
+                    Rp {targetNominal.toLocaleString("id-ID")}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -793,9 +814,70 @@ export default function CatatanHarianPage() {
             )}
 
             <form onSubmit={handleSaveTarget} className="space-y-3.5">
+              {/* Nama / Judul Target */}
               <div>
                 <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
-                  Target Tabungan (Rp)
+                  Nama / Tujuan Target
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Beli Laptop / Dana Darurat"
+                  value={targetNamaInput}
+                  onChange={(e) => setTargetNamaInput(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              {/* Tipe Periode Target */}
+              <div>
+                <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
+                  Periode Target
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-gray-100 dark:bg-zinc-900 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setTargetBulanType("global")}
+                    className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      targetBulanType === "global"
+                        ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-xs"
+                        : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    Bebas / All-Time
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTargetBulanType("bulan")}
+                    className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      targetBulanType === "bulan"
+                        ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-xs"
+                        : "text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    Bulan Tertentu
+                  </button>
+                </div>
+              </div>
+
+              {/* Pemilih Bulan jika tipe bulan */}
+              {targetBulanType === "bulan" && (
+                <div>
+                  <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
+                    Bulan Target
+                  </label>
+                  <input
+                    type="month"
+                    value={targetBulanCustom}
+                    onChange={(e) => setTargetBulanCustom(e.target.value)}
+                    className="w-full h-9 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-mono text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[11px] font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
+                  Target Nominal Tabungan (Rp)
                 </label>
                 <input
                   type="number"
@@ -808,7 +890,7 @@ export default function CatatanHarianPage() {
                   className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-mono text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
                 <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
-                  Isi 0 jika ingin menghapus target tabungan bulan ini.
+                  Isi 0 jika ingin menghapus target tabungan.
                 </p>
               </div>
 

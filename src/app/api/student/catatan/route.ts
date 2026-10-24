@@ -40,11 +40,17 @@ export async function GET(req: Request) {
 
   const sisa = totalMasuk - totalKeluar;
 
-  // Cek target bulanan jika ada filter bulan
+  // Cek target: utamakan target bulan ini jika ada filter bulan, atau target 'global'
   let targetTabungan = 0;
-  if (bulan) {
-    const targetRow = db.prepare("SELECT target_tabungan FROM catatan_target WHERE user_id = ? AND bulan = ?").get(user.id, bulan) as any;
-    targetTabungan = targetRow?.target_tabungan || 0;
+  let targetNama = "Target Tabungan";
+  const targetKey = bulan || "global";
+  let targetRow = db.prepare("SELECT target_tabungan, nama FROM catatan_target WHERE user_id = ? AND bulan = ?").get(user.id, targetKey) as any;
+  if (!targetRow && bulan) {
+    targetRow = db.prepare("SELECT target_tabungan, nama FROM catatan_target WHERE user_id = ? AND bulan = 'global'").get(user.id) as any;
+  }
+  if (targetRow) {
+    targetTabungan = targetRow.target_tabungan || 0;
+    targetNama = targetRow.nama || "Target Tabungan";
   }
 
   return NextResponse.json({
@@ -54,6 +60,7 @@ export async function GET(req: Request) {
       total_keluar: totalKeluar,
       sisa_saldo: sisa,
       target_tabungan: targetTabungan,
+      target_nama: targetNama,
       count: list.length,
     },
   });
@@ -65,16 +72,17 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json();
-    const bulan = (body.bulan || new Date().toISOString().slice(0, 7)).trim();
+    const bulan = (body.bulan || "global").trim();
     const target = Math.max(0, parseInt(body.target_tabungan, 10) || 0);
+    const nama = (body.nama || "Target Tabungan").trim();
 
     db.prepare(`
-      INSERT INTO catatan_target (user_id, bulan, target_tabungan)
-      VALUES (?, ?, ?)
-      ON CONFLICT(user_id, bulan) DO UPDATE SET target_tabungan = excluded.target_tabungan
-    `).run(user.id, bulan, target);
+      INSERT INTO catatan_target (user_id, bulan, target_tabungan, nama)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(user_id, bulan) DO UPDATE SET target_tabungan = excluded.target_tabungan, nama = excluded.nama
+    `).run(user.id, bulan, target, nama);
 
-    return NextResponse.json({ success: true, bulan, target_tabungan: target });
+    return NextResponse.json({ success: true, bulan, target_tabungan: target, nama });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Gagal memperbarui target" }, { status: 500 });
   }
