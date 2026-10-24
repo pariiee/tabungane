@@ -748,19 +748,6 @@ export default function StudentDashboardPage() {
               Pos keuangan terpisah untuk membagi tabungan pribadi sesuai kebutuhan.
             </p>
           </div>
-
-          {pockets.length < 2 && (
-            <button
-              onClick={() => {
-                setPocketError("");
-                setShowCreatePocketModal(true);
-              }}
-              className="h-8 px-3 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 text-xs font-medium transition-colors inline-flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Buat Kantong</span>
-            </button>
-          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-stretch">
