@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: "SAKUNE SISFOR",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "SAKUNE — In This Economy? Yuk Nabung",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     creator: "@sakunesisfor",
     title: "SAKUNE SISFOR - Ekosistem Finansial & Kas Mahasiswa",
     description: "In This Economy? Yuk Nabung. Portal kas dan tabungan mahasiswa transparan.",
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
   icons: {
     icon: "/icon.svg",
