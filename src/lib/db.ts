@@ -209,12 +209,6 @@ try {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
-    try {
-      db.prepare("ALTER TABLE catatan_target ADD COLUMN nama TEXT DEFAULT 'Target Tabungan'").run();
-    } catch {
-      // Column already exists
-    }
-
     -- Ensure explicit UNIQUE indexes for strict constraint enforcement
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transaksi_qris_trx_id ON transaksi(qris_trx_id) WHERE qris_trx_id IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_keanggotaan_grup_user ON keanggotaan(grup_id, user_id);
@@ -304,7 +298,13 @@ try {
     // Auto-migration for transaksi qr_url
     const tCols = db.prepare("PRAGMA table_info(transaksi)").all() as any[];
     if (!tCols.some((c) => c.name === "qr_url")) {
-      db.exec("ALTER TABLE transaksi ADD COLUMN qr_url TEXT DEFAULT NULL;");
+      db.exec("ALTER TABLE transaksi ADD COLUMN qr_url TEXT;");
+    }
+
+    // Auto-migration for catatan_target nama column
+    const ctCols = db.prepare("PRAGMA table_info(catatan_target)").all() as any[];
+    if (!ctCols.some((c) => c.name === "nama")) {
+      db.exec("ALTER TABLE catatan_target ADD COLUMN nama TEXT DEFAULT 'Target Tabungan';");
     }
 
     // Bidirectional triggers to retire legacy nim while ensuring 100% data integrity
