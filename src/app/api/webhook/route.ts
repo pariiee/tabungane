@@ -1,1 +1,1 @@
-export { POST } from "./qriskuu/route";
+export { POST } from "./alpay/route";

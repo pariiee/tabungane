@@ -60,7 +60,7 @@ export function creditPayment(
   // 3. Strict amount check
   if (paidAmount !== undefined && paidAmount !== null && Number(paidAmount) > 0) {
     if (Math.round(Number(paidAmount)) !== Math.round(Number(trx.jumlah))) {
-      const msg = `Nominal webhook/qriskuu (Rp ${paidAmount}) tidak cocok dengan tagihan lokal (Rp ${trx.jumlah})`;
+      const msg = `Nominal webhook/gateway (Rp ${paidAmount}) tidak cocok dengan tagihan lokal (Rp ${trx.jumlah})`;
       console.warn(`[AUDIT] ${msg} for trxid ${trxid}`);
       logAudit("system", "nominal_mismatch", trxid, msg);
       return { success: false, error: msg };

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { db, getSetting } from "@/lib/db";
-import { createQrisPayment } from "@/lib/qriskuu";
+import { db } from "@/lib/db";
+import { createAlpayPayment } from "@/lib/alpay";
 import crypto from "node:crypto";
 
 export async function POST(req: Request) {
@@ -73,16 +73,16 @@ export async function POST(req: Request) {
       }
     }
 
-    // Call QRIS generator
+    // Call Alpay QRIS generator
     const topupLabel = isWallet ? `Top up Dompet Utama ${user.nomor_id}` : `Top up Event ${user.nomor_id}`;
-    const qrisRes = await createQrisPayment(nominal, topupLabel);
+    const qrisRes = await createAlpayPayment(nominal, user.nama || "Mahasiswa", topupLabel, 5);
 
     const trxId = crypto.randomUUID();
     const finalAmount = qrisRes.amount || nominal;
     db.prepare(`
       INSERT INTO transaksi (
         id, user_id, keanggotaan_id, tipe, jumlah, status, qris_trx_id, channel, catatan, dibuat_oleh, expired_at, qr_url
-      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, 'GoPay', ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, 'topup_qris', ?, 'pending', ?, 'QRIS', ?, ?, ?, ?)
     `).run(
       trxId,
       user.id,

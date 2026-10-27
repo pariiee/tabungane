@@ -379,16 +379,12 @@ export default function InvoicePage() {
                 <img
                   src={
                     payment.qr_url ||
-                    `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
-                      `https://qriskuu.com/pay/${trxid}`
-                    )}`
+                    `https://pay.ghifari.biz.id/img/qr-${trxid}.png`
                   }
                   alt="QRIS Payment"
                   className="w-48 h-48 sm:w-52 sm:h-52 object-contain mx-auto"
                   onError={(e) => {
-                    const fallback = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
-                      `https://qriskuu.com/pay/${trxid}`
-                    )}`;
+                    const fallback = `https://pay.ghifari.biz.id/img/qr-${trxid}.png`;
                     if ((e.target as HTMLImageElement).src !== fallback) {
                       (e.target as HTMLImageElement).src = fallback;
                     }

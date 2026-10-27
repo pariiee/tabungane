@@ -26,33 +26,29 @@ export async function GET(
   // First: Fallback sync with gateway if pending or expired
   if ((trx.status === "pending" || trx.status === "expired") && trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
     try {
-      const apiKey = process.env.QRISKUU_API_KEY || "";
-      const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
-      const qRes = await fetch(`${baseUrl}/payments/${encodeURIComponent(trx.qris_trx_id)}/status`, {
-        headers: {
-          ...(apiKey ? { "X-API-Key": apiKey } : {}),
-          Accept: "application/json",
-        },
-        signal: AbortSignal.timeout(8000),
-      });
-      if (qRes.ok) {
-        const qJson = await qRes.json();
-        const qItem = qJson.data || qJson;
-        const remoteStatus = String(qItem.status || "").toLowerCase();
-        if (remoteStatus === "paid" || remoteStatus === "berhasil") {
-          const { creditPayment } = require("@/lib/ledger");
-          creditPayment(
-            trx.qris_trx_id,
-            `sync-${trx.qris_trx_id}-${Date.now()}`,
-            JSON.stringify(qJson),
-            qItem.amount ? Number(qItem.amount) : trx.jumlah
-          );
-          trx.status = "berhasil";
-          trx.paid_at = qItem.paid_at ? (typeof qItem.paid_at === "number" ? new Date(qItem.paid_at * 1000).toISOString() : qItem.paid_at) : new Date().toISOString();
-        } else if (remoteStatus === "expired" || remoteStatus === "canceled") {
-          db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(remoteStatus, trx.id);
-          trx.status = remoteStatus;
+      const { getAlpayStatus } = require("@/lib/alpay");
+      const qJson = await getAlpayStatus(trx.qris_trx_id);
+      const qItem = qJson.data || qJson;
+      const remoteStatus = String(qJson.status || qItem.status || "").toLowerCase();
+      const isPaid = qJson.paid === true || remoteStatus === "paid" || remoteStatus === "berhasil";
+
+      if (isPaid) {
+        const { creditPayment } = require("@/lib/ledger");
+        creditPayment(
+          trx.qris_trx_id,
+          `sync-${trx.qris_trx_id}-${Date.now()}`,
+          JSON.stringify(qJson),
+          qItem.amount ? Number(qItem.amount) : trx.jumlah
+        );
+        trx.status = "berhasil";
+        trx.paid_at = qItem.paid_at ? (typeof qItem.paid_at === "number" ? new Date(qItem.paid_at * 1000).toISOString() : qItem.paid_at) : new Date().toISOString();
+        if (qItem.issuer) {
+          trx.channel = qItem.issuer;
         }
+      } else if (remoteStatus === "expired" || remoteStatus === "canceled" || remoteStatus === "cancelled") {
+        const normalized = remoteStatus === "cancelled" ? "canceled" : remoteStatus;
+        db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(normalized, trx.id);
+        trx.status = normalized;
       }
     } catch {}
   }
@@ -99,34 +95,11 @@ export async function GET(
 
   let qrUrl = trx.qr_url;
   if (!qrUrl && trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
-    try {
-      const apiKey = process.env.QRISKUU_API_KEY || "";
-      if (apiKey) {
-        const baseUrl = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
-        const listRes = await fetch(`${baseUrl}/payments?limit=50`, {
-          headers: { "X-API-Key": apiKey },
-          signal: AbortSignal.timeout(3000),
-        });
-        if (listRes.ok) {
-          const listJson = await listRes.json();
-          const match = (listJson.data || []).find((p: any) => p.id === trx.qris_trx_id);
-          if (match?.qr_url) {
-            qrUrl = match.qr_url;
-            try {
-              db.prepare("UPDATE transaksi SET qr_url = ? WHERE id = ?").run(match.qr_url, trx.id);
-            } catch {}
-          }
-        }
-      }
-    } catch {}
+    qrUrl = `https://pay.ghifari.biz.id/img/qr-${trx.qris_trx_id}.png`;
   }
 
   if (!qrUrl) {
-    if (trx.qris_trx_id && !trx.qris_trx_id.startsWith("qsim")) {
-      qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://qriskuu.com/pay/${trx.qris_trx_id}`)}`;
-    } else {
-      qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021226${trx.qris_trx_id || "sim"}520458125303360540${trx.jumlah}5802ID5916TABUNGANE-SISFOR`;
-    }
+    qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021226${trx.qris_trx_id || "sim"}520458125303360540${trx.jumlah}5802ID5916TABUNGANE-SISFOR`;
   }
 
   return NextResponse.json({

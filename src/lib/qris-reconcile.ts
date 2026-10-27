@@ -1,11 +1,10 @@
 import { db } from "./db";
 import { creditPayment } from "./ledger";
-
-const QRISKUU_BASE_URL = process.env.QRISKUU_BASE_URL || "https://qriskuu.com";
+import { getAlpayStatus } from "./alpay";
 
 export async function runQrisReconcileJob() {
   try {
-    // 1. Fetch pending topup_qris created > 60 seconds ago, max 20 per cycle
+    // 1. Fetch pending topup_qris created > 5 seconds ago, max 20 per cycle
     const pendingTrxs = db
       .prepare(
         `SELECT * FROM transaksi 
@@ -25,38 +24,28 @@ export async function runQrisReconcileJob() {
       if (!trxid) continue;
 
       try {
-        const apiKey = process.env.QRISKUU_API_KEY || "";
-        const res = await fetch(`${QRISKUU_BASE_URL}/payments/${encodeURIComponent(trxid)}/status`, {
-          headers: {
-            ...(apiKey ? { "X-API-Key": apiKey } : {}),
-            Accept: "application/json",
-          },
-          signal: AbortSignal.timeout(8000),
-        });
+        const json = await getAlpayStatus(trxid);
+        const data = json.data || json;
+        const remoteStatus = String(json.status || data.status || "").toLowerCase();
+        const isPaid = json.paid === true || remoteStatus === "paid" || remoteStatus === "berhasil";
 
-        if (res.ok) {
-          const json = await res.json();
-          const data = json.data || json;
-          const remoteStatus = String(data.status || "").toLowerCase();
-
-          if (remoteStatus === "paid" || remoteStatus === "berhasil") {
-            const paidAmount = Number(data.amount || trx.jumlah);
-            creditPayment(
-              trxid,
-              `recon-${trxid}-${Date.now()}`,
-              JSON.stringify(json),
-              paidAmount
-            );
-          } else if (remoteStatus === "expired" || remoteStatus === "canceled") {
-            db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(remoteStatus, trx.id);
-          }
-          // Note: If remoteStatus is still pending, leave as pending even if local expired_at has passed
+        if (isPaid) {
+          const paidAmount = Number(data.amount || trx.jumlah);
+          creditPayment(
+            trxid,
+            `recon-${trxid}-${Date.now()}`,
+            JSON.stringify(json),
+            paidAmount
+          );
+        } else if (remoteStatus === "expired" || remoteStatus === "canceled" || remoteStatus === "cancelled") {
+          const normalized = remoteStatus === "cancelled" ? "canceled" : remoteStatus;
+          db.prepare("UPDATE transaksi SET status = ? WHERE id = ?").run(normalized, trx.id);
         }
       } catch (err: any) {
         console.warn(`[RECONCILE] Error checking status for ${trxid}:`, err.message);
       }
 
-      // 1 second pause to respect qriskuu rate limit (60 req/min per IP)
+      // 1 second pause between checks
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   } catch (err: any) {
