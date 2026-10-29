@@ -45,11 +45,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.user.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {

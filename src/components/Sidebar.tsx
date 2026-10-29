@@ -69,11 +69,11 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   if (pathname === "/login") return null;
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "admin_kelas" || user?.role === "dekan" || user?.role === "kaprodi";
 
   const navItems = isAdmin
     ? [
-        { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/admin/kelas", label: "Kelas", icon: GraduationCap },
         { href: "/admin/mahasiswa", label: "Mahasiswa", icon: Users },
         { href: "/admin/grup", label: "Event Sakune", icon: Layers },

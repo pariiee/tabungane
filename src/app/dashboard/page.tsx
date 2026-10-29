@@ -6,6 +6,7 @@ import { formatTrxType, formatTrxStatus } from "@/lib/format";
 import { DashboardSkeleton } from "@/components/Skeletons";
 import CustomSelect from "@/components/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
+import AdminDashboardView from "@/components/AdminDashboardView";
 import {
   Wallet,
   QrCode,
@@ -484,6 +485,10 @@ export default function StudentDashboardPage() {
   }
 
   const user = data?.user;
+
+  if (user?.role && ["admin", "super_admin", "admin_kelas", "dekan", "kaprodi"].includes(user.role)) {
+    return <AdminDashboardView />;
+  }
   const kpi = data?.kpi || {};
   const chart = data?.chart || [];
   const recent = data?.recent || [];

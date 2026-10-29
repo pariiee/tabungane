@@ -106,7 +106,7 @@ export default function Navbar() {
 
   const navItems = isAdmin
     ? [
-        { href: "/admin", label: "Overview", icon: LayoutDashboard },
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
         {
           label: "Data Kampus",
@@ -136,7 +136,7 @@ export default function Navbar() {
 
   const mobileNavItems: BottomNavItem[] = isAdmin
     ? [
-        { href: "/admin", label: "Overview", icon: LayoutDashboard },
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
         {
           label: "Kampus",
@@ -171,7 +171,7 @@ export default function Navbar() {
           {/* Brand Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <Link
-              href={isAdmin ? "/admin" : "/dashboard"}
+              href="/dashboard"
               className="flex items-center gap-3 group"
             >
               <div className="w-9 h-9 flex items-center justify-center shrink-0">

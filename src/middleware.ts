@@ -5,6 +5,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get("tabungane_session")?.value;
 
+  // Redirect root /admin to /dashboard
+  if (pathname === "/admin" || pathname === "/admin/") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   // Protect Admin routes
   if (pathname.startsWith("/admin")) {
     if (!sessionCookie) {
@@ -14,7 +19,7 @@ export async function middleware(request: NextRequest) {
       const [encoded] = sessionCookie.split(".");
       if (!encoded) return NextResponse.redirect(new URL("/login", request.url));
       const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
-      const adminRoles = ["admin", "super_admin", "admin_kelas"];
+      const adminRoles = ["admin", "super_admin", "admin_kelas", "dekan", "kaprodi"];
       if (payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
@@ -44,6 +49,11 @@ export async function middleware(request: NextRequest) {
       const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
       if (payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
+      }
+      const adminRoles = ["admin", "super_admin", "admin_kelas", "dekan", "kaprodi"];
+      // Block admin from accessing /topup (student only)
+      if (pathname.startsWith("/topup") && adminRoles.includes(payload.role)) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     } catch {
       return NextResponse.redirect(new URL("/login", request.url));

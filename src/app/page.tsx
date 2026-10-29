@@ -94,7 +94,7 @@ export default async function Home() {
               <div data-reveal="true" className="flex flex-wrap items-center gap-3 pt-2">
                 {user ? (
                   <Link
-                    href={isAdmin ? "/admin" : "/dashboard"}
+                    href={user ? "/dashboard" : "/login"}
                     className="h-10 px-5 rounded-lg bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] font-medium text-xs sm:text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2 cursor-pointer"
                   >
                     <span>{isAdmin ? "Buka Panel Admin" : "Buka Dashboard Mahasiswa"}</span>
@@ -395,7 +395,7 @@ export default async function Home() {
           </p>
           <div data-reveal="true" className="mt-8 flex justify-center gap-3">
             <Link
-              href={user ? (isAdmin ? "/admin" : "/dashboard") : "/login"}
+              href={user ? "/dashboard" : "/login"}
               className="h-10 px-6 rounded-lg bg-[#111215] text-[#f4f3ef] dark:bg-white dark:text-[#111215] font-medium text-xs sm:text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2"
             >
               <span>{user ? "Masuk ke Dashboard" : "Masuk dengan ID Pengguna"}</span>

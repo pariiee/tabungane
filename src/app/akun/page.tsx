@@ -41,6 +41,13 @@ export default function AkunPage() {
   const [usernameError, setUsernameError] = useState("");
   const [usernameSuccess, setUsernameSuccess] = useState("");
 
+  // ID / NIM edit modal state (Khusus Admin)
+  const [isEditingId, setIsEditingId] = useState(false);
+  const [idInput, setIdInput] = useState("");
+  const [savingId, setSavingId] = useState(false);
+  const [idError, setIdError] = useState("");
+  const [idSuccess, setIdSuccess] = useState("");
+
   // Password state
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -172,6 +179,32 @@ export default function AkunPage() {
     }
   };
 
+  const handleSaveId = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIdError("");
+    setIdSuccess("");
+    setSavingId(true);
+
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nomor_id: idInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengubah ID");
+
+      setUser(data.user);
+      setIsEditingId(false);
+      setIdSuccess("ID berhasil disimpan!");
+      setTimeout(() => setIdSuccess(""), 3000);
+    } catch (err: any) {
+      setIdError(err.message);
+    } finally {
+      setSavingId(false);
+    }
+  };
+
   const handleToggleSensorSaldo = async () => {
     const nextVal = !showCardBalance;
     setShowCardBalance(nextVal);
@@ -234,6 +267,7 @@ export default function AkunPage() {
   const isDekan = user?.role === "admin" && Boolean(user?.fakultas);
   const isKaprodi = user?.role === "admin" && Boolean(user?.prodi_id);
   const isAdminKelas = user?.role === "admin_kelas";
+  const isAdminRole = isDeveloper || isDekan || isKaprodi || isAdminKelas || user?.role === "admin";
   const isMahasiswa = user?.role === "mahasiswa" || (!isDeveloper && !isDekan && !isKaprodi && !isAdminKelas);
 
   // Label badge role
@@ -649,6 +683,26 @@ export default function AkunPage() {
                       Akses Penuh Seluruh Sistem
                     </span>
                   </div>
+
+                  <div
+                    onClick={() => {
+                      setIdInput(user.nomor_id || user.nim || "");
+                      setIdError("");
+                      setIsEditingId(true);
+                    }}
+                    className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group"
+                    title="Klik untuk ubah ID Pengguna"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
+                        ID Pengguna
+                      </span>
+                      <Pencil className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <span className="text-xs font-mono font-bold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
+                      {user.nomor_id || user.nim || "Belum di-set"}
+                    </span>
+                  </div>
                 </div>
               ) : isDekan || isKaprodi ? (
                 /* === GRID DEKAN / KAPRODI (Tanpa NIM, Fokus Fakultas & Prodi) === */
@@ -749,13 +803,27 @@ export default function AkunPage() {
                     )}
                   </div>
 
-                  {/* ID (Terkunci) */}
-                  <div className="p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60">
+                  {/* ID */}
+                  <div
+                    onClick={() => {
+                      if (isAdminRole) {
+                        setIdInput(user.nomor_id || user.nim || "");
+                        setIdError("");
+                        setIsEditingId(true);
+                      }
+                    }}
+                    className={`p-3.5 rounded-xl bg-gray-50/70 dark:bg-zinc-900/40 border border-gray-100 dark:border-zinc-800/60 ${isAdminRole ? "cursor-pointer hover:border-gray-300 dark:hover:border-zinc-700 transition-colors group" : ""}`}
+                    title={isAdminRole ? "Klik untuk ubah ID" : undefined}
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 block">
                         ID
                       </span>
-                      <Lock className="w-2.5 h-2.5 text-gray-400" />
+                      {isAdminRole ? (
+                        <Pencil className="w-2.5 h-2.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      ) : (
+                        <Lock className="w-2.5 h-2.5 text-gray-400" />
+                      )}
                     </div>
                     <span className="text-xs font-mono font-bold text-gray-900 dark:text-zinc-100 mt-1 block truncate">
                       {user.nomor_id || user.nim}
@@ -995,6 +1063,89 @@ export default function AkunPage() {
                   className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {savingUsername ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>Simpan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ubah ID (Admin Only) */}
+      {isEditingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-150">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-black dark:text-white" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                  Ubah ID Akun
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditingId(false);
+                  setIdInput(user.nomor_id || user.nim || "");
+                  setIdError("");
+                }}
+                className="p-1 rounded-lg text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveId} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                  ID Baru
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={idInput}
+                  onChange={(e) => setIdInput(e.target.value)}
+                  placeholder="Masukkan ID baru..."
+                  className="w-full h-10 px-3 text-xs rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 font-mono text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
+                />
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1.5 leading-relaxed">
+                  ID ini digunakan untuk login ke sistem. Minimal 3 karakter.
+                </p>
+              </div>
+
+              {idError && (
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{idError}</span>
+                </div>
+              )}
+
+              {idSuccess && (
+                <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{idSuccess}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingId(false);
+                    setIdInput(user.nomor_id || user.nim || "");
+                    setIdError("");
+                  }}
+                  className="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingId || !idInput.trim()}
+                  className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  {savingId ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   <span>Simpan</span>
                 </button>
               </div>

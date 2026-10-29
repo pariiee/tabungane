@@ -90,6 +90,28 @@ export async function PATCH(req: Request) {
     db.prepare("UPDATE users SET tampilkan_saldo_leaderboard = ? WHERE id = ?").run(val, user.id);
   }
 
+  // 3. Update ID / Nomor ID (Khusus Admin, Super Admin, & Pimpinan)
+  if (body.nomor_id !== undefined || body.nim !== undefined) {
+    const adminRoles = ["admin", "super_admin", "admin_kelas", "dekan", "kaprodi"];
+    if (!adminRoles.includes(user.role)) {
+      return NextResponse.json(
+        { error: "ID / NIM mahasiswa dikunci dan tidak dapat diubah mandiri" },
+        { status: 403 }
+      );
+    }
+    const rawNim = (body.nomor_id || body.nim || "").trim();
+    if (!rawNim || rawNim.length < 3) {
+      return NextResponse.json({ error: "ID minimal 3 karakter" }, { status: 400 });
+    }
+    const existing = db
+      .prepare("SELECT id FROM users WHERE (nim = ? OR nomor_id = ?) AND id != ?")
+      .get(rawNim, rawNim, user.id);
+    if (existing) {
+      return NextResponse.json({ error: "ID tersebut sudah digunakan oleh akun lain" }, { status: 400 });
+    }
+    db.prepare("UPDATE users SET nim = ? WHERE id = ?").run(rawNim, user.id);
+  }
+
   const updatedUser = await getCurrentUser();
   return NextResponse.json({
     success: true,
