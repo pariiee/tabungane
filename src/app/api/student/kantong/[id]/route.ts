@@ -18,8 +18,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (pocket.saldo > 0) {
       const trxId = crypto.randomUUID();
       db.prepare(`
-        INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh)
-        VALUES (?, ?, 'kredit', ?, 'sukses', ?, ?)
+        INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
+        VALUES (?, ?, 'alokasi_masuk', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
       `).run(trxId, user.id, pocket.saldo, `Pengembalian Saldo Kantong "${pocket.nama}" (Kantong Dihapus)`, user.nama);
     }
 

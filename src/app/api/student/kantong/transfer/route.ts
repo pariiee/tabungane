@@ -43,9 +43,9 @@ export async function POST(req: Request) {
     // Kurangi sumber
     if (sumberId === "dompet_utama") {
       db.prepare(`
-        INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh)
-        VALUES (?, ?, 'debit', ?, 'sukses', ?, ?)
-      `).run(crypto.randomUUID(), user.id, amount, catatan ? `Pindah dana dari Dompet Utama: ${catatan}` : "Pindah dana dari Dompet Utama", user.nama);
+        INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
+        VALUES (?, ?, 'alokasi_keluar', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
+      `).run(crypto.randomUUID(), user.id, -amount, catatan ? `Pindah dana dari Dompet Utama: ${catatan}` : "Pindah dana dari Dompet Utama", user.nama);
     } else {
       db.prepare("UPDATE kantong SET saldo = saldo - ? WHERE id = ?").run(amount, sumberId);
     }
@@ -54,8 +54,8 @@ export async function POST(req: Request) {
     let tujuanNama = "Dompet Utama";
     if (tujuanId === "dompet_utama") {
       db.prepare(`
-        INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh)
-        VALUES (?, ?, 'kredit', ?, 'sukses', ?, ?)
+        INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
+        VALUES (?, ?, 'alokasi_masuk', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
       `).run(crypto.randomUUID(), user.id, amount, catatan ? `Pindah dana ke Dompet Utama: ${catatan}` : `Tarik dari ${sumberNama} ke Dompet Utama`, user.nama);
     } else if (body.tipe_tujuan === "event" || body.is_event) {
       // Alokasi ke event tabungan bersama
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
 
       db.prepare(`
         INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, paid_at, dibuat_oleh)
-        VALUES (?, ?, ?, 'setor_manual', ?, 'berhasil', ?, CURRENT_TIMESTAMP, ?)
+        VALUES (?, ?, ?, 'alokasi_masuk', ?, 'berhasil', ?, CURRENT_TIMESTAMP, ?)
       `).run(crypto.randomUUID(), user.id, membership.id, amount, catatan || `Iuran ${group.nama} dari ${sumberNama}`, user.nama);
     } else {
       // Ke kantong tujuan
