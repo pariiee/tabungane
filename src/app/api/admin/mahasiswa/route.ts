@@ -16,17 +16,19 @@ export async function GET(req: Request) {
   const prodiScope = getProdiScope(user);
 
   let query = `
-    SELECT DISTINCT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.custom_permissions, u.must_change_password, u.aktif, u.created_at,
-           k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi, p.fakultas_id, f.nama as nama_fakultas,
+    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.custom_permissions, u.must_change_password, u.aktif, u.created_at,
+           (SELECT nama FROM kelas WHERE id = u.kelas_id LIMIT 1) as nama_kelas,
+           (SELECT tahun_ajaran FROM kelas WHERE id = u.kelas_id LIMIT 1) as tahun_ajaran,
+           (SELECT nama FROM prodi WHERE id = (SELECT prodi_id FROM kelas WHERE id = u.kelas_id) OR id = u.prodi_id LIMIT 1) as nama_prodi,
+           (SELECT kode FROM prodi WHERE id = (SELECT prodi_id FROM kelas WHERE id = u.kelas_id) OR id = u.prodi_id LIMIT 1) as kode_prodi,
+           (SELECT fakultas_id FROM prodi WHERE id = (SELECT prodi_id FROM kelas WHERE id = u.kelas_id) OR id = u.prodi_id LIMIT 1) as fakultas_id,
+           (SELECT nama FROM fakultas WHERE id = (SELECT fakultas_id FROM prodi WHERE id = (SELECT prodi_id FROM kelas WHERE id = u.kelas_id) OR id = u.prodi_id) LIMIT 1) as nama_fakultas,
            COALESCE((
              SELECT SUM(t.jumlah)
              FROM transaksi t
              WHERE t.user_id = u.id AND t.keanggotaan_id IS NULL AND t.status = 'berhasil'
            ), 0) as saldo_dompet
     FROM users u
-    LEFT JOIN kelas k ON u.kelas_id = k.id
-    LEFT JOIN prodi p ON (k.prodi_id = p.id OR u.prodi_id = p.id)
-    LEFT JOIN fakultas f ON (p.fakultas_id = f.id OR u.fakultas = f.id OR u.fakultas = f.nama)
     WHERE u.role IN ('mahasiswa', 'admin_kelas')
   `;
   const params: any[] = [];
