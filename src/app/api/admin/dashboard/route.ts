@@ -94,7 +94,7 @@ export async function GET() {
         `SELECT COUNT(*) as count 
          FROM users u 
          JOIN kelas k ON u.kelas_id = k.id 
-         WHERE u.role = 'mahasiswa' AND u.aktif = 1 AND k.prodi_id = ?`
+         WHERE u.role IN ('mahasiswa', 'admin_kelas') AND u.aktif = 1 AND k.prodi_id = ?`
       )
       .get(prodiScope) as any;
 
@@ -136,7 +136,7 @@ export async function GET() {
       .get() as any;
 
     studentRow = db
-      .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'mahasiswa' AND aktif = 1")
+      .prepare("SELECT COUNT(*) as count FROM users WHERE role IN ('mahasiswa', 'admin_kelas') AND aktif = 1")
       .get() as any;
     kelasRow = db
       .prepare("SELECT COUNT(*) as count FROM kelas")
