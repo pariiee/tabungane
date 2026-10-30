@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   const prodiScope = getProdiScope(user);
 
   let query = `
-    SELECT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.custom_permissions, u.must_change_password, u.aktif, u.created_at,
+    SELECT DISTINCT u.id, COALESCE(u.nomor_id, u.nim) as nomor_id, u.nim, u.nama, u.role, u.kelas_id, u.prodi_id, u.fakultas, u.custom_permissions, u.must_change_password, u.aktif, u.created_at,
            k.nama as nama_kelas, k.tahun_ajaran, p.nama as nama_prodi, p.kode as kode_prodi, p.fakultas_id, f.nama as nama_fakultas,
            COALESCE((
              SELECT SUM(t.jumlah)
