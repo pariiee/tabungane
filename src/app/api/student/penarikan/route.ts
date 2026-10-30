@@ -47,11 +47,11 @@ export async function POST(req: Request) {
   const trxId = crypto.randomUUID();
 
   runTransaction(() => {
-    // 1. Hold saldo via transaksi pending debit
+    // 1. Hold saldo via transaksi pending debit (jumlah negatif untuk pengeluaran)
     db.prepare(`
       INSERT INTO transaksi (id, user_id, tipe, jumlah, status, catatan, dibuat_oleh)
       VALUES (?, ?, 'debit', ?, 'pending', ?, ?)
-    `).run(trxId, user.id, nominal, `Pengajuan Tarik Saldo via ${metode.toUpperCase()} (${nomor_tujuan})`, user.nama);
+    `).run(trxId, user.id, -nominal, `Pengajuan Tarik Saldo via ${metode.toUpperCase()} (${nomor_tujuan})`, user.nama);
 
     // 2. Simpan record pengajuan penarikan
     db.prepare(`

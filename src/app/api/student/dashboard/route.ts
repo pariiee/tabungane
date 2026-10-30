@@ -75,7 +75,7 @@ export async function GET() {
         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
         WHERE (t.user_id = ? OR kg.user_id = ?)
           AND t.status = 'berhasil'
-          AND t.jumlah > 0
+          AND t.tipe IN ('topup_qris', 'transfer_masuk', 'manual_add')
           AND date(t.created_at) = date(?)
       `)
       .get(user.id, user.id, dateStr) as any;
@@ -87,7 +87,7 @@ export async function GET() {
         LEFT JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
         WHERE (t.user_id = ? OR kg.user_id = ?)
           AND t.status = 'berhasil'
-          AND t.jumlah < 0
+          AND t.tipe IN ('transfer_keluar', 'alokasi_keluar', 'debit')
           AND date(t.created_at) = date(?)
       `)
       .get(user.id, user.id, dateStr) as any;

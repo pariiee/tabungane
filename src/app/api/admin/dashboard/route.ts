@@ -166,19 +166,8 @@ export async function GET() {
         )
         .get(dateStr, prodiScope) as any;
 
-      const allAttemptedRow = db
-        .prepare(
-          `SELECT COALESCE(SUM(ABS(t.jumlah)), 0) as total 
-           FROM transaksi t
-           JOIN keanggotaan kg ON t.keanggotaan_id = kg.id
-           JOIN users u ON kg.user_id = u.id
-           JOIN kelas k ON u.kelas_id = k.id
-           WHERE t.status IN ('berhasil', 'pending') AND date(t.created_at) = date(?) AND k.prodi_id = ?`
-        )
-        .get(dateStr, prodiScope) as any;
-
       paidAmt = berhasilRow?.total || 0;
-      totalAmt = Math.max(allAttemptedRow?.total || 0, paidAmt);
+      totalAmt = paidAmt;
     } else {
       const berhasilRow = db
         .prepare(
@@ -186,14 +175,8 @@ export async function GET() {
         )
         .get(dateStr) as any;
 
-      const allAttemptedRow = db
-        .prepare(
-          "SELECT COALESCE(SUM(ABS(jumlah)), 0) as total FROM transaksi WHERE status IN ('berhasil', 'pending') AND date(created_at) = date(?)"
-        )
-        .get(dateStr) as any;
-
       paidAmt = berhasilRow?.total || 0;
-      totalAmt = Math.max(allAttemptedRow?.total || 0, paidAmt);
+      totalAmt = paidAmt;
     }
 
     total14Days += paidAmt;
