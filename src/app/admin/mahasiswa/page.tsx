@@ -786,7 +786,8 @@ export default function AdminMahasiswaPage() {
               <div>
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">ID Pengguna</label>
                 <input
-                  type="text"
+                  type="number"
+                  min="0"
                   required
                   placeholder="Contoh: 240102"
                   value={newNim}
