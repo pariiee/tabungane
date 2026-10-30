@@ -73,9 +73,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `NIM ${nim} sudah terdaftar` }, { status: 400 });
   }
 
-  // Generate temporary password (e.g. 8 chars)
-  const tempPassword = `pwd${Math.floor(100000 + Math.random() * 900000)}`;
-  const passwordHash = hashPassword(tempPassword);
+  // Password default = NIM, wajib ganti saat login pertama
+  const passwordHash = hashPassword(nim);
   const id = crypto.randomUUID();
 
   const { runTransaction } = require("@/lib/db");
@@ -102,9 +101,11 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     success: true,
-    temp_password: tempPassword,
+    message: "Mahasiswa berhasil ditambahkan. Login pake NIM sebagai username dan password, wajib ganti saat login pertama.",
     nim,
     nama,
+    username: nim,
+    default_password: nim,
   });
 }
 
