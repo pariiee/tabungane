@@ -493,6 +493,7 @@ export default function AdminMahasiswaPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50/70 dark:bg-zinc-900/40 text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider border-b border-gray-100 dark:border-zinc-800/60">
               <tr>
+                <th className="py-3 px-3 w-10 text-center whitespace-nowrap">No</th>
                 <th className="py-3 px-4 whitespace-nowrap">ID</th>
                 <th className="py-3 px-4 whitespace-nowrap">Nama Lengkap</th>
                 <th className="py-3 px-4 whitespace-nowrap">Kelas</th>
@@ -502,8 +503,11 @@ export default function AdminMahasiswaPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
-              {filteredStudents.map((s) => (
+              {filteredStudents.map((s, idx) => (
                 <tr key={s.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors">
+                  <td className="py-3.5 px-3 text-center font-mono text-gray-400 dark:text-zinc-500 text-[11px] whitespace-nowrap">
+                    {idx + 1}
+                  </td>
                   <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-zinc-100 whitespace-nowrap">{s.nomor_id || s.nim}</td>
                   <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-zinc-100 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
