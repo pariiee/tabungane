@@ -550,6 +550,37 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Wajib Ganti Password Banner */}
+      {user?.must_change_password && (
+        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800/70 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-700 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                  Wajib Ganti Kata Sandi
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-200 dark:bg-rose-900/60 text-rose-900 dark:text-rose-200 uppercase">
+                  Aman
+                </span>
+              </div>
+              <p className="text-xs text-rose-800 dark:text-rose-300/90 mt-0.5">
+                Untuk keamanan akun, silakan ganti kata sandi default Anda (NIM) melalui menu <strong>Akun</strong> sebelum melakukan transaksi.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/akun"
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs rounded-lg transition-colors shadow-xs active:scale-95"
+          >
+            <span>Ganti Password</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
       {/* Pending Payment Alert Banner */}
       {pendingPayment && (
         <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/70 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">

@@ -150,6 +150,7 @@ export async function GET() {
       nama: user.nama,
       username: user.username,
       role: user.role,
+      must_change_password: Boolean(user.must_change_password),
       nama_kelas: user.nama_kelas,
       nama_prodi: user.nama_prodi,
       nama_fakultas: user.nama_fakultas,
