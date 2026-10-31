@@ -82,8 +82,11 @@ export async function PATCH(req: Request) {
       db.prepare(`
         UPDATE transaksi 
         SET status = 'berhasil', catatan = catatan || ' [Disetujui]'
-        WHERE user_id = ? AND status = 'pending' AND tipe = 'debit' AND (jumlah = ? OR jumlah = ?)
-        ORDER BY created_at DESC LIMIT 1
+        WHERE id = (
+          SELECT id FROM transaksi 
+          WHERE user_id = ? AND status = 'pending' AND tipe = 'debit' AND (jumlah = ? OR jumlah = ?)
+          ORDER BY created_at DESC LIMIT 1
+        )
       `).run(p.user_id, -p.jumlah, p.jumlah);
     } else {
       db.prepare(`
@@ -96,8 +99,11 @@ export async function PATCH(req: Request) {
       db.prepare(`
         UPDATE transaksi 
         SET status = 'canceled', catatan = catatan || ' [Ditolak - Refund]'
-        WHERE user_id = ? AND status = 'pending' AND tipe = 'debit' AND (jumlah = ? OR jumlah = ?)
-        ORDER BY created_at DESC LIMIT 1
+        WHERE id = (
+          SELECT id FROM transaksi 
+          WHERE user_id = ? AND status = 'pending' AND tipe = 'debit' AND (jumlah = ? OR jumlah = ?)
+          ORDER BY created_at DESC LIMIT 1
+        )
       `).run(p.user_id, -p.jumlah, p.jumlah);
     }
   });
