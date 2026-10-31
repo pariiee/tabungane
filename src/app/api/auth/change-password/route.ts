@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   }
 
   const newHash = hashPassword(newPassword);
-  db.prepare("UPDATE users SET password_hash = ?, must_change_password = [REDACTED_SECRET:ENV_VAR]").run(newHash, user.id);
+  db.prepare("UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?").run(newHash, user.id);
 
   // Sekarang set session setelah password berhasil diubah
   const sessionUser: SessionUser = {
