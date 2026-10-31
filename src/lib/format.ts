@@ -53,3 +53,25 @@ export function formatAuditAction(action?: string): string {
   if (map[action]) return map[action];
   return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+export function formatRupiah(amount: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function formatDateTime(isoString?: string): string {
+  if (!isoString) return "-";
+  try {
+    const d = new Date(isoString);
+    return new Intl.DateTimeFormat("id-ID", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(d);
+  } catch {
+    return isoString;
+  }
+}

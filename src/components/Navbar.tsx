@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   Landmark,
   BookOpen,
+  Banknote,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -117,6 +118,7 @@ export default function Navbar() {
           label: "Keuangan & Audit",
           icon: ArrowRightLeft,
           children: [
+            { href: "/admin/penarikan", label: "Tarik Saldo", icon: Banknote },
             { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
             { href: "/admin/laporan", label: "Laporan Rekap", icon: FileText },
             ...(isSuperAdmin
@@ -147,6 +149,7 @@ export default function Navbar() {
           label: "Keuangan",
           icon: ArrowRightLeft,
           children: [
+            { href: "/admin/penarikan", label: "Tarik Saldo", icon: Banknote },
             { href: "/admin/transaksi", label: "Transaksi", icon: ArrowRightLeft },
             { href: "/admin/laporan", label: "Laporan Rekap", icon: FileText },
             ...(isSuperAdmin
