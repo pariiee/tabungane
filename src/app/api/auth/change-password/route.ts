@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, hashPassword, createSession, SessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getPasswordStrength, MIN_PASSWORD_SCORE } from "@/lib/password";
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
@@ -13,8 +14,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Password baru minimal 6 karakter" }, { status: 400 });
   }
 
+  if (getPasswordStrength(newPassword).score < MIN_PASSWORD_SCORE) {
+    return NextResponse.json({ error: "Password terlalu lemah. Gunakan kombinasi huruf besar, kecil, angka, dan simbol (min. 8 karakter)." }, { status: 400 });
+  }
+
   const newHash = hashPassword(newPassword);
-  db.prepare("UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?").run(newHash, user.id);
+  db.prepare("UPDATE users SET password_hash = ?, must_change_password = [REDACTED_SECRET:ENV_VAR]").run(newHash, user.id);
 
   // Sekarang set session setelah password berhasil diubah
   const sessionUser: SessionUser = {

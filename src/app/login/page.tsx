@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Lock, User, ShieldCheck, AlertCircle, ArrowLeft, Sun, Moon, Eye, EyeOff } from "lucide-react";
+import { Lock, User, ShieldCheck, AlertCircle, ArrowLeft, Sun, Moon, Eye, EyeOff, X } from "lucide-react";
+import { getPasswordStrength, MIN_PASSWORD_SCORE } from "@/lib/password";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,6 +60,12 @@ export default function LoginPage() {
 
     if (newPassword.length < 6) {
       setChangeError("Password baru minimal 6 karakter");
+      return;
+    }
+
+    const strength = getPasswordStrength(newPassword);
+    if (strength.score < MIN_PASSWORD_SCORE) {
+      setChangeError("Password terlalu lemah. Gunakan kombinasi huruf besar, kecil, angka, dan simbol (min. 8 karakter).");
       return;
     }
 
@@ -260,6 +267,24 @@ export default function LoginPage() {
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {newPassword.length > 0 && (() => {
+                  const s = getPasswordStrength(newPassword);
+                  return (
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                          <div className={`h-full ${s.bar} transition-all`} style={{ width: `${s.percent}%` }} />
+                        </div>
+                        <span className={`text-[10px] font-semibold uppercase ${s.color}`}>{s.label}</span>
+                      </div>
+                      {s.score < MIN_PASSWORD_SCORE && (
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                          Butuh: 8+ karakter, huruf besar & kecil, angka, simbol
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <button

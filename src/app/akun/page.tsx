@@ -29,6 +29,7 @@ import {
   Server,
   Layers,
 } from "lucide-react";
+import { getPasswordStrength, MIN_PASSWORD_SCORE } from "@/lib/password";
 
 export default function AkunPage() {
   const [user, setUser] = useState<any>(null);
@@ -227,6 +228,12 @@ export default function AkunPage() {
 
     if (newPassword.length < 6) {
       setError("Password baru minimal 6 karakter");
+      return;
+    }
+
+    const strength = getPasswordStrength(newPassword);
+    if (strength.score < MIN_PASSWORD_SCORE) {
+      setError("Password terlalu lemah. Gunakan kombinasi huruf besar, kecil, angka, dan simbol (min. 8 karakter).");
       return;
     }
 
@@ -924,6 +931,24 @@ export default function AkunPage() {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  {newPassword.length > 0 && (() => {
+                    const s = getPasswordStrength(newPassword);
+                    return (
+                      <div className="mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${s.bar} transition-all`} style={{ width: `${s.percent}%` }} />
+                          </div>
+                          <span className={`text-[10px] font-semibold uppercase ${s.color}`}>{s.label}</span>
+                        </div>
+                        {s.score < MIN_PASSWORD_SCORE && (
+                          <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                            Butuh: 8+ karakter, huruf besar & kecil, angka, simbol
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex justify-end pt-1">
