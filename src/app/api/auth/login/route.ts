@@ -75,7 +75,10 @@ export async function POST(req: Request) {
       kelas_id: user.kelas_id,
     };
 
-    await createSession(sessionUser);
+    // Jangan set session jika wajib ganti password — force perubahan dulu
+    if (!user.must_change_password) {
+      await createSession(sessionUser);
+    }
 
     return NextResponse.json({
       success: true,

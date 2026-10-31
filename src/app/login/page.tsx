@@ -18,7 +18,7 @@ export default function LoginPage() {
   // Must change password modal
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [changeError, setChangeError] = useState("");
   const [changing, setChanging] = useState(false);
 
@@ -59,10 +59,6 @@ export default function LoginPage() {
 
     if (newPassword.length < 6) {
       setChangeError("Password baru minimal 6 karakter");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setChangeError("Konfirmasi password tidak cocok");
       return;
     }
 
@@ -248,26 +244,22 @@ export default function LoginPage() {
                 <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                   Password Baru (min 6 karakter)
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full h-9 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 rounded-none focus:outline-none focus:border-black dark:focus:border-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-                  Konfirmasi Password Baru
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full h-9 px-3 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 rounded-none focus:outline-none focus:border-black dark:focus:border-white"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full h-9 px-3 pr-10 border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-gray-900 dark:text-zinc-100 rounded-none focus:outline-none focus:border-black dark:focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black dark:text-zinc-500 dark:hover:text-white cursor-pointer"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <button
