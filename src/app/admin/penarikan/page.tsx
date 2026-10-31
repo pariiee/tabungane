@@ -86,8 +86,9 @@ export default function PenarikanPage() {
     return (
       item.nama_mahasiswa?.toLowerCase().includes(q) ||
       item.nomor_id?.toLowerCase().includes(q) ||
-      item.nomor_rekening?.toLowerCase().includes(q) ||
-      item.nama_bank?.toLowerCase().includes(q)
+      item.nomor_tujuan?.toLowerCase().includes(q) ||
+      item.metode?.toLowerCase().includes(q) ||
+      item.nama_penerima?.toLowerCase().includes(q)
     );
   });
 
@@ -199,12 +200,13 @@ export default function PenarikanPage() {
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-gray-800 dark:text-zinc-200 flex items-center gap-1.5">
+                      <div className="font-semibold text-gray-800 dark:text-zinc-200 flex items-center gap-1.5 uppercase">
                         <CreditCard className="w-3.5 h-3.5 text-gray-400" />
-                        {item.nama_bank} - <span className="font-mono">{item.nomor_rekening}</span>
+                        {item.metode} - <span className="font-mono">{item.nomor_tujuan}</span>
                       </div>
                       <div className="text-[11px] text-gray-500">
-                        a.n {item.atas_nama}
+                        a.n {item.nama_penerima}
+                        {item.catatan && <span className="italic text-gray-400"> &bull; "{item.catatan}"</span>}
                       </div>
                     </td>
                     <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-zinc-100 whitespace-nowrap">
@@ -302,17 +304,23 @@ export default function PenarikanPage() {
                 <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatRupiah(selectedItem.jumlah)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Bank / E-Wallet:</span>
-                <span className="font-semibold text-gray-800 dark:text-zinc-200">{selectedItem.nama_bank}</span>
+                <span className="text-gray-400">Metode / Bank:</span>
+                <span className="font-semibold text-gray-800 dark:text-zinc-200 uppercase">{selectedItem.metode}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">No. Rekening:</span>
-                <span className="font-mono font-bold text-gray-900 dark:text-zinc-100">{selectedItem.nomor_rekening}</span>
+                <span className="text-gray-400">No. Rekening / E-Wallet:</span>
+                <span className="font-mono font-bold text-gray-900 dark:text-zinc-100">{selectedItem.nomor_tujuan}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Atas Nama:</span>
-                <span className="text-gray-700 dark:text-zinc-300">{selectedItem.atas_nama}</span>
+                <span className="text-gray-400">Nama Penerima:</span>
+                <span className="text-gray-700 dark:text-zinc-300 font-medium">{selectedItem.nama_penerima}</span>
               </div>
+              {selectedItem.catatan && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Keperluan:</span>
+                  <span className="text-gray-700 dark:text-zinc-300 italic">{selectedItem.catatan}</span>
+                </div>
+              )}
             </div>
 
             {error && (
