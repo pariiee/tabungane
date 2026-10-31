@@ -10,6 +10,9 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (user.must_change_password) {
+      return NextResponse.json({ error: "Wajib ganti password dulu sebelum melakukan aksi" }, { status: 403 });
+    }
 
     if (user.role === "admin" || user.role === "super_admin") {
       return NextResponse.json({ error: "Fitur top up hanya diperuntukkan bagi mahasiswa." }, { status: 403 });
