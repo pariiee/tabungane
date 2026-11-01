@@ -217,6 +217,7 @@ try {
     -- Fast aggregation indexes for Leaderboard & Wallet
     CREATE INDEX IF NOT EXISTS idx_transaksi_user_status_tipe ON transaksi(user_id, status, tipe);
     CREATE INDEX IF NOT EXISTS idx_transaksi_keanggotaan_status ON transaksi(keanggotaan_id, status);
+    CREATE INDEX IF NOT EXISTS idx_transaksi_created_at ON transaksi(created_at DESC);
   `);
 
   // Auto-migration for prodi & multi-jurusan scoping
