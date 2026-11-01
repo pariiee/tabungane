@@ -48,24 +48,6 @@ export async function POST(req: Request) {
       if (!result.success) {
         return NextResponse.json({ error: result.error || "Gagal memproses pembayaran" }, { status: 400 });
       }
-
-      // Notif Telegram SAKUNE saat pembayaran sukses
-      const teleToken = process.env.TELEGRAM_BOT_TOKEN;
-      const teleChat = process.env.TELEGRAM_CHAT_ID;
-      if (teleToken && teleChat) {
-        const text = `🎉 <b>PEMBAYARAN SAKUNE BERHASIL</b>\n\n` +
-          `👤 <b>Nama:</b> ${data.customer_name || "-"}\n` +
-          `💰 <b>Total:</b> Rp ${new Intl.NumberFormat("id-ID").format(amount)}\n` +
-          `🏦 <b>Metode:</b> ${data.issuer || "QRIS"}\n` +
-          `🆔 <b>ID Transaksi:</b> <code>${trxid}</code>\n` +
-          `⏰ <b>Waktu:</b> ${new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })} WIB`;
-        fetch(`https://api.telegram.org/bot${teleToken}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: teleChat, text, parse_mode: "HTML" }),
-        }).catch(() => {});
-      }
-
       return NextResponse.json({ success: true, processed: true });
     }
 
