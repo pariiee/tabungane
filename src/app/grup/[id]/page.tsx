@@ -58,6 +58,10 @@ export default function GroupDetailPage() {
   const grup = data?.grup;
   const leaderboard = data?.leaderboard || [];
 
+  const totalTargetGrup = (grup?.target_per_mahasiswa || 0) * (leaderboard.length || 1);
+  const totalTerkumpul = grup?.total_terkumpul || 0;
+  const grupProgressPct = totalTargetGrup > 0 ? Math.min(Math.round((totalTerkumpul / totalTargetGrup) * 100), 100) : 0;
+
   return (
     <div className="space-y-6">
       {/* Back button & Action */}
@@ -90,6 +94,25 @@ export default function GroupDetailPage() {
             </span>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-zinc-100 mt-2">{grup?.nama}</h1>
+        </div>
+
+        {/* Indikator Target Progress Bar Grup */}
+        <div className="p-4 bg-gray-50/70 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-800/60 rounded-xl space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="text-gray-500 dark:text-zinc-400 flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-black dark:text-white" />
+              <span>Capaian Total Event:</span>
+            </span>
+            <span className="font-bold text-gray-900 dark:text-zinc-100">
+              {grupProgressPct}% (Rp {totalTerkumpul.toLocaleString("id-ID")} / Rp {totalTargetGrup.toLocaleString("id-ID")})
+            </span>
+          </div>
+          <div className="w-full h-2.5 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-black dark:bg-white rounded-full transition-all duration-500"
+              style={{ width: `${grupProgressPct}%` }}
+            />
+          </div>
         </div>
 
         {/* Stats Grid */}

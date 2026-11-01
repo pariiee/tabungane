@@ -11,6 +11,8 @@ import {
   AlertCircle,
   XCircle,
   Link2Off,
+  Copy,
+  Download,
 } from "lucide-react";
 
 export default function InvoicePage() {
@@ -27,6 +29,8 @@ export default function InvoicePage() {
   const [error, setError] = useState("");
   const [redirectCount, setRedirectCount] = useState(10);
   const [cancelCooldown, setCancelCooldown] = useState(10);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [downloadingQr, setDownloadingQr] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -164,6 +168,35 @@ export default function InvoicePage() {
       setError(e.message || "Gagal membatalkan tagihan");
     } finally {
       setCanceling(false);
+    }
+  };
+
+  const handleCopyInvoiceUrl = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+    }
+  };
+
+  const handleDownloadQr = async () => {
+    const qrUrl = payment?.qr_url || `https://pay.ghifari.biz.id/img/qr-${trxid}.png`;
+    setDownloadingQr(true);
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `QRIS-${trxid}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      window.open(qrUrl, "_blank");
+    } finally {
+      setDownloadingQr(false);
     }
   };
 
@@ -399,6 +432,29 @@ export default function InvoicePage() {
                 <span className="font-bold text-amber-600 dark:text-amber-400 text-sm ml-1 font-mono">
                   {timeFormatted}
                 </span>
+              </div>
+
+              {/* Action Buttons QR: Unduh QR & Salin URL Invoice */}
+              <div className="flex items-center justify-center md:justify-start gap-2 pt-1 w-full max-w-[240px] mx-auto md:mx-0">
+                <button
+                  type="button"
+                  onClick={handleDownloadQr}
+                  disabled={downloadingQr}
+                  className="flex-1 py-2 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-[11px] font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  title="Unduh file gambar QRIS untuk di-scan lewat galeri e-wallet"
+                >
+                  <Download className="w-3 h-3 shrink-0" />
+                  <span>{downloadingQr ? "Mengunduh..." : "Unduh QR"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyInvoiceUrl}
+                  className="flex-1 py-2 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-[11px] font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  title="Salin tautan invoice ini"
+                >
+                  {copiedUrl ? <Check className="w-3 h-3 text-emerald-600 shrink-0" /> : <Copy className="w-3 h-3 shrink-0" />}
+                  <span>{copiedUrl ? "Tersalin!" : "Salin Link"}</span>
+                </button>
               </div>
             </div>
 

@@ -5,7 +5,7 @@ import Navbar from "./Navbar";
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isStandalonePage = pathname === "/login" || pathname === "/";
+  const isStandalonePage = pathname === "/login" || pathname === "/" || pathname?.startsWith("/invoice");
 
   if (isStandalonePage) {
     return (
