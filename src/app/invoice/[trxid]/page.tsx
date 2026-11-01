@@ -179,25 +179,8 @@ export default function InvoicePage() {
     }
   };
 
-  const handleDownloadQr = async () => {
-    const qrUrl = payment?.qr_url || `https://pay.ghifari.biz.id/img/qr-${trxid}.png`;
-    setDownloadingQr(true);
-    try {
-      const response = await fetch(qrUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `QRIS-${trxid}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch {
-      window.open(qrUrl, "_blank");
-    } finally {
-      setDownloadingQr(false);
-    }
+  const handleDownloadQr = () => {
+    window.location.href = `/api/payments/${trxid}/download`;
   };
 
   // Format date: "10/22/2026, 9:19:06 AM"
@@ -439,12 +422,11 @@ export default function InvoicePage() {
                 <button
                   type="button"
                   onClick={handleDownloadQr}
-                  disabled={downloadingQr}
                   className="h-10 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
                   title="Unduh file gambar QRIS untuk di-scan lewat galeri e-wallet"
                 >
                   <Download className="w-3.5 h-3.5 shrink-0" />
-                  <span>{downloadingQr ? "Unduh..." : "Unduh QR"}</span>
+                  <span>Unduh QR</span>
                 </button>
                 <button
                   type="button"
