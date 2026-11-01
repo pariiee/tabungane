@@ -60,15 +60,15 @@ export function startQrisReconcileDaemon() {
   }
   globalForCron.qrisJobStarted = true;
 
-  console.log("[RECONCILE] QRIS fallback status checker started (interval: 15s)");
+  console.log("[RECONCILE] QRIS fallback status checker started (interval: 10s)");
 
   // Run initially after 3s warmup
   setTimeout(() => {
     runQrisReconcileJob();
   }, 3000);
 
-  // Repeat every 15 seconds
+  // Repeat every 10 seconds
   globalForCron.qrisInterval = setInterval(() => {
     runQrisReconcileJob();
-  }, 15000);
+  }, 10000);
 }
