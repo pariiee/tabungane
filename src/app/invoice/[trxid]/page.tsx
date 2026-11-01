@@ -255,9 +255,9 @@ export default function InvoicePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-6 sm:py-8 px-4 font-sans text-gray-900 dark:text-zinc-100">
+    <div className="w-full max-w-xl mx-auto py-4 sm:py-8 px-3 sm:px-6 font-sans text-gray-900 dark:text-zinc-100 flex flex-col justify-center min-h-[90vh]">
       {/* Main Invoice Card */}
-      <div className="border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#121316] p-6 sm:p-8 rounded-2xl shadow-xs space-y-6">
+      <div className="border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#121316] p-5 sm:p-8 rounded-2xl shadow-xs space-y-6">
 
         {/* ─── CASE A: CANCELED / EXPIRED (Exact layout as Screenshot 2) ─── */}
         {paymentStatus === "canceled" || paymentStatus === "expired" ? (
@@ -408,14 +408,14 @@ export default function InvoicePage() {
               </div>
 
               {/* QR Code Box */}
-              <div className="inline-block p-4 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-white rounded-xl shadow-xs">
+              <div className="inline-block p-4 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-white rounded-2xl shadow-xs">
                 <img
                   src={
                     payment.qr_url ||
                     `https://pay.ghifari.biz.id/img/qr-${trxid}.png`
                   }
                   alt="QRIS Payment"
-                  className="w-48 h-48 sm:w-52 sm:h-52 object-contain mx-auto"
+                  className="w-56 h-56 sm:w-60 sm:h-60 object-contain mx-auto"
                   onError={(e) => {
                     const fallback = `https://pay.ghifari.biz.id/img/qr-${trxid}.png`;
                     if ((e.target as HTMLImageElement).src !== fallback) {
@@ -435,24 +435,24 @@ export default function InvoicePage() {
               </div>
 
               {/* Action Buttons QR: Unduh QR & Salin URL Invoice */}
-              <div className="flex items-center justify-center md:justify-start gap-2 pt-1 w-full max-w-[240px] mx-auto md:mx-0">
+              <div className="grid grid-cols-2 gap-2.5 pt-1 w-full max-w-xs mx-auto md:mx-0">
                 <button
                   type="button"
                   onClick={handleDownloadQr}
                   disabled={downloadingQr}
-                  className="flex-1 py-2 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-[11px] font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="h-10 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
                   title="Unduh file gambar QRIS untuk di-scan lewat galeri e-wallet"
                 >
-                  <Download className="w-3 h-3 shrink-0" />
-                  <span>{downloadingQr ? "Mengunduh..." : "Unduh QR"}</span>
+                  <Download className="w-3.5 h-3.5 shrink-0" />
+                  <span>{downloadingQr ? "Unduh..." : "Unduh QR"}</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleCopyInvoiceUrl}
-                  className="flex-1 py-2 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-[11px] font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="h-10 px-3 border border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/60 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
                   title="Salin tautan invoice ini"
                 >
-                  {copiedUrl ? <Check className="w-3 h-3 text-emerald-600 shrink-0" /> : <Copy className="w-3 h-3 shrink-0" />}
+                  {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <Copy className="w-3.5 h-3.5 shrink-0" />}
                   <span>{copiedUrl ? "Tersalin!" : "Salin Link"}</span>
                 </button>
               </div>
