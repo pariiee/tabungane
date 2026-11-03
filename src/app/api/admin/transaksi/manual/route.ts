@@ -91,14 +91,14 @@ export async function POST(req: Request) {
             throw new Error(`Saldo Event tidak mencukupi (Tersedia: Rp ${currentTotal.toLocaleString("id-ID")})`);
           }
           db.prepare(`
-            INSERT INTO transaksi (id, keanggotaan_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
-            VALUES (?, ?, 'manual_deduct', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
-          `).run(trxId, membership.id, -nominal, catatan, user.nama);
+            INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
+            VALUES (?, ?, ?, 'manual_deduct', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
+          `).run(trxId, user_id, membership.id, -nominal, catatan, user.nama);
         } else {
           db.prepare(`
-            INSERT INTO transaksi (id, keanggotaan_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
-            VALUES (?, ?, 'manual_add', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
-          `).run(trxId, membership.id, nominal, catatan, user.nama);
+            INSERT INTO transaksi (id, user_id, keanggotaan_id, tipe, jumlah, status, catatan, dibuat_oleh, paid_at)
+            VALUES (?, ?, ?, 'manual_add', ?, 'berhasil', ?, ?, CURRENT_TIMESTAMP)
+          `).run(trxId, user_id, membership.id, nominal, catatan, user.nama);
         }
       } else {
         throw new Error("Tujuan saldo tidak valid");
