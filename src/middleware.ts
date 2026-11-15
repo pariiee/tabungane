@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifySession } from "@/lib/session";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,10 +16,12 @@ export async function middleware(request: NextRequest) {
     if (!sessionCookie) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
+    const rawPayload = verifySession(sessionCookie);
+    if (!rawPayload) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
     try {
-      const [encoded] = sessionCookie.split(".");
-      if (!encoded) return NextResponse.redirect(new URL("/login", request.url));
-      const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
+      const payload = JSON.parse(rawPayload);
       const adminRoles = ["admin", "super_admin", "admin_kelas", "dekan", "kaprodi"];
       if (payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
@@ -43,10 +46,12 @@ export async function middleware(request: NextRequest) {
     if (!sessionCookie) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
+    const rawPayload = verifySession(sessionCookie);
+    if (!rawPayload) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
     try {
-      const [encoded] = sessionCookie.split(".");
-      if (!encoded) return NextResponse.redirect(new URL("/login", request.url));
-      const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
+      const payload = JSON.parse(rawPayload);
       if (payload.exp < Date.now()) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
@@ -64,6 +69,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  runtime: "nodejs",
   matcher: [
     "/admin/:path*",
     "/dashboard/:path*",
