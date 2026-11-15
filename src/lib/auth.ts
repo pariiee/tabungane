@@ -2,7 +2,10 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { db } from "./db";
 
-const AUTH_SECRET = process.env.AUTH_SECRET || "tabungane-sisfor-super-secure-key-2026";
+const AUTH_SECRET = process.env.AUTH_SECRET as string;
+if (!AUTH_SECRET) {
+  throw new Error("AUTH_SECRET env var is required and must not be empty");
+}
 const COOKIE_NAME = "tabungane_session";
 
 export interface SessionUser {
