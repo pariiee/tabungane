@@ -70,6 +70,16 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [pathname]);
 
+  // Preferensi Buku Kas berubah dari halaman Akun
+  useEffect(() => {
+    const onPref = (e: Event) => {
+      const bukuKas = Boolean((e as CustomEvent).detail?.bukuKas);
+      setUser((prev: any) => (prev ? { ...prev, tampilkan_buku_kas: bukuKas } : prev));
+    };
+    window.addEventListener("sakune:preferensi", onPref);
+    return () => window.removeEventListener("sakune:preferensi", onPref);
+  }, []);
+
   const isDark = mounted && theme === "dark";
 
   const handleLogout = async () => {

@@ -67,6 +67,7 @@ export default function AkunPage() {
   const [wallet, setWallet] = useState<{ balance: number } | null>(null);
   const [showCardBalance, setShowCardBalance] = useState(true);
   const [showBukuKas, setShowBukuKas] = useState(false);
+  const [preferensiSiap, setPreferensiSiap] = useState(false);
   const [copiedID, setCopiedID] = useState(false);
 
   const formatCardNumber = (nomorId: string = "") => {
@@ -87,6 +88,7 @@ export default function AkunPage() {
           setUsernameInput(userData.user.username || "");
           setShowCardBalance(Boolean(userData.user.tampilkan_saldo_leaderboard));
           setShowBukuKas(Boolean(userData.user.tampilkan_buku_kas));
+          setPreferensiSiap(true);
         }
         if (typeof walletData.balance === "number") {
           setWallet(walletData);
@@ -100,6 +102,11 @@ export default function AkunPage() {
   useEffect(() => {
     loadUserData();
   }, []);
+
+  useEffect(() => {
+    if (!preferensiSiap) return;
+    window.dispatchEvent(new CustomEvent("sakune:preferensi", { detail: { bukuKas: showBukuKas } }));
+  }, [showBukuKas, preferensiSiap]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
