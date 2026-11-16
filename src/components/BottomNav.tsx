@@ -149,16 +149,14 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
                     }
                     aria-current={isActive ? "page" : undefined}
                     aria-label={item.label}
-                    className={`relative z-10 flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] rounded-full transition-colors duration-200 cursor-pointer ${
+                    title={item.label}
+                    className={`relative z-10 flex-1 flex items-center justify-center min-h-[56px] rounded-full transition-colors duration-200 cursor-pointer ${
                       isActive
                         ? "text-white font-semibold"
                         : "text-[#555] dark:text-zinc-400 hover:text-black dark:hover:text-white"
                     }`}
                   >
                     <Icon className="w-[22px] h-[22px] stroke-[1.6]" />
-                    <span className="text-[12px] sm:text-[13px] font-normal leading-none tracking-tight">
-                      {item.label}
-                    </span>
                   </button>
                 );
               }
@@ -170,16 +168,14 @@ export default function BottomNav({ items }: { items: BottomNavItem[] }) {
                   data-tab-index={idx}
                   aria-current={isActive ? "page" : undefined}
                   aria-label={item.label}
-                  className={`relative z-10 flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] rounded-full transition-colors duration-200 cursor-pointer ${
+                  title={item.label}
+                  className={`relative z-10 flex-1 flex items-center justify-center min-h-[56px] rounded-full transition-colors duration-200 cursor-pointer ${
                     isActive
                       ? "text-white font-semibold"
                       : "text-[#555] dark:text-zinc-400 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   <Icon className="w-[22px] h-[22px] stroke-[1.6]" />
-                  <span className="text-[12px] sm:text-[13px] font-normal leading-none tracking-tight">
-                    {item.label}
-                  </span>
                 </Link>
               );
             })}

@@ -277,6 +277,9 @@ try {
     if (!uCols.some((c) => c.name === "tampilkan_saldo_leaderboard")) {
       db.exec("ALTER TABLE users ADD COLUMN tampilkan_saldo_leaderboard INTEGER DEFAULT 0;");
     }
+    if (!uCols.some((c) => c.name === "tampilkan_buku_kas")) {
+      db.exec("ALTER TABLE users ADD COLUMN tampilkan_buku_kas INTEGER DEFAULT 0;");
+    }
     if (!uCols.some((c) => c.name === "foto_url")) {
       db.exec("ALTER TABLE users ADD COLUMN foto_url TEXT DEFAULT NULL;");
     }

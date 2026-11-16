@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   BookOpen,
   Plus,
@@ -68,6 +69,8 @@ const KATEGORI_PEMASUKAN = [
 ];
 
 export default function CatatanHarianPage() {
+  const router = useRouter();
+  const [aktif, setAktif] = useState<boolean | null>(null);
   const [list, setList] = useState<any[]>([]);
   const [summary, setSummary] = useState<{
     total_masuk: number;
@@ -148,8 +151,19 @@ export default function CatatanHarianPage() {
   };
 
   useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((d) => {
+        if (!d.user?.tampilkan_buku_kas) router.replace("/dashboard");
+        else setAktif(true);
+      })
+      .catch(() => router.replace("/dashboard"));
+  }, []);
+
+  useEffect(() => {
+    if (!aktif) return;
     loadCatatan();
-  }, [filterBulan]);
+  }, [filterBulan, aktif]);
 
   const handleOpenModal = (selectedType: "keluar" | "masuk") => {
     setTipe(selectedType);

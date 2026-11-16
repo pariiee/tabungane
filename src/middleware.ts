@@ -65,6 +65,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith("/catatan")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   return NextResponse.next();
 }
 
@@ -78,5 +82,6 @@ export const config = {
     "/grup/:path*",
     "/akun/:path*",
     "/leaderboard/:path*",
+    "/catatan/:path*",
   ],
 };

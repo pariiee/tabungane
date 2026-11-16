@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   Server,
   Layers,
+  BookOpen,
 } from "lucide-react";
 import { getPasswordStrength, MIN_PASSWORD_SCORE } from "@/lib/password";
 
@@ -65,6 +66,7 @@ export default function AkunPage() {
   // Virtual Wallet Card State & Sensor Saldo (Khusus role yang punya wallet)
   const [wallet, setWallet] = useState<{ balance: number } | null>(null);
   const [showCardBalance, setShowCardBalance] = useState(true);
+  const [showBukuKas, setShowBukuKas] = useState(false);
   const [copiedID, setCopiedID] = useState(false);
 
   const formatCardNumber = (nomorId: string = "") => {
@@ -84,6 +86,7 @@ export default function AkunPage() {
           setUser(userData.user);
           setUsernameInput(userData.user.username || "");
           setShowCardBalance(Boolean(userData.user.tampilkan_saldo_leaderboard));
+          setShowBukuKas(Boolean(userData.user.tampilkan_buku_kas));
         }
         if (typeof walletData.balance === "number") {
           setWallet(walletData);
@@ -218,6 +221,21 @@ export default function AkunPage() {
       setUser((prev: any) => ({ ...prev, tampilkan_saldo_leaderboard: nextVal }));
     } catch (e) {
       console.error("Gagal menyimpan preferensi sensor saldo:", e);
+    }
+  };
+
+  const handleToggleBukuKas = async () => {
+    const nextVal = !showBukuKas;
+    setShowBukuKas(nextVal);
+    try {
+      await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tampilkan_buku_kas: nextVal }),
+      });
+      setUser((prev: any) => ({ ...prev, tampilkan_buku_kas: nextVal }));
+    } catch (e) {
+      console.error("Gagal menyimpan preferensi Buku Kas:", e);
     }
   };
 
@@ -403,6 +421,35 @@ export default function AkunPage() {
                     <span>Hapus</span>
                   </button>
                 )}
+              </div>
+
+              {/* Toggle Buku Kas */}
+              <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-zinc-800/80">
+                <div className="flex items-center gap-2 text-left min-w-0">
+                  <BookOpen className="w-4 h-4 shrink-0 text-gray-500 dark:text-zinc-400" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 dark:text-zinc-100">Buku Kas Pribadi</p>
+                    <p className="text-[10px] text-gray-400 dark:text-zinc-500 leading-snug">
+                      Catatan keuangan offline, bukan saldo Sakune.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleBukuKas}
+                  role="switch"
+                  aria-checked={showBukuKas}
+                  aria-label="Tampilkan Buku Kas di navigasi"
+                  className={`shrink-0 w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                    showBukuKas ? "bg-black dark:bg-white" : "bg-gray-200 dark:bg-zinc-700"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-zinc-900 shadow-xs transition-transform ${
+                      showBukuKas ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
               </div>
 
               {/* Feedback Alerts Foto */}

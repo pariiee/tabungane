@@ -23,6 +23,7 @@ export interface SessionUser {
   nama_prodi?: string | null;
   nama_fakultas?: string | null;
   tampilkan_saldo_leaderboard?: boolean;
+  tampilkan_buku_kas?: boolean;
   foto_url?: string | null;
   custom_permissions?: string | null;
 }
@@ -98,6 +99,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         u.id, u.nomor_id, u.nama, u.username, u.custom_title, u.role, u.must_change_password, u.aktif, 
         u.kelas_id, u.prodi_id, u.fakultas, u.managed_kelas_ids, u.foto_url, 
         COALESCE(u.tampilkan_saldo_leaderboard, 0) as tampilkan_saldo_leaderboard,
+        COALESCE(u.tampilkan_buku_kas, 0) as tampilkan_buku_kas,
         k.nama as nama_kelas,
         COALESCE(p.nama, p2.nama) as nama_prodi,
         COALESCE(u.fakultas, p.fakultas, p2.fakultas, f.nama) as nama_fakultas
@@ -129,6 +131,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       nama_prodi: row.nama_prodi || null,
       nama_fakultas: row.nama_fakultas || null,
       tampilkan_saldo_leaderboard: Boolean(row.tampilkan_saldo_leaderboard),
+      tampilkan_buku_kas: Boolean(row.tampilkan_buku_kas),
       foto_url: row.foto_url || null,
     };
   } catch {

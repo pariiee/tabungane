@@ -24,6 +24,7 @@ export async function GET() {
     nama_fakultas: user.nama_fakultas,
     foto_url: user.foto_url,
     tampilkan_saldo_leaderboard: user.tampilkan_saldo_leaderboard,
+    tampilkan_buku_kas: user.tampilkan_buku_kas,
     custom_permissions: user.custom_permissions,
     ...(user.role !== "mahasiswa"
       ? {
@@ -88,6 +89,13 @@ export async function PATCH(req: Request) {
   if (body.tampilkan_saldo_leaderboard !== undefined) {
     const val = body.tampilkan_saldo_leaderboard ? 1 : 0;
     db.prepare("UPDATE users SET tampilkan_saldo_leaderboard = ? WHERE id = ?").run(val, user.id);
+  }
+
+  if (body.tampilkan_buku_kas !== undefined) {
+    if (typeof body.tampilkan_buku_kas !== "boolean") {
+      return NextResponse.json({ error: "Nilai tampilkan_buku_kas harus boolean" }, { status: 400 });
+    }
+    db.prepare("UPDATE users SET tampilkan_buku_kas = ? WHERE id = ?").run(body.tampilkan_buku_kas ? 1 : 0, user.id);
   }
 
   // 3. Update ID / Nomor ID (Khusus Admin, Super Admin, & Pimpinan)
