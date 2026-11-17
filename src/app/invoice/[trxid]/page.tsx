@@ -116,12 +116,12 @@ export default function InvoicePage() {
     };
   }, [paymentStatus]);
 
-  // Fast polling payment status every 10s
+  // Fast polling payment status every 5s
   useEffect(() => {
     if (paymentStatus === "pending") {
       pollRef.current = setInterval(() => {
         checkStatus(false);
-      }, 10000);
+      }, 5000);
     }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
