@@ -1,10 +1,19 @@
 import crypto from "node:crypto";
 import { getSetting } from "./db";
 
-export const ALPAY_BASE_URL = process.env.ALPAY_BASE_URL || "https://pay.ghifari.biz.id";
+export function getAlpayBaseUrl(): string {
+  const fromDb = getSetting("alpay_base_url");
+  return (fromDb || process.env.ALPAY_BASE_URL || "https://pay.ghifari.biz.id").replace(/\/+$/, "");
+}
 
 export function getAlpayApiKey(): string {
   return getSetting("alpay_api_key") || process.env.ALPAY_API_KEY || "";
+}
+
+/** Basis URL publik app — dipakai sebagai callback_url webhook Alpay */
+export function getAppUrl(): string {
+  const fromDb = getSetting("app_url");
+  return (fromDb || process.env.NEXT_PUBLIC_APP_URL || "https://sakune.sisforhub.web.id").replace(/\/+$/, "");
 }
 
 export interface AlpayCreateResponse {
@@ -28,7 +37,7 @@ export async function createAlpayPayment(
 ): Promise<AlpayCreateResponse> {
   const apiKey = getAlpayApiKey();
 
-  const res = await fetch(`${ALPAY_BASE_URL}/payments`, {
+  const res = await fetch(`${getAlpayBaseUrl()}/payments`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -41,6 +50,7 @@ export async function createAlpayPayment(
       customer_name: customerName,
       note,
       valid_minutes: validMinutes,
+      callback_url: `${getAppUrl()}/api/webhook`,
     }),
   });
 
@@ -66,7 +76,7 @@ export async function createAlpayPayment(
  */
 export async function getAlpayStatus(trxid: string) {
   const apiKey = getAlpayApiKey();
-  const res = await fetch(`${ALPAY_BASE_URL}/payments/${encodeURIComponent(trxid)}/status`, {
+  const res = await fetch(`${getAlpayBaseUrl()}/payments/${encodeURIComponent(trxid)}/status`, {
     headers: {
       Accept: "application/json",
       "X-API-Key": apiKey,
@@ -87,7 +97,7 @@ export async function getAlpayStatus(trxid: string) {
  */
 export async function cancelAlpayPayment(trxid: string) {
   const apiKey = getAlpayApiKey();
-  const res = await fetch(`${ALPAY_BASE_URL}/payments/${encodeURIComponent(trxid)}/cancel`, {
+  const res = await fetch(`${getAlpayBaseUrl()}/payments/${encodeURIComponent(trxid)}/cancel`, {
     method: "POST",
     headers: {
       Accept: "application/json",

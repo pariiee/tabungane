@@ -25,7 +25,7 @@ Platform web dompet digital mahasiswa, sub-wallet serbaguna (*Kantong Sakune*), 
 - **Transfer P2P Internal:** Kirim saldo antar-mahasiswa dengan live search instan berbasis Nomor ID/NIM/Nama.
 - **Pengajuan Penarikan (Disbursement Queue):** Validasi pencairan dana mahasiswa ke rekening bank/e-wallet dengan persetujuan bertingkat.
 
-### 4. Gateway Pembayaran QRIS (QRISku API)
+### 4. Gateway Pembayaran QRIS (Alpay API)
 - **Invoice QRIS Dinamis:** Generasi kode QR per transaksi, hitung mundur kedaluwarsa 5 menit, dan webhook idempotensi anti-duplikasi.
 - **Brutalist Invoice View:** Layout 2-kolom responsif, countdown timer waktu tersisa, tombol cek status instan, dan tautan bagikan via WhatsApp.
 - **Paid State & Auto-Redirect:** Tampilan bukti transaksi sukses minimalis dengan timer redirect otomatis 5 detik kembali ke Dashboard.

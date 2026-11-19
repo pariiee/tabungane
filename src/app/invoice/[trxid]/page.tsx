@@ -304,7 +304,7 @@ export default function InvoicePage() {
             </div>
           </div>
         ) : paymentStatus === "berhasil" ? (
-          /* ─── CASE B: SUCCESS / PAID STATE (Sesuai Desain Receipt QRISku) ─── */
+          /* ─── CASE B: SUCCESS / PAID STATE (Sesuai Desain Receipt Alpay) ─── */
           <div className="space-y-5 text-center">
             {/* Center Checkmark Box (Kotak hitam dengan centang putih) */}
             <div className="w-12 h-12 bg-black dark:bg-white text-white dark:text-black flex items-center justify-center mx-auto rounded-xl shadow-xs">

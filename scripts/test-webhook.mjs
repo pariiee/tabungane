@@ -10,7 +10,6 @@ import path from "node:path";
 
 const PORT = process.env.PORT || 3001;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const SECRET = "7e1c8ac2dbfca70f324dbd72a53f47beec9c00b6ec6e5da2";
 
 // Connect to local DB to set up a test transaction and verify ledger directly
 const dbPath = path.join(process.cwd(), "data", "tabungane.db");
@@ -19,8 +18,15 @@ db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA busy_timeout = 5000;");
 db.exec("PRAGMA synchronous = NORMAL;");
 
-db.exec("CREATE TABLE IF NOT EXISTS pengaturan (kunci TEXT PRIMARY KEY, nilai TEXT NOT NULL);");
-db.prepare("INSERT INTO pengaturan (kunci, nilai) VALUES ('qriskuu_webhook_secret', ?) ON CONFLICT(kunci) DO UPDATE SET nilai = excluded.nilai").run(SECRET);
+// Secret HMAC webhook = API key Alpay yang sedang aktif (sama seperti verifyAlpayWebhookSignature)
+const SECRET =
+  db.prepare("SELECT nilai FROM pengaturan WHERE kunci = 'alpay_api_key'").get()?.nilai ||
+  process.env.ALPAY_API_KEY ||
+  "";
+if (!SECRET) {
+  console.error("API key Alpay tidak ditemukan (pengaturan.alpay_api_key / ALPAY_API_KEY).");
+  process.exit(1);
+}
 
 function createSignature(bodyText, secret = SECRET) {
   const hash = crypto.createHmac("sha256", secret).update(bodyText).digest("hex");
