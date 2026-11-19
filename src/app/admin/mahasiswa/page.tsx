@@ -19,8 +19,10 @@ import {
   ShieldCheck,
   Search,
   X,
-  MoreVertical
+  MoreVertical,
+  ReceiptText
 } from "lucide-react";
+import MutasiModal from "@/components/MutasiModal";
 
 export default function AdminMahasiswaPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -31,6 +33,9 @@ export default function AdminMahasiswaPage() {
 
   // Mobile Action Menu Target
   const [actionMenuTarget, setActionMenuTarget] = useState<any>(null);
+
+  // Modal Mutasi (riwayat transaksi saku mahasiswa)
+  const [mutasiTarget, setMutasiTarget] = useState<any>(null);
 
   // Filter & Search
   const [filterKelas, setFilterKelas] = useState("");
@@ -558,6 +563,16 @@ export default function AdminMahasiswaPage() {
 
                     {/* Desktop: Tombol Inline */}
                     <div className="hidden md:inline-flex items-center gap-1.5">
+                      {/* Mutasi: riwayat transaksi saku milik mahasiswa ini */}
+                      <button
+                        onClick={() => setMutasiTarget(s)}
+                        className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Lihat Mutasi / Riwayat Transaksi Saku"
+                      >
+                        <ReceiptText className="w-3 h-3" />
+                        <span>Mutasi</span>
+                      </button>
+
                       {/* Aksi Saldo: Muncul jika memiliki izin manage_saldo */}
                       {canUserDo(currentUser, "manage_saldo") && (
                         <button
@@ -670,6 +685,22 @@ export default function AdminMahasiswaPage() {
 
             {/* Kotak-kotak 2x2 Grid Aksi */}
             <div className="grid grid-cols-2 gap-2.5">
+              {/* 0. Mutasi / Riwayat Transaksi Saku */}
+              <button
+                type="button"
+                onClick={() => {
+                  const target = actionMenuTarget;
+                  setActionMenuTarget(null);
+                  setMutasiTarget(target);
+                }}
+                className="flex flex-col items-center justify-center text-center p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/80 hover:bg-gray-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 gap-2 cursor-pointer transition-all active:scale-95 shadow-xs"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gray-200/70 dark:bg-zinc-800 flex items-center justify-center">
+                  <ReceiptText className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
+                </div>
+                <span className="font-bold text-xs leading-tight">Mutasi Saku</span>
+              </button>
+
               {/* 1. Kelola Saldo Saku */}
               {canUserDo(currentUser, "manage_saldo") && (
                 <button
@@ -891,6 +922,9 @@ export default function AdminMahasiswaPage() {
           </div>
         </div>
       )}
+
+      {/* Modal Mutasi (Riwayat Transaksi Saku Mahasiswa) */}
+      {mutasiTarget && <MutasiModal student={mutasiTarget} onClose={() => setMutasiTarget(null)} />}
 
       {/* Modal Kelola Saldo (Tambah / Kurang Saldo) */}
       {showSaldoModal && selectedStudent && (
