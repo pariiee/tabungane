@@ -11,6 +11,8 @@ export function formatTrxType(type?: string): string {
     setoran_tunai: "Setor Tunai",
     transfer_masuk: "Transfer Masuk",
     transfer_keluar: "Transfer Keluar",
+    transfer_in: "Pindah Saldo Masuk",
+    transfer_out: "Pindah Saldo Keluar",
     alokasi_masuk: "Dana Masuk",
     alokasi_keluar: "Alokasi Event",
     reversal: "Koreksi Pembalik",
