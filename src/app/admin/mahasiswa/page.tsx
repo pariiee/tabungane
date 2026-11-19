@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
 import {
@@ -33,6 +33,8 @@ export default function AdminMahasiswaPage() {
 
   // Mobile Action Menu Target
   const [actionMenuTarget, setActionMenuTarget] = useState<any>(null);
+  // Fokus balik ke tombol titik tiga saat modal aksi ditutup (a11y)
+  const actionTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   // Modal Mutasi (riwayat transaksi saku mahasiswa)
   const [mutasiTarget, setMutasiTarget] = useState<any>(null);
@@ -155,6 +157,19 @@ export default function AdminMahasiswaPage() {
   useEffect(() => {
     loadData();
   }, [filterKelas]);
+
+  // Esc menutup modal aksi; setelah tertutup fokus balik ke tombol titik tiga
+  useEffect(() => {
+    if (!actionMenuTarget) {
+      actionTriggerRef.current?.focus?.();
+      return;
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActionMenuTarget(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [actionMenuTarget]);
 
   // Tambah Mahasiswa Manual
   const handleAddStudent = async (e: React.FormEvent) => {
@@ -504,7 +519,7 @@ export default function AdminMahasiswaPage() {
                 <th className="py-3 px-4 whitespace-nowrap">Kelas</th>
                 <th className="py-3 px-4 whitespace-nowrap">Saldo Saku</th>
                 <th className="py-3 px-4 whitespace-nowrap">Status Password</th>
-                <th className="py-3 px-4 whitespace-nowrap text-right">Aksi</th>
+                <th className="py-3 px-4 whitespace-nowrap text-right w-[170px]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
@@ -561,7 +576,7 @@ export default function AdminMahasiswaPage() {
                       </button>
                     </div>
 
-                    {/* Desktop: Tombol Inline */}
+                    {/* Desktop: Saldo + Mutasi inline, sisanya lewat modal aksi yang sama */}
                     <div className="hidden md:inline-flex items-center gap-1.5">
                       {/* Mutasi: riwayat transaksi saku milik mahasiswa ini */}
                       <button
@@ -585,56 +600,17 @@ export default function AdminMahasiswaPage() {
                         </button>
                       )}
 
-                      {/* Promosi / Demote Admin Kelas: Hanya Super Admin & Kaprodi */}
-                      {(isSuperAdmin || isKaprodi) && (
-                        <button
-                          onClick={() => setRoleToggleTarget(s)}
-                          className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer border ${
-                            s.role === "admin_kelas"
-                              ? "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300/60 dark:border-amber-800/40"
-                              : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300"
-                          }`}
-                          title={s.role === "admin_kelas" ? "Turunkan ke Mahasiswa Biasa" : "Angkat Jadi Adminya Kelas"}
-                        >
-                          <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                          <span>{s.role === "admin_kelas" ? "Turunkan Role" : "Admin Kelas"}</span>
-                        </button>
-                      )}
-
-                      {/* Edit Mahasiswa: Muncul jika memiliki izin edit_mahasiswa */}
-                      {canUserDo(currentUser, "edit_mahasiswa") && (
-                        <button
-                          onClick={() => handleOpenEdit(s)}
-                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Edit Data Mahasiswa"
-                        >
-                          <Pencil className="w-3 h-3" />
-                          <span>Edit</span>
-                        </button>
-                      )}
-
-                      {/* Reset Password: Muncul jika memiliki izin reset_mahasiswa */}
-                      {canUserDo(currentUser, "reset_mahasiswa") && (
-                        <button
-                          onClick={() => setResetTarget(s)}
-                          className="px-2 py-1 text-[11px] border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Reset Password & Username ke ID"
-                        >
-                          <KeyRound className="w-3 h-3" />
-                          <span>Reset</span>
-                        </button>
-                      )}
-
-                      {/* Hapus Mahasiswa: Hanya Super Admin atau yang memiliki izin hapus_mahasiswa */}
-                      {(isSuperAdmin || canUserDo(currentUser, "hapus_mahasiswa")) && (
-                        <button
-                          onClick={() => setDeleteTarget(s)}
-                          className="px-2 py-1 text-[11px] border border-rose-200/60 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-medium rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Hapus / Nonaktifkan Mahasiswa"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      )}
+                      {/* Titik tiga: buka modal aksi yang sama dengan mobile */}
+                      <button
+                        type="button"
+                        ref={(el) => { actionTriggerRef.current = el; }}
+                        onClick={() => setActionMenuTarget(s)}
+                        aria-label={`Aksi lainnya untuk ${s.nama}`}
+                        className="p-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 active:scale-95 transition-all cursor-pointer"
+                        title="Aksi Lainnya"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -651,14 +627,17 @@ export default function AdminMahasiswaPage() {
         </div>
       </div>
 
-      {/* Mobile Action Popup: Centered 2x2 Grid */}
+      {/* Modal Aksi Mahasiswa: dipakai mobile & desktop (dialog tengah, max ~400px) */}
       {actionMenuTarget && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setActionMenuTarget(null)}
         >
           <div
-            className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Aksi untuk ${actionMenuTarget.nama}`}
+            className="bg-white dark:bg-[#111113] border border-gray-200 dark:border-zinc-800 rounded-2xl max-w-[400px] w-full p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Info Mahasiswa */}
@@ -677,6 +656,7 @@ export default function AdminMahasiswaPage() {
               <button
                 type="button"
                 onClick={() => setActionMenuTarget(null)}
+                aria-label="Tutup pilihan aksi"
                 className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
